@@ -15,7 +15,6 @@ import 'package:bagtrip/service/onboarding_storage.dart';
 import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bagtrip/service/storage_service.dart';
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:mocktail/mocktail.dart';
 
 // ─── Mock declarations ──────────────────────────────────────────────────────
@@ -71,9 +70,6 @@ class MockPersonalizationStorage extends Mock
 
 class MockLocationService extends Mock implements LocationService {}
 
-class MockTripNotificationScheduler extends Mock
-    implements TripNotificationScheduler {}
-
 class MockPostTripDismissalStorage extends Mock
     implements PostTripDismissalStorage {}
 
@@ -110,7 +106,6 @@ class MockContainer {
   final MockCrashlyticsService crashlytics;
   final MockPersonalizationStorage personalization;
   final MockLocationService location;
-  final MockTripNotificationScheduler scheduler;
   final MockPostTripDismissalStorage dismissalStorage;
   final MockOnboardingStorage onboardingStorage;
   final MockAgentService agentService;
@@ -139,7 +134,6 @@ class MockContainer {
     required this.crashlytics,
     required this.personalization,
     required this.location,
-    required this.scheduler,
     required this.dismissalStorage,
     required this.onboardingStorage,
     required this.agentService,
@@ -183,7 +177,6 @@ Future<MockContainer> setupTestServiceLocator() async {
     crashlytics: MockCrashlyticsService(),
     personalization: MockPersonalizationStorage(),
     location: MockLocationService(),
-    scheduler: MockTripNotificationScheduler(),
     dismissalStorage: MockPostTripDismissalStorage(),
     onboardingStorage: MockOnboardingStorage(),
     agentService: MockAgentService(),
@@ -227,7 +220,6 @@ Future<MockContainer> setupTestServiceLocator() async {
   getIt.registerLazySingleton<WeatherRepository>(() => mocks.weather);
 
   // Layer 5: Composite services
-  getIt.registerLazySingleton<TripNotificationScheduler>(() => mocks.scheduler);
   getIt.registerLazySingleton<LocationService>(() => mocks.location);
 
   // ── Universal stubs (safe defaults) ──
@@ -242,18 +234,6 @@ Future<MockContainer> setupTestServiceLocator() async {
       any(),
       stackTrace: any(named: 'stackTrace'),
     ),
-  ).thenAnswer((_) async {});
-  when(
-    () => mocks.scheduler.scheduleOngoingNotifications(any()),
-  ).thenAnswer((_) async {});
-  when(
-    () => mocks.scheduler.schedulePackingReminder(any()),
-  ).thenAnswer((_) async {});
-  when(
-    () => mocks.scheduler.cancelTripNotifications(any()),
-  ).thenAnswer((_) async {});
-  when(
-    () => mocks.scheduler.scheduleCompletionReminder(any()),
   ).thenAnswer((_) async {});
   when(
     () => mocks.dismissalStorage.wasDismissedRecently(any()),

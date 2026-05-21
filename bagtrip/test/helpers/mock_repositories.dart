@@ -19,7 +19,6 @@ import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -63,9 +62,6 @@ class MockConnectivityService extends Mock implements ConnectivityService {}
 class MockTransportRepository extends Mock implements TransportRepository {}
 
 class MockWeatherRepository extends Mock implements WeatherRepository {}
-
-class MockTripNotificationScheduler extends Mock
-    implements TripNotificationScheduler {}
 
 class MockPostTripDismissalStorage extends Mock
     implements PostTripDismissalStorage {}

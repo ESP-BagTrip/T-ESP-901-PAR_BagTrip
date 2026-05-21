@@ -18,7 +18,6 @@ import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/auth_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bloc/bloc.dart';
 
@@ -31,7 +30,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
   final WeatherRepository _weatherRepository;
-  final TripNotificationScheduler _scheduler;
   final PostTripDismissalStorage _dismissalStorage;
 
   List<String> _pendingOfflineTransitions = [];
@@ -44,7 +42,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ActivityRepository? activityRepository,
     ConnectivityService? connectivityService,
     WeatherRepository? weatherRepository,
-    TripNotificationScheduler? scheduler,
     PostTripDismissalStorage? dismissalStorage,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
@@ -52,7 +49,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        _connectivityService =
            connectivityService ?? getIt<ConnectivityService>(),
        _weatherRepository = weatherRepository ?? getIt<WeatherRepository>(),
-       _scheduler = scheduler ?? getIt<TripNotificationScheduler>(),
        _dismissalStorage =
            dismissalStorage ?? getIt<PostTripDismissalStorage>(),
        super(HomeInitial()) {
@@ -122,11 +118,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return;
     }
     _preferIdleDespiteOngoing = false;
-    unawaited(
-      _scheduler
-          .cancelTripNotifications(trip)
-          .catchError((e) => dev.log('Cancel notif error: $e')),
-    );
     await _fetchAndEmitContextualState(emit);
   }
 
@@ -211,17 +202,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           .toList();
     }
 
-    // Schedule notifications for newly transitioned trips (fire-and-forget)
-    for (final trip in detectionResult.transitionedTrips) {
-      unawaited(
-        _scheduler
-            .scheduleOngoingNotifications(
-              trip.copyWith(status: TripStatus.ongoing),
-            )
-            .catchError((e) => dev.log('Scheduler error: $e')),
-      );
-    }
-
     // ── Auto-detect ongoing → completed (endDate < today) ──
     final endResult = await detectEndedTrips(
       ongoingTrips: mutableOngoing,
@@ -289,13 +269,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         weatherData = w;
       }
 
-      // Schedule ongoing trip notifications (idempotent, fire-and-forget)
-      unawaited(
-        _scheduler
-            .scheduleOngoingNotifications(activeTrip)
-            .catchError((e) => dev.log('Scheduler error: $e')),
-      );
-
       emit(
         HomeActiveTrip(
           user: user,
@@ -329,14 +302,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required List<Trip> completedTrips,
     Trip? backgroundOngoingTrip,
   }) {
-    for (final trip in mutablePlanned) {
-      unawaited(
-        _scheduler
-            .schedulePackingReminder(trip)
-            .catchError((e) => dev.log('Scheduler error: $e')),
-      );
-    }
-
     final nextTrip = mutablePlanned.isNotEmpty
         ? _pickEarliestTrip(mutablePlanned)
         : null;
@@ -358,17 +323,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _tripRepository.updateTripStatus(event.tripId, 'completed');
-    // Find the trip to cancel notifications
-    if (state is HomeActiveTrip) {
-      final trip = (state as HomeActiveTrip).pendingCompletionTrip;
-      if (trip != null) {
-        unawaited(
-          _scheduler
-              .cancelTripNotifications(trip)
-              .catchError((e) => dev.log('Cancel notif error: $e')),
-        );
-      }
-    }
     await _dismissalStorage.clearDismissal(event.tripId);
     // Emit intermediate state with completedTripId for navigation
     if (state is HomeActiveTrip) {
@@ -394,17 +348,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _dismissalStorage.recordDismissal(event.tripId);
-    // Schedule a 24h reminder notification
-    if (state is HomeActiveTrip) {
-      final trip = (state as HomeActiveTrip).pendingCompletionTrip;
-      if (trip != null) {
-        unawaited(
-          _scheduler
-              .scheduleCompletionReminder(trip)
-              .catchError((e) => dev.log('Scheduler error: $e')),
-        );
-      }
-    }
     add(RefreshHome());
   }
 

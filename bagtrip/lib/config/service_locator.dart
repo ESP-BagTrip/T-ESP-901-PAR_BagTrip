@@ -36,7 +36,6 @@ import 'package:bagtrip/service/weather_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bagtrip/repositories/repositories.dart';
 
 final getIt = GetIt.instance;
@@ -155,19 +154,10 @@ void setupServiceLocator() {
     ),
   );
 
-  // 5. TripNotificationScheduler
-  getIt.registerLazySingleton<TripNotificationScheduler>(
-    () => TripNotificationScheduler(
-      activityRepository: getIt<ActivityRepository>(),
-      accommodationRepository: getIt<AccommodationRepository>(),
-      baggageRepository: getIt<BaggageRepository>(),
-    ),
-  );
-
-  // 6. LocationService (uses Dio directly, not ApiClient)
+  // 5. LocationService (uses Dio directly, not ApiClient)
   getIt.registerLazySingleton<LocationService>(() => LocationService());
 
-  // 7. GeoLocationService (device GPS → nearest city via API)
+  // 6. GeoLocationService (device GPS → nearest city via API)
   getIt.registerLazySingleton<GeoLocationService>(
     () => GeoLocationService(locationService: getIt<LocationService>()),
   );

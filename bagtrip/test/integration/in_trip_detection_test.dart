@@ -4,7 +4,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/weather_summary.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,9 +14,6 @@ import '../helpers/test_fixtures.dart';
 
 class MockWeatherRepository extends Mock implements WeatherRepository {}
 
-class MockTripNotificationScheduler extends Mock
-    implements TripNotificationScheduler {}
-
 class MockPostTripDismissalStorage extends Mock
     implements PostTripDismissalStorage {}
 
@@ -27,7 +23,6 @@ void main() {
   late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivity;
   late MockWeatherRepository mockWeatherRepo;
-  late MockTripNotificationScheduler mockScheduler;
   late MockPostTripDismissalStorage mockDismissalStorage;
 
   setUp(() {
@@ -36,7 +31,6 @@ void main() {
     mockActivityRepo = MockActivityRepository();
     mockConnectivity = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
-    mockScheduler = MockTripNotificationScheduler();
     mockDismissalStorage = MockPostTripDismissalStorage();
 
     registerFallbackValue(makeTrip());
@@ -45,12 +39,6 @@ void main() {
     when(
       () => mockConnectivity.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
-    when(
-      () => mockScheduler.scheduleOngoingNotifications(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.schedulePackingReminder(any()),
-    ).thenAnswer((_) async {});
   });
 
   HomeBloc buildBloc() => HomeBloc(
@@ -59,7 +47,6 @@ void main() {
     activityRepository: mockActivityRepo,
     connectivityService: mockConnectivity,
     weatherRepository: mockWeatherRepo,
-    scheduler: mockScheduler,
     dismissalStorage: mockDismissalStorage,
   );
 
@@ -162,10 +149,6 @@ void main() {
       verify: (bloc) {
         final state = bloc.state as HomeActiveTrip;
         expect(state.activeTrip.id, 'transition-trip');
-        // Notifications should be scheduled for the transitioned trip
-        verify(
-          () => mockScheduler.scheduleOngoingNotifications(any()),
-        ).called(greaterThanOrEqualTo(1));
       },
     );
 

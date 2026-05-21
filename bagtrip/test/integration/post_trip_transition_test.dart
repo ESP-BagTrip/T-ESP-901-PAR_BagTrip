@@ -3,7 +3,6 @@ import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/repositories/weather_repository.dart';
-import 'package:bagtrip/service/trip_notification_scheduler.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,9 +13,6 @@ import '../helpers/test_fixtures.dart';
 
 class MockWeatherRepository extends Mock implements WeatherRepository {}
 
-class MockTripNotificationScheduler extends Mock
-    implements TripNotificationScheduler {}
-
 class MockPostTripDismissalStorage extends Mock
     implements PostTripDismissalStorage {}
 
@@ -26,7 +22,6 @@ void main() {
   late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivity;
   late MockWeatherRepository mockWeatherRepo;
-  late MockTripNotificationScheduler mockScheduler;
   late MockPostTripDismissalStorage mockDismissalStorage;
 
   setUp(() {
@@ -35,7 +30,6 @@ void main() {
     mockActivityRepo = MockActivityRepository();
     mockConnectivity = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
-    mockScheduler = MockTripNotificationScheduler();
     mockDismissalStorage = MockPostTripDismissalStorage();
 
     registerFallbackValue(makeTrip());
@@ -44,15 +38,6 @@ void main() {
     when(
       () => mockConnectivity.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
-    when(
-      () => mockScheduler.scheduleOngoingNotifications(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.cancelTripNotifications(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.scheduleCompletionReminder(any()),
-    ).thenAnswer((_) async {});
   });
 
   HomeBloc buildBloc() => HomeBloc(
@@ -61,7 +46,6 @@ void main() {
     activityRepository: mockActivityRepo,
     connectivityService: mockConnectivity,
     weatherRepository: mockWeatherRepo,
-    scheduler: mockScheduler,
     dismissalStorage: mockDismissalStorage,
   );
 
@@ -133,7 +117,7 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'ConfirmTripCompletion → updates status, cancels notifications, refreshes',
+      'ConfirmTripCompletion → updates status, clears dismissal, refreshes',
       build: () {
         final now = DateTime.now();
         final endedTrip = makeTrip(
@@ -187,7 +171,6 @@ void main() {
         verify(
           () => mockTripRepo.updateTripStatus('confirm-trip', 'completed'),
         ).called(1);
-        verify(() => mockScheduler.cancelTripNotifications(any())).called(1);
         verify(
           () => mockDismissalStorage.clearDismissal('confirm-trip'),
         ).called(1);
@@ -195,7 +178,7 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'DismissTripCompletion → records dismissal, schedules reminder, refreshes',
+      'DismissTripCompletion → records dismissal and refreshes',
       build: () {
         final now = DateTime.now();
         final endedTrip = makeTrip(
@@ -243,7 +226,6 @@ void main() {
         verify(
           () => mockDismissalStorage.recordDismissal('dismiss-trip'),
         ).called(1);
-        verify(() => mockScheduler.scheduleCompletionReminder(any())).called(1);
       },
     );
 
