@@ -1,10 +1,9 @@
 import 'package:bagtrip/activities/widgets/activity_form.dart';
-import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/design/widgets/review/activity_tile.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
+import 'package:bagtrip/design/widgets/review/activity_panel_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -15,6 +14,7 @@ import 'package:bagtrip/trip_detail/bloc/activities_view_cubit.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/activities_view_mode.dart';
 import 'package:bagtrip/trip_detail/view/panels/activities_view_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -119,11 +119,9 @@ class ActivitiesPanel extends StatelessWidget {
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
     final initialDate = _dayDateFor(_safeIndex);
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ActivityForm(
+      child: ActivityForm(
         tripId: tripId,
         initialDate: initialDate,
         onSave: (data) {
@@ -136,11 +134,9 @@ class ActivitiesPanel extends StatelessWidget {
 
   Future<void> _showEditSheet(BuildContext context, Activity activity) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ActivityForm(
+      child: ActivityForm(
         tripId: tripId,
         activity: activity,
         onSave: (data) {
@@ -222,11 +218,12 @@ class ActivitiesPanel extends StatelessWidget {
     if (activities.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
-        child: ElegantEmptyState(
+        child: TripPanelEmptyState(
           icon: Icons.hiking_rounded,
           title: l10n.emptyActivitiesTitle,
-          subtitle: canEdit ? l10n.emptyActivitiesSubtitle : null,
-          ctaLabel: canEdit ? l10n.panelQuickAddActivity : null,
+          ctaLabel: l10n.emptyActivitiesAddNow,
+          tripStartDate: tripStartDate,
+          canEdit: canEdit,
           onCta: canEdit ? () => _showAddSheet(context) : null,
         ),
       );
@@ -276,13 +273,21 @@ class ActivitiesPanel extends StatelessWidget {
                   const SizedBox(height: AppSpacing.space16),
                   if (filtered.isEmpty && viewState.hasActiveFilters)
                     _FilterEmptyState(l10n: l10n)
-                  else
+                  else ...[
                     ..._buildModeChildren(
                       context,
                       l10n,
                       viewState.mode,
                       filtered,
                     ),
+                    if (canEdit && filtered.isNotEmpty)
+                      _ActivitiesGestureHint(
+                        hasSuggested: filtered.any(
+                          (a) =>
+                              a.validationStatus == ValidationStatus.suggested,
+                        ),
+                      ),
+                  ],
                 ],
               ),
               if (canEdit)
@@ -473,15 +478,23 @@ class ActivitiesPanel extends StatelessWidget {
     return children;
   }
 
+  String? _timeLabel(Activity activity) {
+    final start = activity.startTime;
+    if (start == null || start.isEmpty) return null;
+    final end = activity.endTime;
+    if (end != null && end.isNotEmpty) return '$start — $end';
+    return start;
+  }
+
   Widget _activityRowFor(BuildContext context, Activity activity) {
     return _ActivityRow(
       activity: activity,
       canEdit: canEdit,
       onTap: () => _showPreview(context, activity),
-      onEdit: () => _showEditSheet(context, activity),
       onDelete: () => _delete(context, activity),
       onValidate: () => _validate(context, activity),
-      categoryLabel: _categoryLabel,
+      categoryLabel: _categoryLabel(activity.category),
+      timeLabel: _timeLabel(activity),
     );
   }
 }
@@ -594,158 +607,114 @@ class _ActivityRow extends StatelessWidget {
     required this.activity,
     required this.canEdit,
     required this.onTap,
-    required this.onEdit,
     required this.onDelete,
     required this.onValidate,
     required this.categoryLabel,
+    this.timeLabel,
   });
 
   final Activity activity;
   final bool canEdit;
   final VoidCallback onTap;
-  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onValidate;
-  final String Function(ActivityCategory) categoryLabel;
+  final String categoryLabel;
+  final String? timeLabel;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final isSuggested = activity.validationStatus == ValidationStatus.suggested;
-    Widget tile = ActivityTile(
+    final card = ActivityPanelCard(
       title: activity.title,
       description: activity.description ?? '',
-      category: categoryLabel(activity.category),
+      categoryLabel: categoryLabel,
+      timeLabel: timeLabel,
+      location: activity.location,
+      validationStatus: activity.validationStatus,
       onTap: onTap,
     );
 
-    if (canEdit && isSuggested) {
-      tile = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          tile,
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.space16,
-              0,
-              AppSpacing.space16,
-              AppSpacing.space12,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _InlineActionButton(
-                    icon: Icons.check_rounded,
-                    label: l10n.activityValidateAction,
-                    accent: ColorName.secondary,
-                    onTap: onValidate,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.space8),
-                Expanded(
-                  child: _InlineActionButton(
-                    icon: Icons.close_rounded,
-                    label: l10n.panelActionDelete,
-                    accent: ColorName.error,
-                    onTap: onDelete,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (!canEdit) return tile;
+    if (!canEdit) return card;
 
     return Dismissible(
       key: ValueKey('itinerary-panel-${activity.id}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) async {
+      direction: isSuggested
+          ? DismissDirection.horizontal
+          : DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          AppHaptics.success();
+          onValidate();
+          return false;
+        }
         AppHaptics.medium();
         return true;
       },
       onDismissed: (_) => onDelete(),
-      background: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.space16),
-        decoration: const BoxDecoration(
-          color: ColorName.error,
-          borderRadius: AppRadius.large16,
-        ),
+      background: const _SwipeActionBackground(
+        color: ColorName.secondary,
+        icon: Icons.check_rounded,
+        alignment: Alignment.centerLeft,
+      ),
+      secondaryBackground: const _SwipeActionBackground(
+        color: ColorName.error,
+        icon: Icons.delete_outline_rounded,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppSpacing.space24),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
-      child: AdaptiveContextMenu(
-        actions: [
-          AdaptiveContextAction(
-            label: l10n.panelActionEdit,
-            icon: Icons.edit_outlined,
-            onPressed: onEdit,
-          ),
-          AdaptiveContextAction(
-            label: l10n.panelActionDelete,
-            icon: Icons.delete_outline_rounded,
-            onPressed: onDelete,
-            isDestructive: true,
-          ),
-        ],
-        child: tile,
-      ),
+      child: card,
     );
   }
 }
 
-class _InlineActionButton extends StatelessWidget {
-  const _InlineActionButton({
+class _SwipeActionBackground extends StatelessWidget {
+  const _SwipeActionBackground({
+    required this.color,
     required this.icon,
-    required this.label,
-    required this.accent,
-    required this.onTap,
+    required this.alignment,
   });
 
+  final Color color;
   final IconData icon;
-  final String label;
-  final Color accent;
-  final VoidCallback onTap;
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.pill,
-      child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: AppRadius.pill,
-          border: Border.all(color: accent.withValues(alpha: 0.6)),
-          color: accent.withValues(alpha: 0.05),
-        ),
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.space8,
-          horizontal: AppSpacing.space12,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: accent),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
-                  color: accent,
-                ),
-              ),
-            ),
-          ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+      decoration: BoxDecoration(color: color, borderRadius: AppRadius.large16),
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+      child: Icon(icon, color: Colors.white, size: 28),
+    );
+  }
+}
+
+class _ActivitiesGestureHint extends StatelessWidget {
+  const _ActivitiesGestureHint({required this.hasSuggested});
+
+  final bool hasSuggested;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final text = hasSuggested
+        ? l10n.activitiesPanelGestureHintFull
+        : l10n.activitiesPanelGestureHintDeleteOnly;
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.space8,
+        bottom: AppSpacing.space16,
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: FontFamily.dMSans,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          height: 1.45,
+          color: ColorName.hint,
         ),
       ),
     );

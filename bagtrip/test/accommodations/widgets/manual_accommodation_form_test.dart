@@ -1,5 +1,6 @@
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/accommodation.dart';
 import 'package:flutter/material.dart';
@@ -40,9 +41,11 @@ void main() {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: BlocProvider<AccommodationBloc>.value(
+      home: SizedBox(
+        width: 800,
+        height: 1200,
+        child: Scaffold(
+          body: BlocProvider<AccommodationBloc>.value(
             value: mockBloc,
             child: ManualAccommodationForm(
               tripId: 'trip-1',
@@ -60,7 +63,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Add manually'), findsOneWidget);
-      expect(find.text('Add'), findsOneWidget);
+      expect(find.byType(ItemFormPrimaryButton), findsOneWidget);
     });
 
     testWidgets('all fields are empty in create mode', (tester) async {
@@ -77,14 +80,7 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Add'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Add'));
+      await tester.tap(find.byType(ItemFormPrimaryButton));
       await tester.pumpAndSettle();
 
       expect(find.text('Title is required'), findsOneWidget);
@@ -95,15 +91,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).first, 'Hotel Test');
-
-      await tester.scrollUntilVisible(
-        find.text('Add'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Add'));
+      await tester.tap(find.byType(ItemFormPrimaryButton));
       await tester.pumpAndSettle();
 
       final captured = verify(() => mockBloc.add(captureAny())).captured;
@@ -132,7 +120,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Edit Accommodation'), findsOneWidget);
-      expect(find.text('Save'), findsOneWidget);
+      expect(find.byType(ItemFormPrimaryButton), findsOneWidget);
     });
 
     testWidgets('pre-fills all fields from existing accommodation', (
@@ -153,17 +141,8 @@ void main() {
       await tester.pumpWidget(buildApp(existing: existing));
       await tester.pumpAndSettle();
 
-      // Change name
       await tester.enterText(find.byType(TextFormField).first, 'Hotel Updated');
-
-      await tester.scrollUntilVisible(
-        find.text('Save'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Save'));
+      await tester.tap(find.byType(ItemFormPrimaryButton));
       await tester.pumpAndSettle();
 
       final captured = verify(() => mockBloc.add(captureAny())).captured;
@@ -181,8 +160,8 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('Check-in time'), findsOneWidget);
-      expect(find.text('Check-out time'), findsOneWidget);
+      expect(find.text('CHECK-IN TIME'), findsOneWidget);
+      expect(find.text('CHECK-OUT TIME'), findsOneWidget);
     });
 
     testWidgets('time tiles show placeholder when no time set', (tester) async {
@@ -198,19 +177,14 @@ void main() {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('Address'), findsOneWidget);
+      expect(find.text('ADDRESS'), findsOneWidget);
     });
 
     testWidgets('reference field uses l10n label', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Booking reference'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Booking reference'), findsOneWidget);
+      expect(find.text('BOOKING REFERENCE'), findsWidgets);
     });
   });
 }

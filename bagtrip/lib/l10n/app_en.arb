@@ -647,6 +647,7 @@
   "arrivalDateLabel": "Arrival date",
   "priceLabel": "Price",
   "notesLabel": "Notes",
+  "fieldOptionalHint": "Optional",
   "mainFlightType": "Main",
   "internalFlightType": "Internal",
   "editButton": "Edit",
@@ -706,12 +707,40 @@
   "statusCompleted": "Completed",
   "emptyTransportsTitle": "Where are you flying?",
   "emptyTransportsSubtitle": "Add your flights to start organizing your trip",
-  "emptyAccommodationsTitle": "Where will you stay?",
+  "emptyAccommodationsTitle": "You don't have a stay saved yet",
+  "emptyAccommodationsAddNow": "Add now",
   "emptyAccommodationsSubtitle": "Add your hotels and lodgings",
-  "emptyFlightsTitle": "Ready to fly?",
-  "emptyFlightsSubtitle": "Add your flights to track dates and times",
+  "emptyFlightsTitle": "You don't have a flight saved yet",
+  "emptyFlightsAddNow": "Add now",
+  "flightsPanelEmptyCountdownDays": "You have {days} days left before departure.",
+  "@flightsPanelEmptyCountdownDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownDaysHighlight": "{days} days",
+  "@flightsPanelEmptyCountdownDaysHighlight": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownHm": "You have {hours}h {minutes}m left before departure.",
+  "@flightsPanelEmptyCountdownHm": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "flightsPanelEmptyCountdownHmHighlight": "{hours}h {minutes}m",
+  "@flightsPanelEmptyCountdownHmHighlight": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
   "noActivitiesThisDay": "Nothing planned for this day yet",
-  "emptyActivitiesTitle": "What will you discover?",
+  "emptyActivitiesTitle": "You don't have an activity saved yet",
+  "emptyActivitiesAddNow": "Add now",
   "emptyActivitiesSubtitle": "Add activities to plan your trip",
   "emptyBaggageTitle": "What do you need to pack?",
   "emptyBaggageSubtitle": "Add items to your luggage list",
@@ -722,7 +751,8 @@
       "total": {"type": "int"}
     }
   },
-  "emptySharesTitle": "Travel together",
+  "emptySharesTitle": "You haven't invited anyone yet",
+  "emptySharesAddNow": "Invite now",
   "emptySharesSubtitle": "Invite travel partners to collaborate on this trip",
   "budgetSeeAllExpenses": "See all expenses",
   "budgetOverBudgetBanner": "Over budget by {amount}",
@@ -1545,6 +1575,8 @@
   "baggageAllPackedMessage": "All packed — ready to roll.",
   "budgetRecentExpenses": "Recent",
   "activityValidateAction": "Validate",
+  "activitiesPanelGestureHintFull": "Swipe right to validate, left to delete · Tap to view details",
+  "activitiesPanelGestureHintDeleteOnly": "Swipe left to delete · Tap to view details",
   "activitySuggestedBadge": "Suggested",
   "activitiesUnscheduledHeader": "Unscheduled",
   "activitiesViewTimeline": "Timeline",

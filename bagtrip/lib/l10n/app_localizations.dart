@@ -2516,6 +2516,12 @@ abstract class AppLocalizations {
   /// **'Notes'**
   String get notesLabel;
 
+  /// No description provided for @fieldOptionalHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel'**
+  String get fieldOptionalHint;
+
   /// No description provided for @mainFlightType.
   ///
   /// In fr, this message translates to:
@@ -2795,8 +2801,14 @@ abstract class AppLocalizations {
   /// No description provided for @emptyAccommodationsTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Où dormirez-vous ?'**
+  /// **'Vous n\'avez pas d\'hébergement enregistré'**
   String get emptyAccommodationsTitle;
+
+  /// No description provided for @emptyAccommodationsAddNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter maintenant'**
+  String get emptyAccommodationsAddNow;
 
   /// No description provided for @emptyAccommodationsSubtitle.
   ///
@@ -2807,14 +2819,38 @@ abstract class AppLocalizations {
   /// No description provided for @emptyFlightsTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Prêt à décoller ?'**
+  /// **'Vous n\'avez pas de vol enregistré'**
   String get emptyFlightsTitle;
 
-  /// No description provided for @emptyFlightsSubtitle.
+  /// No description provided for @emptyFlightsAddNow.
   ///
   /// In fr, this message translates to:
-  /// **'Ajoutez vos vols pour suivre dates et horaires'**
-  String get emptyFlightsSubtitle;
+  /// **'Ajouter maintenant'**
+  String get emptyFlightsAddNow;
+
+  /// No description provided for @flightsPanelEmptyCountdownDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il vous reste {days} jours avant le départ.'**
+  String flightsPanelEmptyCountdownDays(int days);
+
+  /// No description provided for @flightsPanelEmptyCountdownDaysHighlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String flightsPanelEmptyCountdownDaysHighlight(int days);
+
+  /// No description provided for @flightsPanelEmptyCountdownHm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il vous reste {hours}h {minutes}m avant le départ.'**
+  String flightsPanelEmptyCountdownHm(int hours, int minutes);
+
+  /// No description provided for @flightsPanelEmptyCountdownHmHighlight.
+  ///
+  /// In fr, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String flightsPanelEmptyCountdownHmHighlight(int hours, int minutes);
 
   /// No description provided for @noActivitiesThisDay.
   ///
@@ -2825,8 +2861,14 @@ abstract class AppLocalizations {
   /// No description provided for @emptyActivitiesTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Que découvrirez-vous ?'**
+  /// **'Vous n\'avez pas d\'activité enregistrée'**
   String get emptyActivitiesTitle;
+
+  /// No description provided for @emptyActivitiesAddNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter maintenant'**
+  String get emptyActivitiesAddNow;
 
   /// No description provided for @emptyActivitiesSubtitle.
   ///
@@ -2855,8 +2897,14 @@ abstract class AppLocalizations {
   /// No description provided for @emptySharesTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Voyagez ensemble'**
+  /// **'Vous n\'avez pas invité de compagnon'**
   String get emptySharesTitle;
+
+  /// No description provided for @emptySharesAddNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inviter maintenant'**
+  String get emptySharesAddNow;
 
   /// No description provided for @emptySharesSubtitle.
   ///
@@ -5576,6 +5624,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Valider'**
   String get activityValidateAction;
+
+  /// No description provided for @activitiesPanelGestureHintFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glissez vers la droite pour valider, vers la gauche pour supprimer · Touchez pour voir le détail'**
+  String get activitiesPanelGestureHintFull;
+
+  /// No description provided for @activitiesPanelGestureHintDeleteOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glissez vers la gauche pour supprimer · Touchez pour voir le détail'**
+  String get activitiesPanelGestureHintDeleteOnly;
 
   /// No description provided for @activitySuggestedBadge.
   ///

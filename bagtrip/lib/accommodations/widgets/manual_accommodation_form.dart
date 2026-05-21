@@ -2,6 +2,10 @@ import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/components/adaptive/adaptive_date_picker.dart';
 import 'package:bagtrip/components/adaptive/adaptive_time_picker.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
+import 'package:bagtrip/design/widgets/form/micro_label_field.dart';
+import 'package:bagtrip/design/widgets/form/pill_segmented_control.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -221,10 +225,16 @@ class _ManualAccommodationFormState extends State<ManualAccommodationForm> {
     return ItemStatusChip.fromBackend(a.validationStatus.name.toUpperCase());
   }
 
+  String _formatDate(DateTime? d) =>
+      d != null ? DateFormat('dd/MM/yyyy').format(d) : '--/--/----';
+
+  String _formatTime(TimeOfDay? t) => t != null
+      ? '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}'
+      : '--:--';
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return Form(
       key: _formKey,
@@ -237,220 +247,180 @@ class _ManualAccommodationFormState extends State<ManualAccommodationForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
+            FormSectionHeader(
+              label: l10n.accommodationsTitle,
+              icon: Icons.hotel_outlined,
+            ),
+            MicroLabelField(
+              label: l10n.accommodationsTitle,
               controller: _nameCtrl,
-              decoration: InputDecoration(
-                labelText: '${l10n.accommodationsTitle} *',
-                hintText: 'Hotel Marriott, Airbnb Le Marais...',
-              ),
+              hint: 'Hotel Marriott, Airbnb…',
               validator: (v) => v == null || v.trim().isEmpty
                   ? l10n.activityTitleRequired
                   : null,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            const SizedBox(height: AppSpacing.space12),
+            MicroLabelField(
+              label: l10n.accommodationAddressLabel,
               controller: _addressCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.accommodationAddressLabel,
+              prefixIcon: const Icon(
+                Icons.location_on_outlined,
+                size: 18,
+                color: ColorName.hint,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space24),
+
+            FormSectionHeader(
+              label: l10n.accommodationCheckInLabel,
+              icon: Icons.date_range_outlined,
+            ),
             Row(
               children: [
                 Expanded(
-                  child: _DatePickerTile(
+                  child: MicroLabelField(
                     label: l10n.accommodationCheckInLabel,
-                    value: _checkIn,
+                    readOnly: true,
+                    displayValue: _formatDate(_checkIn),
                     onTap: () => _pickDate(isCheckIn: true),
+                    errorText: _datesError,
+                    suffixIcon: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: _TimePickerTile(
+                  child: MicroLabelField(
                     label: l10n.accommodationCheckInTimeLabel,
-                    value: _checkInTime,
+                    readOnly: true,
+                    displayValue: _formatTime(_checkInTime),
                     onTap: () => _pickTime(isCheckIn: true),
+                    suffixIcon: const Icon(
+                      Icons.access_time,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.space12),
             Row(
               children: [
                 Expanded(
-                  child: _DatePickerTile(
+                  child: MicroLabelField(
                     label: l10n.accommodationCheckOutLabel,
-                    value: _checkOut,
+                    readOnly: true,
+                    displayValue: _formatDate(_checkOut),
                     onTap: () => _pickDate(isCheckIn: false),
+                    errorText: _datesError != null ? ' ' : null,
+                    suffixIcon: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.space12),
                 Expanded(
-                  child: _TimePickerTile(
+                  child: MicroLabelField(
                     label: l10n.accommodationCheckOutTimeLabel,
-                    value: _checkOutTime,
+                    readOnly: true,
+                    displayValue: _formatTime(_checkOutTime),
                     onTap: () => _pickTime(isCheckIn: false),
+                    suffixIcon: const Icon(
+                      Icons.access_time,
+                      size: 18,
+                      color: ColorName.hint,
+                    ),
                   ),
                 ),
               ],
             ),
-            if (_datesError != null) ...[
-              const SizedBox(height: 6),
+            if (_datesError != null && _datesError!.length > 1) ...[
+              const SizedBox(height: AppSpacing.space4),
               Text(
                 _datesError!,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: FontFamily.b612,
-                  fontSize: 12,
-                  color: theme.colorScheme.error,
+                  fontSize: 11,
+                  color: ColorName.error,
                 ),
               ),
             ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _priceCtrl,
-                    decoration: InputDecoration(
-                      labelText: l10n.accommodationPricePerNight,
-                      suffixText: _currency,
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'EUR', label: Text('EUR')),
-                    ButtonSegment(value: 'USD', label: Text('USD')),
-                    ButtonSegment(value: 'GBP', label: Text('GBP')),
-                  ],
-                  selected: {_currency},
-                  onSelectionChanged: (v) =>
-                      setState(() => _currency = v.first),
-                ),
+            const SizedBox(height: AppSpacing.space24),
+
+            FormSectionHeader(
+              label: l10n.accommodationPricePerNight,
+              icon: Icons.payments_outlined,
+            ),
+            MicroLabelField(
+              label: l10n.accommodationPricePerNight,
+              controller: _priceCtrl,
+              hint: '0',
+              keyboardType: TextInputType.number,
+              prefixIcon: const Icon(
+                Icons.attach_money,
+                size: 18,
+                color: ColorName.hint,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            PillSegmentedControl<String>(
+              value: _currency,
+              compact: true,
+              onChanged: (v) => setState(() => _currency = v),
+              segments: const [
+                PillSegmentOption(value: 'EUR', label: 'EUR'),
+                PillSegmentOption(value: 'USD', label: 'USD'),
+                PillSegmentOption(value: 'GBP', label: 'GBP'),
               ],
             ),
             if (widget.isEstimatedPrice) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.space4),
               Text(
                 l10n.accommodationEstimatedPrice,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 11,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: ColorName.hint,
                 ),
               ),
             ],
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _referenceCtrl,
-              decoration: InputDecoration(
-                labelText: l10n.accommodationReferenceLabel,
-              ),
+            const SizedBox(height: AppSpacing.space24),
+
+            FormSectionHeader(
+              label: l10n.accommodationReferenceLabel,
+              icon: Icons.confirmation_number_outlined,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            MicroLabelField(
+              label: l10n.accommodationReferenceLabel,
+              controller: _referenceCtrl,
+              hint: l10n.fieldOptionalHint,
+            ),
+            const SizedBox(height: AppSpacing.space12),
+            MicroLabelField(
+              label: l10n.notesLabel,
               controller: _notesCtrl,
-              decoration: InputDecoration(labelText: l10n.notesLabel),
+              hint: l10n.fieldOptionalHint,
               maxLines: 2,
+              prefixIcon: const Icon(
+                Icons.notes_outlined,
+                size: 18,
+                color: ColorName.hint,
+              ),
             ),
           ],
         ),
         actions: [
-          FilledButton(
+          ItemFormPrimaryButton(
+            label: _isEditMode ? l10n.accommodationSaveButton : l10n.addButton,
             onPressed: _submit,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: ColorName.primary,
-            ),
-            child: Text(
-              _isEditMode ? l10n.accommodationSaveButton : l10n.addButton,
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _DatePickerTile extends StatelessWidget {
-  final String label;
-  final DateTime? value;
-  final VoidCallback onTap;
-
-  const _DatePickerTile({
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.medium8,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: const Icon(Icons.calendar_today, size: 18),
-        ),
-        child: Text(
-          value != null
-              ? DateFormat('dd/MM/yyyy').format(value!)
-              : '--/--/----',
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 14,
-            color: value != null
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.outline,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TimePickerTile extends StatelessWidget {
-  final String label;
-  final TimeOfDay? value;
-  final VoidCallback onTap;
-
-  const _TimePickerTile({
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.medium8,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          suffixIcon: const Icon(Icons.access_time, size: 18),
-        ),
-        child: Text(
-          value != null
-              ? '${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}'
-              : '--:--',
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 14,
-            color: value != null
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.outline,
-          ),
-        ),
       ),
     );
   }

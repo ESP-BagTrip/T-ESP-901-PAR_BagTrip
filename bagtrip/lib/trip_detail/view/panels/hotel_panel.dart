@@ -1,6 +1,6 @@
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/core/trip_enums.dart';
@@ -9,6 +9,7 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
 import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
+import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
@@ -49,11 +50,9 @@ class HotelPanel extends StatelessWidget {
 
   Future<void> _showAddSheet(BuildContext context) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ManualAccommodationForm(
+      child: ManualAccommodationForm(
         tripId: tripId,
         tripStartDate: trip.startDate,
         tripEndDate: trip.endDate,
@@ -67,11 +66,9 @@ class HotelPanel extends StatelessWidget {
 
   Future<void> _showEditSheet(BuildContext context, Accommodation acc) async {
     final bloc = context.read<TripDetailBloc>();
-    await showModalBottomSheet<void>(
+    await showItemFormSheet<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ManualAccommodationForm(
+      child: ManualAccommodationForm(
         tripId: tripId,
         existing: acc,
         tripStartDate: trip.startDate,
@@ -353,11 +350,12 @@ class HotelPanel extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElegantEmptyState(
+            TripPanelEmptyState(
               icon: Icons.hotel_rounded,
               title: l10n.emptyAccommodationsTitle,
-              subtitle: canEdit ? l10n.emptyAccommodationsSubtitle : null,
-              ctaLabel: canEdit ? l10n.panelQuickAddStay : null,
+              ctaLabel: l10n.emptyAccommodationsAddNow,
+              tripStartDate: trip.startDate,
+              canEdit: canEdit,
               onCta: canEdit ? () => _showAddSheet(context) : null,
             ),
             if (canEdit) ...[

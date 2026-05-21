@@ -66,7 +66,7 @@ void main() {
                 onPressed: () {
                   showItemFormSheet<void>(
                     context: context,
-                    scaffold: const ItemFormScaffold(
+                    child: const ItemFormScaffold(
                       title: 'X',
                       fields: SizedBox.shrink(),
                       actions: [],
@@ -106,5 +106,36 @@ void main() {
     await tester.tap(find.byIcon(Icons.close));
     await tester.pump();
     expect(calls, 1);
+  });
+
+  testWidgets('sheet content is capped at 80% of screen height', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      mountSheet(
+        const ItemFormScaffold(
+          title: 'Tall form',
+          fields: SizedBox(height: 2000),
+          actions: [],
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final maxHeight = 800 * ItemFormSheetLayout.maxHeightFactor;
+    final constrainedBoxes = tester.widgetList<ConstrainedBox>(
+      find.descendant(
+        of: find.byType(ItemFormScaffold),
+        matching: find.byType(ConstrainedBox),
+      ),
+    );
+    expect(
+      constrainedBoxes.any((b) => b.constraints.maxHeight == maxHeight),
+      isTrue,
+    );
   });
 }

@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
-import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -69,8 +69,26 @@ void main() {
         role: 'OWNER',
       ),
     );
-    expect(find.byType(ElegantEmptyState), findsOneWidget);
-    expect(find.text('Add flight'), findsOneWidget);
+    expect(find.byType(TripPanelEmptyState), findsOneWidget);
+    expect(find.text('Add now'), findsOneWidget);
+  });
+
+  testWidgets('empty state shows countdown when trip start is in future', (
+    tester,
+  ) async {
+    final start = DateTime.now().add(const Duration(days: 26));
+    await pump(
+      tester,
+      FlightsPanel(
+        tripId: 'trip-1',
+        flights: const [],
+        tripStartDate: start,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.textContaining('26 days'), findsOneWidget);
   });
 
   testWidgets('renders one BoardingPassCard per flight', (tester) async {

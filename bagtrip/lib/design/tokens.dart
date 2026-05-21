@@ -110,6 +110,7 @@ class AppRadius {
   static const double cornerRadius3 = 3.0;
   static const double cornerRaidus4 = 4.0;
   static const double cornerRaidus8 = 8.0;
+  static const double cornerRadius12 = 12.0;
   static const double cornerRaidus16 = 16.0;
 
   /// Context pill (Plan trip step header).
@@ -136,6 +137,9 @@ class AppRadius {
   );
   static const BorderRadius medium8 = BorderRadius.all(
     Radius.circular(cornerRaidus8),
+  );
+  static const BorderRadius medium12 = BorderRadius.all(
+    Radius.circular(cornerRadius12),
   );
   static const BorderRadius large16 = BorderRadius.all(
     Radius.circular(cornerRaidus16),

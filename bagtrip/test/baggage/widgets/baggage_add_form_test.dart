@@ -1,5 +1,6 @@
 import 'package:bagtrip/baggage/bloc/baggage_bloc.dart';
 import 'package:bagtrip/baggage/widgets/baggage_add_form.dart';
+import 'package:bagtrip/design/widgets/form/item_form_primary_button.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -57,7 +58,7 @@ void main() {
 
     testWidgets('has a save button', (tester) async {
       await pump(tester);
-      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.byType(ItemFormPrimaryButton), findsOneWidget);
     });
   });
 }
