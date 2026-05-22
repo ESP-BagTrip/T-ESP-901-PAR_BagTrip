@@ -1,7 +1,7 @@
+import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
-import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
 import 'package:bloc/bloc.dart';
@@ -9,6 +9,10 @@ import 'package:bloc/bloc.dart';
 part 'notification_event.dart';
 part 'notification_state.dart';
 
+/// Drives the notification history screen (paginated list + read state).
+///
+/// The tab-bar unread badge lives in `NotificationCountCubit`, not here — see
+/// SMP-326. This bloc only owns the list.
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final NotificationRepository _notificationRepository;
 
@@ -18,10 +22,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       super(NotificationInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
     on<LoadMoreNotifications>(_onLoadMore);
-    on<LoadUnreadCount>(_onLoadUnreadCount);
     on<MarkNotificationRead>(_onMarkNotificationRead);
     on<MarkAllRead>(_onMarkAllRead);
-    on<NotificationReceived>(_onNotificationReceived);
     on<ResetNotifications>(_onReset);
   }
 
@@ -42,11 +44,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       case Success(:final data):
         emit(
           NotificationsLoaded(
-            notifications: data['items'] as List<AppNotification>,
-            unreadCount: data['unreadCount'] as int,
-            totalPages: data['totalPages'] as int,
-            currentPage: data['page'] as int,
-            total: data['total'] as int,
+            notifications: data.items,
+            unreadCount: data.unreadCount,
+            totalPages: data.totalPages,
+            currentPage: data.page,
+            total: data.total,
           ),
         );
       case Failure(:final error):
@@ -81,14 +83,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     if (isClosed) return;
     switch (result) {
       case Success(:final data):
-        final newItems = data['items'] as List<AppNotification>;
         emit(
           NotificationsLoaded(
-            notifications: [...current.notifications, ...newItems],
-            unreadCount: data['unreadCount'] as int,
-            totalPages: data['totalPages'] as int,
-            currentPage: nextPage,
-            total: data['total'] as int,
+            notifications: [...current.notifications, ...data.items],
+            unreadCount: data.unreadCount,
+            totalPages: data.totalPages,
+            currentPage: data.page,
+            total: data.total,
           ),
         );
       case Failure(:final error):
@@ -102,21 +103,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
             total: current.total,
           ),
         );
-    }
-  }
-
-  Future<void> _onLoadUnreadCount(
-    LoadUnreadCount event,
-    Emitter<NotificationState> emit,
-  ) async {
-    final result = await _notificationRepository.getUnreadCount();
-    if (isClosed) return;
-    switch (result) {
-      case Success(:final data):
-        emit(UnreadCountLoaded(count: data));
-      case Failure(:final error):
-        getIt<CrashlyticsService>().recordAppError(error);
-        break;
     }
   }
 
@@ -185,13 +171,5 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       case Failure(:final error):
         emit(NotificationError(error: error));
     }
-  }
-
-  Future<void> _onNotificationReceived(
-    NotificationReceived event,
-    Emitter<NotificationState> emit,
-  ) async {
-    // Refresh unread count when a new notification arrives
-    add(LoadUnreadCount());
   }
 }

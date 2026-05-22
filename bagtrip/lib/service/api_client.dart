@@ -156,8 +156,8 @@ class ApiClient {
     return _dio.put(path, data: data, options: options);
   }
 
-  Future<Response> delete(String path, {Options? options}) {
-    return _dio.delete(path, options: options);
+  Future<Response> delete(String path, {dynamic data, Options? options}) {
+    return _dio.delete(path, data: data, options: options);
   }
 
   /// Direct access to Dio (if needed).

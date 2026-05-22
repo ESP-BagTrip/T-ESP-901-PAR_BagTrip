@@ -25,6 +25,7 @@ something to render.
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
@@ -55,6 +56,11 @@ TOP_K_CANDIDATES = 8
 
 #: How many destinations we ship to the client by default.
 DEFAULT_PICK_COUNT = 4
+
+#: Extra suggestions the LLM-only fallback over-fetches on top of
+#: ``pick_count`` so a few unresolvable IATA codes don't shrink the
+#: card list below the target count.
+FALLBACK_OVERFETCH = 2
 
 
 # ── Public dataclass surface ───────────────────────────────────────────
@@ -264,6 +270,30 @@ class InspireOrchestrator:
         return results[0]
 
     @classmethod
+    def _resolve_destination(cls, iata: str, city: str, country: str = "") -> Location | None:
+        """Resolve an LLM-suggested destination to an offline aviation Location.
+
+        The IATA code is the **primary** key: it is language-independent
+        and resolves in O(1) against ``airportsdata``. This is what keeps
+        the LLM-only fallback locale-safe — a French run yields French
+        narrative copy but still ships ``"LIS"`` rather than the
+        unresolvable ``"Lisbonne"``.
+
+        When the LLM omits the code or hallucinates one ``airportsdata``
+        doesn't know, we degrade to an English city-name search (the
+        ``destination_quick`` prompt pins ``city``/``country`` to English
+        precisely so this secondary lookup stays reliable).
+        """
+        code = iata.strip().upper()
+        if len(code) == 3 and code.isalpha():
+            loc = cls._aviation.get_by_id(code)
+            if loc is not None:
+                return loc
+        if city:
+            return cls._lookup_iata_for_city(city, country)
+        return None
+
+    @classmethod
     def _resolve_origin_iata(cls, origin_city: str) -> str | None:
         if not origin_city or not origin_city.strip():
             return None
@@ -391,8 +421,6 @@ class InspireOrchestrator:
             max_tokens=900,
         )
         raw = payload["choices"][0]["message"].get("content") or "{}"
-        import json
-
         try:
             parsed = json.loads(raw)
         except json.JSONDecodeError as exc:
@@ -508,77 +536,146 @@ class InspireOrchestrator:
 
     @classmethod
     async def _llm_only_fallback(cls, req: InspireRequest) -> list[dict[str, Any]]:
-        """When Amadeus is unreachable, fall back to a pure-LLM suggestion.
+        """Amadeus-down degradation path: a pure-LLM destination suggestion.
 
-        We still try to attach an IATA via offline lookup so the client
-        can later request a full plan against the right airport. Items
-        for which the LLM's city is unknown to ``airportsdata`` are
-        dropped rather than shipped without an IATA (audit C3 — the
-        inspire response must always carry IATAs).
+        Per destination the LLM returns an **IATA code** as the
+        resolution key — language-independent and validated offline
+        against ``airportsdata`` — plus English ``city``/``country``
+        names as a secondary key. Narrative copy (``match_reason`` …)
+        stays in the user's locale.
+
+        Two robustness measures, both born from the locale regression
+        where a French run silently collapsed to a single card:
+
+        - we **over-fetch** ``FALLBACK_OVERFETCH`` extra suggestions so a
+          handful of unresolvable codes don't shrink the list below
+          ``pick_count``;
+        - every dropped suggestion is **logged** — silent drops are what
+          hid the bug in the first place.
         """
-        from src.utils.locale import normalize_locale
-
         locale = normalize_locale(req.locale)
-        system_prompt = render("destination_quick", locale=locale)
+        over_fetch = req.pick_count + FALLBACK_OVERFETCH
+        system_prompt = render("destination_quick", locale=locale, pick_count=over_fetch)
         user_prompt = cls._compose_fallback_user_prompt(req)
+
+        schema = {
+            "name": "destination_suggestions",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "destinations": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": over_fetch,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "iata": {"type": "string"},
+                                "city": {"type": "string"},
+                                "country": {"type": "string"},
+                                "match_reason": {"type": "string"},
+                                "weather_summary": {"type": "string"},
+                                "top_activities": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "minItems": 3,
+                                    "maxItems": 5,
+                                },
+                            },
+                            "required": [
+                                "iata",
+                                "city",
+                                "country",
+                                "match_reason",
+                                "weather_summary",
+                                "top_activities",
+                            ],
+                            "additionalProperties": False,
+                        },
+                    }
+                },
+                "required": ["destinations"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        }
+
         payload = await LLMRouter.get().chat_completion(
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
+            response_format={"type": "json_schema", "json_schema": schema},
             temperature=0.6,
-            max_tokens=900,
+            max_tokens=1400,
         )
-        import json
 
-        raw = payload["choices"][0]["message"].get("content") or "{}"
-        # Some smaller models still wrap JSON in markdown fences here —
-        # destination_quick predates strict mode. Strip defensively.
-        raw = raw.strip()
+        raw = (payload["choices"][0]["message"].get("content") or "{}").strip()
+        # Some smaller fallback models still wrap JSON in markdown fences
+        # even under strict mode — strip defensively before parsing.
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[-1]
             if raw.endswith("```"):
                 raw = raw.rsplit("```", 1)[0]
         try:
             parsed = json.loads(raw)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
+            logger.warn(
+                "Inspire: LLM-only fallback returned invalid JSON",
+                {"error": str(exc)},
+            )
             return []
 
-        out: list[dict[str, Any]] = []
-        for entry in parsed.get("destinations", []) or []:
-            city = (entry.get("city") or "").strip()
-            if not city:
-                continue
-            country_hint = (entry.get("country") or "").strip()
-            loc = cls._lookup_iata_for_city(city, country_hint)
-            if loc is None:
-                # No IATA → drop. Better to return 2 typed cards than 4 blanks.
-                continue
-            iata = loc.iataCode or (loc.address.cityCode if loc.address else None)
-            if not iata:
-                continue
-            out.append(
-                {
-                    "iata": iata,
-                    "city": loc.address.cityName if loc.address else city,
-                    "country": loc.address.countryName if loc.address else "",
-                    "country_code": loc.address.countryCode if loc.address else "",
-                    "lat": loc.geoCode.latitude,
-                    "lon": loc.geoCode.longitude,
-                    "match_reason": entry.get("match_reason", ""),
-                    "weather_summary": entry.get("weather_summary", ""),
-                    "topActivities": entry.get("topActivities", []),
-                    "weather": None,
-                    "price_from": None,
-                    "image_url": None,
-                }
+        raw_entries = parsed.get("destinations", []) or []
+        selected: list[_Candidate] = []
+        seen_iata: set[str] = set()
+        for entry in raw_entries:
+            loc = cls._resolve_destination(
+                iata=(entry.get("iata") or "").strip(),
+                city=(entry.get("city") or "").strip(),
+                country=(entry.get("country") or "").strip(),
             )
-            if len(out) >= req.pick_count:
+            if loc is None:
+                logger.warn(
+                    "Inspire: fallback suggestion unresolved, dropping",
+                    {"iata": entry.get("iata"), "city": entry.get("city")},
+                )
+                continue
+            resolved_iata = loc.iataCode or (loc.address.cityCode if loc.address else "")
+            if not resolved_iata or resolved_iata in seen_iata:
+                continue
+            seen_iata.add(resolved_iata)
+            selected.append(
+                _Candidate(
+                    iata=resolved_iata,
+                    departure_date=req.departure_date or "",
+                    return_date=req.return_date or None,
+                    location=loc,
+                    match_reason=entry.get("match_reason", ""),
+                    weather_summary=entry.get("weather_summary", ""),
+                    top_activities=list(entry.get("top_activities", [])),
+                    selected=True,
+                )
+            )
+            if len(selected) >= req.pick_count:
                 break
 
-        # Best-effort cover images for the fallback path too.
-        await cls._fill_fallback_images(out)
-        return out
+        logger.info(
+            "Inspire: LLM-only fallback resolved destinations",
+            {
+                "requested": over_fetch,
+                "returned": len(raw_entries),
+                "resolved": len(selected),
+                "locale": locale,
+            },
+        )
+        if not selected:
+            return []
+
+        # Cover images, then serialise through the same path as the main
+        # Amadeus pipeline so both flows ship an identical payload shape.
+        await cls._fetch_cover_images(selected)
+        return [cls._serialize(c) for c in selected]
 
     @staticmethod
     def _compose_fallback_user_prompt(req: InspireRequest) -> str:
@@ -596,19 +693,6 @@ class InspireOrchestrator:
         if req.constraints:
             lines.append(f"- constraints: {req.constraints}")
         return "\n".join(lines) if lines else "Suggest popular destinations."
-
-    @staticmethod
-    async def _fill_fallback_images(payload: list[dict[str, Any]]) -> None:
-        async def _one(item: dict[str, Any]) -> None:
-            city = item.get("city") or ""
-            country = item.get("country") or ""
-            if not city:
-                return
-            query = f"{city}, {country}" if country else city
-            url = await unsplash_client.fetch_cover_image(query)
-            item["image_url"] = url or unsplash_client.get_fallback_url(query)
-
-        await asyncio.gather(*[_one(item) for item in payload])
 
 
 # Re-exported for convenience.

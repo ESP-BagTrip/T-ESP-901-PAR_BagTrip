@@ -45,6 +45,34 @@ class TestRegister:
         assert mock_db_session.commit.called
 
 
+    def test_register_stores_normalized_locale(self, mock_db_session):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        result = DeviceTokenService.register(
+            mock_db_session,
+            user_id=uuid.uuid4(),
+            fcm_token="tok-loc",
+            platform="ios",
+            locale="fr-FR",
+        )
+
+        assert result.locale == "fr"
+
+    def test_register_updates_locale_on_existing_token(self, mock_db_session):
+        existing = DeviceToken(user_id=uuid.uuid4(), fcm_token="tok-abc", locale="en")
+        mock_db_session.query.return_value.filter.return_value.first.return_value = existing
+
+        result = DeviceTokenService.register(
+            mock_db_session,
+            user_id=uuid.uuid4(),
+            fcm_token="tok-abc",
+            platform="android",
+            locale="fr",
+        )
+
+        assert result.locale == "fr"
+
+
 class TestUnregister:
     def test_calls_delete_on_filter_chain(self, mock_db_session):
         user_id = uuid.uuid4()
@@ -53,6 +81,28 @@ class TestUnregister:
         # delete() is called on the filter chain — verify commit fired.
         assert mock_db_session.commit.called
         mock_db_session.query.assert_called_once()
+
+
+class TestGetLocaleForUser:
+    def test_returns_token_locale(self, mock_db_session):
+        token = DeviceToken(user_id=uuid.uuid4(), fcm_token="t", locale="fr")
+        (
+            mock_db_session.query.return_value.filter.return_value.order_by.return_value.first
+        ).return_value = token
+        assert DeviceTokenService.get_locale_for_user(mock_db_session, uuid.uuid4()) == "fr"
+
+    def test_returns_en_when_no_device(self, mock_db_session):
+        (
+            mock_db_session.query.return_value.filter.return_value.order_by.return_value.first
+        ).return_value = None
+        assert DeviceTokenService.get_locale_for_user(mock_db_session, uuid.uuid4()) == "en"
+
+    def test_returns_en_when_token_has_no_locale(self, mock_db_session):
+        token = DeviceToken(user_id=uuid.uuid4(), fcm_token="t", locale=None)
+        (
+            mock_db_session.query.return_value.filter.return_value.order_by.return_value.first
+        ).return_value = token
+        assert DeviceTokenService.get_locale_for_user(mock_db_session, uuid.uuid4()) == "en"
 
 
 class TestGetTokensForUsers:

@@ -6,7 +6,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   firebase_core
   flutter_secure_storage_windows
-  flutter_timezone
   geolocator_windows
   rive_native
   url_launcher_windows

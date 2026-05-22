@@ -1,4 +1,4 @@
-"""Tests for auto_transition_statuses TRIP_STARTED notifications."""
+"""Tests for auto_transition_statuses trip-lifecycle notifications."""
 
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
@@ -42,7 +42,7 @@ def _setup_db(starting_trips=None, completing_trips=None):
 
 
 def test_trip_started_notification_sent_on_planned_to_ongoing():
-    """TRIP_STARTED notification is sent when a trip transitions PLANNED→ONGOING."""
+    """A localized TRIP_STARTED notification is dispatched on PLANNED→ONGOING."""
     today = datetime.now(UTC).date()
     trip = _make_trip(TripStatus.PLANNED, start_date=today)
 
@@ -55,19 +55,17 @@ def test_trip_started_notification_sent_on_planned_to_ongoing():
 
         TripsService.auto_transition_statuses(db)
 
-        # Verify TRIP_STARTED was sent
-        calls = mock_notif.create_and_send_bulk.call_args_list
-        trip_started_calls = [
+        calls = mock_notif.send_localized.call_args_list
+        started = [
             c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
         ]
-        assert len(trip_started_calls) == 1
-        assert trip_started_calls[0].kwargs["title"] == "Bon voyage !"
-        # Verify screen value uses camelCase (matches Flutter deep link switch)
-        assert trip_started_calls[0].kwargs["data"]["screen"] == "tripHome"
+        assert len(started) == 1
+        # Deep-link screen uses camelCase to match the Flutter route switch.
+        assert started[0].kwargs["data"]["screen"] == "tripHome"
 
 
 def test_trip_started_notification_includes_trip_title():
-    """TRIP_STARTED notification body includes the trip title."""
+    """TRIP_STARTED notification context carries the trip title for rendering."""
     today = datetime.now(UTC).date()
     trip = _make_trip(TripStatus.PLANNED, start_date=today, title="Vacances à Rome")
 
@@ -80,15 +78,16 @@ def test_trip_started_notification_includes_trip_title():
 
         TripsService.auto_transition_statuses(db)
 
-        calls = mock_notif.create_and_send_bulk.call_args_list
-        trip_started_calls = [
-            c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
+        started = [
+            c
+            for c in mock_notif.send_localized.call_args_list
+            if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
         ]
-        assert "Vacances à Rome" in trip_started_calls[0].kwargs["body"]
+        assert started[0].kwargs["context"]["trip_title"] == "Vacances à Rome"
 
 
 def test_no_trip_started_notification_when_no_transitions():
-    """No TRIP_STARTED notification when no trips transition."""
+    """No notification is dispatched when no trips transition."""
     db = _setup_db(starting_trips=[], completing_trips=[])
 
     with patch("src.services.notification_service.NotificationService") as mock_notif:
@@ -96,5 +95,4 @@ def test_no_trip_started_notification_when_no_transitions():
 
         TripsService.auto_transition_statuses(db)
 
-        # No notifications should be sent at all
-        mock_notif.create_and_send_bulk.assert_not_called()
+        mock_notif.send_localized.assert_not_called()

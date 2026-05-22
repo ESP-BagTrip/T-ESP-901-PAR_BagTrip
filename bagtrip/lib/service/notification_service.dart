@@ -2,6 +2,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
+import 'package:bagtrip/models/notification_page.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
@@ -14,7 +15,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     : _apiClient = apiClient;
 
   @override
-  Future<Result<Map<String, dynamic>>> getNotifications({
+  Future<Result<NotificationPage>> getNotifications({
     int page = 1,
     int limit = 20,
   }) async {
@@ -24,20 +25,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
         queryParameters: {'page': page, 'limit': limit},
       );
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final items = (data['items'] as List)
-            .map(
-              (json) => AppNotification.fromJson(json as Map<String, dynamic>),
-            )
-            .toList();
-        return Success({
-          'items': items,
-          'total': data['total'] ?? 0,
-          'page': data['page'] ?? page,
-          'limit': data['limit'] ?? limit,
-          'totalPages': data['totalPages'] ?? data['total_pages'] ?? 0,
-          'unreadCount': data['unreadCount'] ?? data['unread_count'] ?? 0,
-        });
+        return Success(
+          NotificationPage.fromJson(response.data as Map<String, dynamic>),
+        );
       }
       return loggedFailure(
         UnknownError('fetch notifications failed: ${response.statusCode}'),
@@ -107,6 +97,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<void>> registerDeviceToken(
     String fcmToken, {
     String? platform,
+    String? locale,
   }) async {
     try {
       await _apiClient.post(
@@ -114,6 +105,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
         data: {
           'fcmToken': fcmToken,
           if (platform != null) 'platform': platform,
+          if (locale != null) 'locale': locale,
         },
       );
     } catch (e) {
@@ -125,7 +117,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   Future<Result<void>> unregisterDeviceToken(String fcmToken) async {
     try {
-      await _apiClient.delete('/device-tokens/$fcmToken');
+      // Token travels in the body — not the URL — so it never lands in
+      // server access logs.
+      await _apiClient.delete('/device-tokens', data: {'fcmToken': fcmToken});
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BestEffort] unregisterDeviceToken failed: $e');

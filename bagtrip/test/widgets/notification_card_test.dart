@@ -3,6 +3,7 @@ import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/notification.dart';
+import 'package:bagtrip/models/notification_page.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/notifications/widgets/notification_card.dart';
 import 'package:bagtrip/service/crashlytics_service.dart';
@@ -255,13 +256,13 @@ void main() {
           limit: any(named: 'limit'),
         ),
       ).thenAnswer(
-        (_) async => Success(<String, dynamic>{
-          'items': <AppNotification>[makeAppNotification(isRead: true)],
-          'unreadCount': 0,
-          'totalPages': 1,
-          'page': 1,
-          'total': 1,
-        }),
+        (_) async => Success(
+          NotificationPage(
+            items: <AppNotification>[makeAppNotification(isRead: true)],
+            totalPages: 1,
+            total: 1,
+          ),
+        ),
       );
 
       final notif = makeAppNotification();

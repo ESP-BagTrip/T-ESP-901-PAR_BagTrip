@@ -208,36 +208,35 @@ class TestMarkAsRead:
 
 
 class TestTripRecipients:
-    def test_owner_plus_viewers(self, mock_db_session, make_trip):
-        trip = make_trip()
+    """``_get_trip_recipients`` reads the ``trip.shares`` relationship — no query."""
+
+    def test_owner_plus_viewers(self):
+        owner = uuid.uuid4()
         viewer1, viewer2 = uuid.uuid4(), uuid.uuid4()
-        mock_db_session.query.return_value.filter.return_value.all.return_value = [
-            (viewer1,),
-            (viewer2,),
-        ]
-        recipients = NotificationService._get_trip_recipients(mock_db_session, trip)
-        assert trip.user_id in recipients
+        trip = MagicMock()
+        trip.user_id = owner
+        trip.shares = [MagicMock(user_id=viewer1), MagicMock(user_id=viewer2)]
+        recipients = NotificationService._get_trip_recipients(trip)
+        assert owner in recipients
         assert viewer1 in recipients
         assert viewer2 in recipients
         assert len(recipients) == 3
 
-    def test_owner_only_skips_viewers(self, mock_db_session, make_trip):
-        trip = make_trip()
-        recipients = NotificationService._get_trip_recipients(
-            mock_db_session, trip, owner_only=True
-        )
+    def test_owner_only_skips_viewers(self):
+        trip = MagicMock()
+        trip.user_id = uuid.uuid4()
+        trip.shares = [MagicMock(user_id=uuid.uuid4())]
+        recipients = NotificationService._get_trip_recipients(trip, owner_only=True)
         assert recipients == [trip.user_id]
-        # No filter query should have been issued for viewers
-        assert mock_db_session.query.call_count == 0
 
-    def test_duplicate_viewer_dedup(self, mock_db_session, make_trip):
+    def test_duplicate_viewer_dedup(self):
         """If a viewer is also the owner, they only appear once."""
-        trip = make_trip()
-        mock_db_session.query.return_value.filter.return_value.all.return_value = [
-            (trip.user_id,),  # duplicate
-        ]
-        recipients = NotificationService._get_trip_recipients(mock_db_session, trip)
-        assert recipients == [trip.user_id]
+        owner = uuid.uuid4()
+        trip = MagicMock()
+        trip.user_id = owner
+        trip.shares = [MagicMock(user_id=owner)]  # viewer == owner
+        recipients = NotificationService._get_trip_recipients(trip)
+        assert recipients == [owner]
 
 
 # ---------------------------------------------------------------------------
@@ -327,3 +326,70 @@ class TestBudgetAlert:
         ):
             # Must not raise — caller is a scheduler loop
             NotificationService.check_and_send_budget_alert(mock_db_session, trip)
+
+
+# ---------------------------------------------------------------------------
+# send_localized
+# ---------------------------------------------------------------------------
+
+
+class TestSendLocalized:
+    def test_resolves_locale_and_renders(self, mock_db_session):
+        with (
+            patch(
+                "src.services.notification_service.DeviceTokenService.get_locale_for_user",
+                return_value="fr",
+            ) as mock_locale,
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
+            NotificationService.send_localized(
+                mock_db_session,
+                user_id=uuid.uuid4(),
+                trip_id=None,
+                notif_type=NotificationType.TRIP_STARTED,
+                context={"trip_title": "Rome"},
+            )
+        mock_locale.assert_called_once()
+        kwargs = mock_send.call_args.kwargs
+        assert kwargs["title"] == "Bon voyage !"
+        assert "Rome" in kwargs["body"]
+        assert kwargs["notif_type"] == NotificationType.TRIP_STARTED
+
+    def test_explicit_locale_skips_lookup(self, mock_db_session):
+        with (
+            patch(
+                "src.services.notification_service.DeviceTokenService.get_locale_for_user"
+            ) as mock_locale,
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
+            NotificationService.send_localized(
+                mock_db_session,
+                user_id=uuid.uuid4(),
+                trip_id=None,
+                notif_type=NotificationType.TRIP_ENDED,
+                context={"trip_title": "Rome"},
+                locale="en",
+            )
+        mock_locale.assert_not_called()
+        assert mock_send.call_args.kwargs["title"] == "Trip complete!"
+
+    def test_notif_key_overrides_type_for_catalogue_lookup(self, mock_db_session):
+        with patch(
+            "src.services.notification_service.NotificationService.create_and_send"
+        ) as mock_send:
+            NotificationService.send_localized(
+                mock_db_session,
+                user_id=uuid.uuid4(),
+                trip_id=None,
+                notif_type=NotificationType.TRIP_SHARED,
+                notif_key="TRIP_SHARED_WITH_MESSAGE",
+                context={"inviter": "Alice", "message": "Coucou", "trip_title": "Rome"},
+                locale="fr",
+            )
+        body = mock_send.call_args.kwargs["body"]
+        assert "Alice" in body
+        assert "Coucou" in body

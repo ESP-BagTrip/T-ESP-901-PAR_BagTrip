@@ -16,7 +16,6 @@ void main() {
   late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivityService;
   late MockWeatherRepository mockWeatherRepo;
-  late MockTripNotificationScheduler mockScheduler;
   late MockPostTripDismissalStorage mockDismissalStorage;
 
   setUpAll(() {
@@ -32,7 +31,6 @@ void main() {
     mockActivityRepo = MockActivityRepository();
     mockConnectivityService = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
-    mockScheduler = MockTripNotificationScheduler();
     mockDismissalStorage = MockPostTripDismissalStorage();
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
@@ -42,18 +40,6 @@ void main() {
     when(
       () => mockWeatherRepo.getWeather(any()),
     ).thenAnswer((_) async => const Failure(NetworkError('not available')));
-    when(
-      () => mockScheduler.scheduleOngoingNotifications(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.schedulePackingReminder(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.scheduleCompletionReminder(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockScheduler.cancelTripNotifications(any()),
-    ).thenAnswer((_) async {});
     when(
       () => mockDismissalStorage.wasDismissedRecently(any()),
     ).thenAnswer((_) async => false);
@@ -104,7 +90,6 @@ void main() {
     activityRepository: mockActivityRepo,
     connectivityService: mockConnectivityService,
     weatherRepository: mockWeatherRepo,
-    scheduler: mockScheduler,
     dismissalStorage: mockDismissalStorage,
   );
 
@@ -457,7 +442,7 @@ void main() {
     );
 
     blocTest<HomeBloc, HomeState>(
-      'CompleteActiveTrip calls updateTripStatus and cancels notifications',
+      'CompleteActiveTrip calls updateTripStatus',
       build: () {
         stubUserSuccess();
         stubActivities();
@@ -498,7 +483,6 @@ void main() {
         verify(
           () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
         ).called(1);
-        verify(() => mockScheduler.cancelTripNotifications(any())).called(1);
       },
     );
   });

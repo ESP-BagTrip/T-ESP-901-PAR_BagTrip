@@ -58,11 +58,12 @@ Future<void> showAdaptiveActionSheet({
   await showModalBottomSheet<void>(
     context: context,
     backgroundColor: Colors.transparent,
-    builder: (ctx) => Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    // A Material (not a plain coloured Container) so the ListTiles below have
+    // a Material ancestor to paint their background + ink onto — otherwise
+    // recent Flutter stable throws "ListTile background may be invisible".
+    builder: (ctx) => Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

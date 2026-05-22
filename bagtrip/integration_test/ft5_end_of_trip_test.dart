@@ -46,88 +46,79 @@ void main() {
         expect(state.pendingCompletionTrip, isNotNull);
         expect(state.pendingCompletionTrip!.id, endedTrip.id);
 
-        // Flush unawaited scheduler fire-and-forget operations
+        // Flush any pending async operations
         await tester.pump(const Duration(milliseconds: 500));
       },
     );
 
-    testWidgets(
-      'ConfirmTripCompletion → updates status, cancels notifications',
-      (tester) async {
-        final endedTrip = makeEndedTrip();
-        final mocks = await setupTestServiceLocator();
+    testWidgets('ConfirmTripCompletion → updates status, clears dismissal', (
+      tester,
+    ) async {
+      final endedTrip = makeEndedTrip();
+      final mocks = await setupTestServiceLocator();
 
-        when(
-          () => mocks.dismissalStorage.wasDismissedRecently(endedTrip.id),
-        ).thenAnswer((_) async => false);
+      when(
+        () => mocks.dismissalStorage.wasDismissedRecently(endedTrip.id),
+      ).thenAnswer((_) async => false);
 
-        when(
-          () => mocks.trip.updateTripStatus(endedTrip.id, 'completed'),
-        ).thenAnswer(
-          (_) async =>
-              Success(endedTrip.copyWith(status: TripStatus.completed)),
-        );
+      when(
+        () => mocks.trip.updateTripStatus(endedTrip.id, 'completed'),
+      ).thenAnswer(
+        (_) async => Success(endedTrip.copyWith(status: TripStatus.completed)),
+      );
 
-        stubActiveTripHome(mocks, endedTrip);
+      stubActiveTripHome(mocks, endedTrip);
 
-        await pumpTestApp(tester, existingMocks: mocks);
+      await pumpTestApp(tester, existingMocks: mocks);
 
-        // Verify initial state
-        expect(f.homeActiveTrip, findsOneWidget);
-        final homeBloc = tester.element(f.homeActiveTrip).read<HomeBloc>();
+      // Verify initial state
+      expect(f.homeActiveTrip, findsOneWidget);
+      final homeBloc = tester.element(f.homeActiveTrip).read<HomeBloc>();
 
-        // Fire ConfirmTripCompletion
-        homeBloc.add(ConfirmTripCompletion(tripId: endedTrip.id));
-        for (int i = 0; i < 10; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
+      // Fire ConfirmTripCompletion
+      homeBloc.add(ConfirmTripCompletion(tripId: endedTrip.id));
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-        // Verify repository calls
-        verify(
-          () => mocks.trip.updateTripStatus(endedTrip.id, 'completed'),
-        ).called(1);
-        verify(() => mocks.scheduler.cancelTripNotifications(any())).called(1);
-        verify(
-          () => mocks.dismissalStorage.clearDismissal(endedTrip.id),
-        ).called(1);
+      // Verify repository calls
+      verify(
+        () => mocks.trip.updateTripStatus(endedTrip.id, 'completed'),
+      ).called(1);
+      verify(
+        () => mocks.dismissalStorage.clearDismissal(endedTrip.id),
+      ).called(1);
 
-        // Verify completedTripId was set (triggers PostTripRoute navigation)
-        // After the event, HomeBloc emits HomeActiveTrip with completedTripId
-        // before refreshing. We verify the call happened.
-      },
-    );
+      // Verify completedTripId was set (triggers PostTripRoute navigation)
+      // After the event, HomeBloc emits HomeActiveTrip with completedTripId
+      // before refreshing. We verify the call happened.
+    });
 
-    testWidgets(
-      'DismissTripCompletion → records dismissal, schedules reminder',
-      (tester) async {
-        final endedTrip = makeEndedTrip();
-        final mocks = await setupTestServiceLocator();
+    testWidgets('DismissTripCompletion → records dismissal', (tester) async {
+      final endedTrip = makeEndedTrip();
+      final mocks = await setupTestServiceLocator();
 
-        when(
-          () => mocks.dismissalStorage.wasDismissedRecently(endedTrip.id),
-        ).thenAnswer((_) async => false);
+      when(
+        () => mocks.dismissalStorage.wasDismissedRecently(endedTrip.id),
+      ).thenAnswer((_) async => false);
 
-        stubActiveTripHome(mocks, endedTrip);
+      stubActiveTripHome(mocks, endedTrip);
 
-        await pumpTestApp(tester, existingMocks: mocks);
+      await pumpTestApp(tester, existingMocks: mocks);
 
-        final homeBloc = tester.element(f.homeActiveTrip).read<HomeBloc>();
+      final homeBloc = tester.element(f.homeActiveTrip).read<HomeBloc>();
 
-        // Fire DismissTripCompletion
-        homeBloc.add(DismissTripCompletion(tripId: endedTrip.id));
-        for (int i = 0; i < 10; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
+      // Fire DismissTripCompletion
+      homeBloc.add(DismissTripCompletion(tripId: endedTrip.id));
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
-        // Verify repository calls
-        verify(
-          () => mocks.dismissalStorage.recordDismissal(endedTrip.id),
-        ).called(1);
-        verify(
-          () => mocks.scheduler.scheduleCompletionReminder(any()),
-        ).called(1);
-      },
-    );
+      // Verify repository calls
+      verify(
+        () => mocks.dismissalStorage.recordDismissal(endedTrip.id),
+      ).called(1);
+    });
 
     testWidgets('recently dismissed trip → no pendingCompletionTrip', (
       tester,
@@ -191,7 +182,7 @@ void main() {
         () => mocks.trip.updateTripStatus(endedTrip.id, 'completed'),
       ).called(1);
 
-      // Flush unawaited scheduler fire-and-forget operations
+      // Flush any pending async operations
       await tester.pump(const Duration(milliseconds: 500));
     });
   });

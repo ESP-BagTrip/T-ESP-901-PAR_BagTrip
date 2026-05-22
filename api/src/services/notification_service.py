@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 from src.enums import NotificationType
 from src.models.notification import Notification
 from src.models.trip import Trip
-from src.models.trip_share import TripShare
 from src.services.budget_item_service import BudgetItemService
 from src.services.device_token_service import DeviceTokenService
+from src.services.notification_messages import render_notification, untitled_trip
 from src.utils.logger import logger
 
 TAG = "[NOTIFICATION]"
@@ -95,6 +95,39 @@ class NotificationService:
         return notifs
 
     @staticmethod
+    def send_localized(
+        db: Session,
+        *,
+        user_id: UUID,
+        trip_id: UUID | None,
+        notif_type: str,
+        notif_key: str | None = None,
+        context: dict | None = None,
+        data: dict | None = None,
+        locale: str | None = None,
+    ) -> Notification:
+        """Render a localized notification for one user and dispatch it.
+
+        Resolves the recipient's locale from their most recent device token
+        (unless ``locale`` is provided), renders title/body from the i18n
+        catalogue, then persists + pushes via :meth:`create_and_send`.
+
+        ``notif_key`` defaults to ``notif_type`` — pass it explicitly only when
+        the catalogue key differs from the persisted type (e.g. budget alerts).
+        """
+        resolved = locale or DeviceTokenService.get_locale_for_user(db, user_id)
+        title, body = render_notification(notif_key or notif_type, resolved, **(context or {}))
+        return NotificationService.create_and_send(
+            db=db,
+            user_id=user_id,
+            trip_id=trip_id,
+            notif_type=notif_type,
+            title=title,
+            body=body,
+            data=data,
+        )
+
+    @staticmethod
     def get_for_user(
         db: Session, user_id: UUID, page: int = 1, limit: int = 20
     ) -> tuple[list[Notification], int, int, int]:
@@ -159,39 +192,52 @@ class NotificationService:
             if not alert_level:
                 return
 
-            # Check if already sent at this level
+            # Dedup on the persisted type (BUDGET_ALERT) + the alertLevel kept
+            # in the JSON payload, so a WARNING doesn't suppress an EXCEEDED.
             if NotificationService._already_sent(
-                db, trip.user_id, trip.id, f"BUDGET_ALERT_{alert_level}", timedelta(hours=1)
+                db,
+                trip.user_id,
+                trip.id,
+                NotificationType.BUDGET_ALERT,
+                timedelta(hours=1),
+                data_key="alertLevel",
+                data_value=alert_level,
             ):
                 return
 
-            title = "Alerte budget" if alert_level == "WARNING" else "Budget dépassé !"
-            pct = summary.get("percent_consumed", 0)
-            body = (
-                f"Vous avez utilisé {pct:.0f}% du budget pour « {trip.title or 'votre voyage'} »."
+            notif_key = (
+                "BUDGET_ALERT_WARNING" if alert_level == "WARNING" else "BUDGET_ALERT_EXCEEDED"
             )
+            pct = summary.get("percent_consumed", 0)
+            locale = DeviceTokenService.get_locale_for_user(db, trip.user_id)
+            trip_title = trip.title or untitled_trip(locale)
 
-            NotificationService.create_and_send(
+            NotificationService.send_localized(
                 db=db,
                 user_id=trip.user_id,
                 trip_id=trip.id,
                 notif_type=NotificationType.BUDGET_ALERT,
-                title=title,
-                body=body,
+                notif_key=notif_key,
+                context={"pct": f"{pct:.0f}", "trip_title": trip_title},
                 data={"screen": "budget", "tripId": str(trip.id), "alertLevel": alert_level},
+                locale=locale,
             )
         except Exception as e:
             logger.error(f"{TAG} Budget alert check failed for trip {trip.id}: {e}")
 
     @staticmethod
-    def _get_trip_recipients(db: Session, trip: Trip, owner_only: bool = False) -> list[UUID]:
-        """Get owner + viewers for a trip via TripShare."""
+    def _get_trip_recipients(trip: Trip, owner_only: bool = False) -> list[UUID]:
+        """Get owner + viewers for a trip via the ``trip.shares`` relationship.
+
+        Reads the relationship rather than issuing its own query — callers that
+        already ``selectinload(Trip.shares)`` (the notification job) pay zero
+        extra queries; others trigger a single lazy load.
+        """
         recipients = [trip.user_id]
         if not owner_only:
-            viewers = db.query(TripShare.user_id).filter(TripShare.trip_id == trip.id).all()
-            for (uid,) in viewers:
-                if uid not in recipients:
-                    recipients.append(uid)
+            for share in trip.shares:
+                if share.user_id not in recipients:
+                    recipients.append(share.user_id)
         return recipients
 
     @staticmethod
@@ -217,7 +263,18 @@ class NotificationService:
                     data=str_data,
                     token=tokens[0],
                 )
-                messaging.send(message)
+                try:
+                    messaging.send(message)
+                except messaging.UnregisteredError:
+                    # Dead token — drop it so it stops accumulating. The
+                    # multicast path already does this; mirror it here.
+                    from src.models.device_token import DeviceToken
+
+                    db.query(DeviceToken).filter(DeviceToken.fcm_token == tokens[0]).delete(
+                        synchronize_session="fetch"
+                    )
+                    db.commit()
+                    return False
             else:
                 message = messaging.MulticastMessage(
                     notification=notification,

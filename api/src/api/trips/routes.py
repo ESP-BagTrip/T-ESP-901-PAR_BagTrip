@@ -24,6 +24,8 @@ from src.config.database import get_db
 from src.enums import NotificationType, TripStatus
 from src.models.flight_order import FlightOrder
 from src.models.user import User
+from src.services.device_token_service import DeviceTokenService
+from src.services.notification_messages import untitled_trip
 from src.services.notification_service import NotificationService
 from src.services.trips_service import TripsService
 from src.utils.errors import AppError, create_http_exception
@@ -320,16 +322,17 @@ async def update_trip_status(
 
         # Send TRIP_ENDED notification on manual ONGOING→COMPLETED closure
         if old_status == TripStatus.ONGOING and request.status == TripStatus.COMPLETED:
-            recipients = NotificationService._get_trip_recipients(db, trip)
-            NotificationService.create_and_send_bulk(
-                db=db,
-                user_ids=recipients,
-                trip_id=trip.id,
-                notif_type=NotificationType.TRIP_ENDED,
-                title="Voyage terminé !",
-                body=f"Votre voyage « {trip.title or 'sans titre'} » est terminé. Partagez votre avis !",
-                data={"screen": "feedback", "tripId": str(trip.id)},
-            )
+            for uid in NotificationService._get_trip_recipients(trip):
+                locale = DeviceTokenService.get_locale_for_user(db, uid)
+                NotificationService.send_localized(
+                    db=db,
+                    user_id=uid,
+                    trip_id=trip.id,
+                    notif_type=NotificationType.TRIP_ENDED,
+                    context={"trip_title": trip.title or untitled_trip(locale)},
+                    data={"screen": "feedback", "tripId": str(trip.id)},
+                    locale=locale,
+                )
 
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"

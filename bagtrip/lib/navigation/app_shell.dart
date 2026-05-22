@@ -1,5 +1,5 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
-import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
+import 'package:bagtrip/notifications/cubit/notification_count_cubit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,17 +67,11 @@ class _AppShellState extends State<AppShell> {
     final activeTab = _shellTabOrder[currentIndex];
     final showTabBar = _isTopLevel;
 
-    final tabBar = BlocBuilder<NotificationBloc, NotificationState>(
-      builder: (context, notifState) {
-        int badgeCount = 0;
-        if (notifState is UnreadCountLoaded) {
-          badgeCount = notifState.count;
-        } else if (notifState is NotificationsLoaded) {
-          badgeCount = notifState.unreadCount;
-        }
+    final tabBar = BlocBuilder<NotificationCountCubit, int>(
+      builder: (context, unreadCount) {
         return BottomTabBar(
           activeTab: activeTab,
-          activityBadgeCount: badgeCount,
+          activityBadgeCount: unreadCount,
           onTabChanged: (tab) {
             final index = _shellTabOrder.indexOf(tab);
             if (index >= 0 && index != currentIndex) {

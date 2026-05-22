@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/models/notification_page.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:bagtrip/service/notification_service.dart';
 import 'package:dio/dio.dart';
@@ -49,7 +50,7 @@ void main() {
   group('NotificationRepositoryImpl', () {
     // ── getNotifications ────────────────────────────────────────────────
 
-    test('getNotifications parses envelope with items + counters', () async {
+    test('getNotifications parses the snake_case envelope', () async {
       when(
         () => mockApiClient.get(
           '/notifications',
@@ -64,8 +65,8 @@ void main() {
             'total': 2,
             'page': 1,
             'limit': 20,
-            'totalPages': 1,
-            'unreadCount': 1,
+            'total_pages': 4,
+            'unread_count': 7,
           },
         ),
       );
@@ -73,38 +74,12 @@ void main() {
       final result = await repository.getNotifications();
 
       expect(result, isA<Success>());
-      final map = (result as Success).data as Map<String, dynamic>;
-      expect((map['items'] as List).length, 2);
-      expect(map['total'], 2);
-      expect(map['unreadCount'], 1);
+      final page = (result as Success).data as NotificationPage;
+      expect(page.items.length, 2);
+      expect(page.total, 2);
+      expect(page.totalPages, 4);
+      expect(page.unreadCount, 7);
     });
-
-    test(
-      'getNotifications falls back to snake_case counter keys if present',
-      () async {
-        when(
-          () => mockApiClient.get(
-            '/notifications',
-            queryParameters: any(named: 'queryParameters'),
-          ),
-        ).thenAnswer(
-          (_) async => _response(
-            path: '/notifications',
-            statusCode: 200,
-            data: <String, dynamic>{
-              'items': [_notifJson()],
-              'total_pages': 4,
-              'unread_count': 7,
-            },
-          ),
-        );
-
-        final result = await repository.getNotifications();
-        final map = (result as Success).data as Map<String, dynamic>;
-        expect(map['totalPages'], 4);
-        expect(map['unreadCount'], 7);
-      },
-    );
 
     test('getNotifications returns Failure on non-200', () async {
       when(
@@ -292,22 +267,54 @@ void main() {
       expect(await repository.registerDeviceToken('fcm-1'), isA<Success>());
     });
 
-    test('unregisterDeviceToken is best-effort', () async {
-      when(() => mockApiClient.delete('/device-tokens/fcm-1')).thenAnswer(
-        (_) async => _response(
-          path: '/device-tokens/fcm-1',
-          statusCode: 200,
-          data: null,
+    test('registerDeviceToken forwards the locale', () async {
+      when(
+        () => mockApiClient.post(any(), data: any(named: 'data')),
+      ).thenAnswer(
+        (_) async =>
+            _response(path: '/device-tokens', statusCode: 201, data: null),
+      );
+
+      await repository.registerDeviceToken(
+        'fcm-1',
+        platform: 'ios',
+        locale: 'fr',
+      );
+
+      final captured = verify(
+        () => mockApiClient.post(
+          '/device-tokens',
+          data: captureAny(named: 'data'),
         ),
+      ).captured;
+      expect((captured.single as Map<String, dynamic>)['locale'], 'fr');
+    });
+
+    test('unregisterDeviceToken sends the token in the body', () async {
+      when(
+        () => mockApiClient.delete('/device-tokens', data: any(named: 'data')),
+      ).thenAnswer(
+        (_) async =>
+            _response(path: '/device-tokens', statusCode: 204, data: null),
       );
 
       expect(await repository.unregisterDeviceToken('fcm-1'), isA<Success>());
+
+      final captured = verify(
+        () => mockApiClient.delete(
+          '/device-tokens',
+          data: captureAny(named: 'data'),
+        ),
+      ).captured;
+      expect((captured.single as Map<String, dynamic>)['fcmToken'], 'fcm-1');
     });
 
     test('unregisterDeviceToken swallows errors', () async {
-      when(() => mockApiClient.delete('/device-tokens/fcm-1')).thenThrow(
+      when(
+        () => mockApiClient.delete('/device-tokens', data: any(named: 'data')),
+      ).thenThrow(
         DioException(
-          requestOptions: RequestOptions(path: '/device-tokens/fcm-1'),
+          requestOptions: RequestOptions(path: '/device-tokens'),
           type: DioExceptionType.connectionTimeout,
         ),
       );

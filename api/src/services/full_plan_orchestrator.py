@@ -44,6 +44,7 @@ from src.integrations.amadeus.types import (
     HotelOffersSearchQuery,
 )
 from src.integrations.unsplash import unsplash_client
+from src.services import currency_service
 from src.services.amadeus_service import AmadeusService
 from src.services.llm_router import LLMRouter
 from src.services.location_resolver import LocationResolver, ResolvedLocation
@@ -94,6 +95,11 @@ BAGGAGE_TARGET = 14
 #: Amadeus hotel ratings we accept (3–5 stars). Lower-tier listings
 #: tend to come back with no offers and pollute the picker.
 _AMADEUS_HOTEL_RATINGS = "3,4,5"
+
+#: Canonical currency the deterministic budget breakdown is expressed in.
+#: Amadeus quotes hotels/flights in the property's *local* currency, so
+#: every line is converted to this before it is summed.
+_BUDGET_CURRENCY = "EUR"
 
 # ── Public DTOs ───────────────────────────────────────────────────────
 
@@ -814,7 +820,13 @@ class FullPlanOrchestrator:
         days = max(req.duration_days or nights or 1, 1)
 
         # Transport: real prices when available, else estimated heuristic.
-        transport_total = sum((leg.price or 0.0) for leg in transport if leg.price is not None)
+        # Each leg is normalised to the budget currency — Amadeus may quote
+        # a leg in a foreign currency and a raw sum would mix units.
+        transport_total = sum(
+            currency_service.convert(leg.price or 0.0, from_=leg.currency, to=_BUDGET_CURRENCY)
+            for leg in transport
+            if leg.price is not None
+        )
         transport_source = (
             "amadeus"
             if any(leg.source == "amadeus" for leg in transport)
@@ -824,8 +836,21 @@ class FullPlanOrchestrator:
         )
 
         # Accommodation: cheapest Amadeus offer that has a real total.
+        # Amadeus returns hotel prices in the property's *local* currency
+        # (e.g. KRW for Seoul); we convert every offer to the budget
+        # currency before picking the cheapest — otherwise a Seoul stay
+        # ships as a six-figure "1 578 000 €" line.
         priced_accs = [a for a in accommodations if a.price_total is not None]
-        accommodation_total = min(a.price_total or 0.0 for a in priced_accs) if priced_accs else 0.0
+        accommodation_total = (
+            min(
+                currency_service.convert(
+                    a.price_total or 0.0, from_=a.currency, to=_BUDGET_CURRENCY
+                )
+                for a in priced_accs
+            )
+            if priced_accs
+            else 0.0
+        )
         accommodation_source = "amadeus" if priced_accs else "deferred"
 
         # Activities: sum of estimated_cost across the brainstormed list.
@@ -865,7 +890,7 @@ class FullPlanOrchestrator:
             activity=round(activity_total, 2),
             total_min=total_min,
             total_max=total_max,
-            currency="EUR",
+            currency=_BUDGET_CURRENCY,
         )
 
     # ── Helpers ───────────────────────────────────────────────────────

@@ -27,6 +27,9 @@ class DeviceToken(Base):
     )
     fcm_token: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     platform: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Locale de l'appareil ("fr"/"en") — sert à localiser les push envoyées
+    # par les jobs de fond, qui n'ont pas de contexte de requête.
+    locale: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
