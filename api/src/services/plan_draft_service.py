@@ -199,6 +199,7 @@ class PlanDraftService:
                         label=row.name,
                         amount=float(acc.price_total),
                         category=BudgetCategory.ACCOMMODATION,
+                        currency=acc.currency,
                         source_type="accommodation",
                         source_id=row.id,
                     )
@@ -243,6 +244,7 @@ class PlanDraftService:
                     label=label,
                     amount=float(leg.price),
                     category=BudgetCategory.FLIGHT,
+                    currency=leg.currency,
                     source_type="manual_flight",
                     source_id=row.id,
                 )
@@ -266,6 +268,7 @@ class PlanDraftService:
                 label=label,
                 amount=float(leg.price),
                 category=BudgetCategory.TRANSPORT,
+                currency=leg.currency,
                 source_type="train",
                 source_id=None,
             )
@@ -304,6 +307,7 @@ class PlanDraftService:
                     label="Food (estimated)",
                     amount=float(budget.food),
                     category=BudgetCategory.FOOD,
+                    currency=budget.currency,
                     source_type="estimated",
                 )
             )
@@ -346,15 +350,22 @@ def _build_budget_item(
     label: str,
     amount: float,
     category: str,
+    currency: str = "EUR",
     source_type: str | None = None,
     source_id=None,
     item_date: date | None = None,
 ) -> BudgetItem:
+    # ``amount`` is stored in its *native* currency — Amadeus quotes
+    # hotels/flights in the property's local currency. Aggregation
+    # (``BudgetItemService.get_budget_summary``) converts every row to
+    # the trip currency, so the native amount + code must be preserved
+    # here rather than coerced to EUR.
     return BudgetItem(
         trip_id=trip_id,
         label=label,
         amount=amount,
         category=category,
+        currency=currency or "EUR",
         date=item_date,
         is_planned=True,
         source_type=source_type,

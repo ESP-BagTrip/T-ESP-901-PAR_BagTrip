@@ -10,14 +10,18 @@ verified separately by the Phase 0 PoC and the Phase 3a smoke run.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from src.services import currency_service
 from src.services.full_plan_orchestrator import (
+    AccommodationDraft,
     FullPlanOrchestrator,
     FullPlanRequest,
+    TransportLeg,
     TripDraftCommand,
 )
 from src.services.llm_router import LLMRouter
@@ -435,3 +439,100 @@ async def test_dto_round_trip_through_dataclasses_asdict():
     assert payload["destination_iata"] == "MRS"
     assert payload["activities"] == []
     assert payload["budget"]["currency"] == "EUR"
+
+
+# ── Budget currency normalisation ─────────────────────────────────────
+
+
+class TestComputeBudgetCurrency:
+    """``_compute_budget`` normalises foreign-currency Amadeus prices.
+
+    Amadeus quotes hotels/flights in the property's *local* currency; the
+    budget breakdown must convert each line to EUR before summing —
+    otherwise a Seoul stay priced in KRW ships as a six-figure euro line
+    ("1 578 000 €" instead of ~1 088 €).
+    """
+
+    @staticmethod
+    def _req() -> FullPlanRequest:
+        return FullPlanRequest(
+            origin_city="Paris",
+            destination_city="Seoul",
+            duration_days=6,
+            departure_date="2026-05-23",
+            return_date="2026-05-29",
+            budget_preset="COMFORTABLE",
+            nb_travelers=1,
+        )
+
+    def test_krw_accommodation_is_converted_to_eur(self):
+        currency_service.reset_cache()
+        # Warm the cache as the ECB refresh job would: 1 EUR = 1450 KRW.
+        currency_service._rate_cache[("EUR", "KRW")] = (1450.0, time.monotonic())
+        try:
+            budget = FullPlanOrchestrator._compute_budget(
+                transport=[],
+                accommodations=[
+                    AccommodationDraft(
+                        name="InterContinental Seoul",
+                        price_total=1_578_000.0,
+                        price_per_night=263_000.0,
+                        nights=6,
+                        currency="KRW",
+                        source="amadeus",
+                    )
+                ],
+                activities=[],
+                weather=None,
+                req=self._req(),
+            )
+        finally:
+            currency_service.reset_cache()
+        # 1 578 000 KRW / 1450 ≈ 1088 €, not the raw six-figure number.
+        assert budget.accommodation == pytest.approx(1_578_000 / 1450, abs=1.0)
+        assert budget.accommodation < 2_000
+        assert budget.currency == "EUR"
+
+    def test_eur_accommodation_is_unchanged_even_on_cold_cache(self):
+        # Same-currency conversion is a no-op and never needs a rate.
+        currency_service.reset_cache()
+        budget = FullPlanOrchestrator._compute_budget(
+            transport=[],
+            accommodations=[
+                AccommodationDraft(
+                    name="Hôtel de Paris",
+                    price_total=900.0,
+                    currency="EUR",
+                    source="amadeus",
+                )
+            ],
+            activities=[],
+            weather=None,
+            req=self._req(),
+        )
+        assert budget.accommodation == 900.0
+
+    def test_foreign_currency_transport_leg_is_converted(self):
+        currency_service.reset_cache()
+        currency_service._rate_cache[("EUR", "KRW")] = (1450.0, time.monotonic())
+        try:
+            budget = FullPlanOrchestrator._compute_budget(
+                transport=[
+                    TransportLeg(
+                        mode="FLIGHT",
+                        direction="OUTBOUND",
+                        price=290_000.0,
+                        currency="KRW",
+                        source="amadeus",
+                    )
+                ],
+                accommodations=[],
+                activities=[],
+                weather=None,
+                req=self._req(),
+            )
+        finally:
+            currency_service.reset_cache()
+        # Leg: 290 000 KRW / 1450 = 200 €, plus the deterministic
+        # local-transport allowance (COMFORTABLE = 15 €/day × 6 days).
+        assert budget.transport == pytest.approx(200.0 + 90.0)

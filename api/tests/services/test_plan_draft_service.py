@@ -160,9 +160,7 @@ def test_full_command_persists_everything(monkeypatch):
     # (the 2 activity costs are read from ``activities.estimated_cost``).
     assert types.count("BudgetItem") == 4
     activity_budget_items = [
-        o
-        for o in captured
-        if type(o).__name__ == "BudgetItem" and o.category == "ACTIVITY"
+        o for o in captured if type(o).__name__ == "BudgetItem" and o.category == "ACTIVITY"
     ]
     assert activity_budget_items == [], (
         "Activities must not produce mirrored BudgetItem rows after Phase B1"
@@ -307,3 +305,71 @@ def test_baggage_with_blank_name_is_dropped(monkeypatch):
     baggage = [o for o in captured if type(o).__name__ == "BaggageItem"]
     assert len(baggage) == 1
     assert baggage[0].name == "Passport"
+
+
+def test_accommodation_budget_item_carries_native_currency(monkeypatch):
+    """A KRW hotel persists a KRW BudgetItem — not a EUR-labelled one.
+
+    Amadeus quotes Seoul hotels in KRW; ``_build_budget_item`` must keep
+    that native code so ``get_budget_summary`` converts it correctly.
+    Mislabelling it EUR is what shipped a "1 578 000 €" Seoul budget.
+    """
+    db, user, captured = _setup_db_and_user(monkeypatch)
+    cmd = _command(
+        accommodations=[
+            AccommodationDraft(
+                name="InterContinental Seoul",
+                hotel_id="TAICN009",
+                price_total=1_578_000.0,
+                price_per_night=263_000.0,
+                nights=6,
+                currency="KRW",
+                source="amadeus",
+            )
+        ],
+    )
+
+    PlanDraftService.create_draft_from_command(db=db, user=user, cmd=cmd)
+
+    acc_items = [
+        o for o in captured if type(o).__name__ == "BudgetItem" and o.category == "ACCOMMODATION"
+    ]
+    assert len(acc_items) == 1
+    # The amount stays the native Amadeus figure; only the code travels —
+    # aggregation (get_budget_summary) does the KRW→EUR conversion.
+    assert float(acc_items[0].amount) == 1_578_000.0
+    assert acc_items[0].currency == "KRW"
+    # The Accommodation entity row keeps the native currency too.
+    acc_rows = [o for o in captured if type(o).__name__ == "Accommodation"]
+    assert acc_rows[0].currency == "KRW"
+
+
+def test_flight_budget_item_inherits_leg_currency(monkeypatch):
+    """A foreign-currency flight leg propagates its code to the budget row."""
+    db, user, captured = _setup_db_and_user(monkeypatch)
+    cmd = _command(
+        accommodations=[],
+        baggage=[],
+        budget=BudgetBreakdown(),
+        transport=[
+            TransportLeg(
+                mode="FLIGHT",
+                direction="OUTBOUND",
+                carrier="KE",
+                code="KE902",
+                origin_iata="CDG",
+                destination_iata="ICN",
+                price=290_000.0,
+                currency="KRW",
+                source="amadeus",
+            )
+        ],
+    )
+
+    PlanDraftService.create_draft_from_command(db=db, user=user, cmd=cmd)
+
+    flight_items = [
+        o for o in captured if type(o).__name__ == "BudgetItem" and o.category == "FLIGHT"
+    ]
+    assert len(flight_items) == 1
+    assert flight_items[0].currency == "KRW"
