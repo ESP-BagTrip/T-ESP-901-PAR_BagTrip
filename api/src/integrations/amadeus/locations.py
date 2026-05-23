@@ -3,6 +3,7 @@
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.breaker import amadeus_breaker
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
 from src.integrations.http_client import get_http_client
@@ -18,6 +19,7 @@ from .types import (
 )
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list[Location]:
     """
@@ -72,6 +74,7 @@ async def search_locations_by_keyword(query: LocationKeywordSearchQuery) -> list
         raise_amadeus_connection_error(error, "location keyword search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
     """
@@ -124,6 +127,7 @@ async def search_location_by_id(query: LocationIdSearchQuery) -> Location:
         raise_amadeus_connection_error(error, "location ID search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_location_nearest(query: LocationNearestSearchQuery) -> list[Location]:
     """

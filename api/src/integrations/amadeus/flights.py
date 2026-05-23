@@ -5,6 +5,7 @@ import json
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.breaker import amadeus_breaker
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
 from src.integrations.http_client import get_http_client
@@ -27,6 +28,7 @@ from .types import (
 )
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResponse:
     """
@@ -152,6 +154,7 @@ async def search_flight_offers(query: FlightOfferSearchQuery) -> FlightOfferResp
         raise_amadeus_connection_error(error, "flight offers search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_flight_destinations(
     query: FlightInspirationSearchQuery,
@@ -260,6 +263,7 @@ async def search_flight_destinations(
         raise_amadeus_connection_error(error, "flight destinations search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> FlightDateResponse:
     """
@@ -367,6 +371,7 @@ async def search_flight_cheapest_dates(query: FlightCheapestDateSearchQuery) -> 
         raise_amadeus_connection_error(error, "flight cheapest dates search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse:
     """
@@ -453,6 +458,7 @@ async def confirm_flight_price(flight_offer: FlightOffer) -> FlightPriceResponse
         raise_amadeus_connection_error(error, "flight price confirmation")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def create_flight_order(
     flight_offer: FlightOffer, travelers: list[FlightOrderTraveler]
