@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -8,6 +9,7 @@ import 'package:bagtrip/models/accommodation.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/cubit/trip_locations_cubit.dart';
+import 'package:bagtrip/trips/widgets/trip_locations_map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -87,9 +89,26 @@ class _LocationsList extends StatelessWidget {
       );
     }
 
+    final mapLocations = buildMapLocations(
+      trip: trip,
+      activities: activityLocations,
+      accommodations: accommodationLocations,
+    );
+    final destination = mapLocations
+        .where((l) => l.kind == MapLocationKind.destination)
+        .firstOrNull;
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.space16),
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+          child: TripLocationsMap(
+            locations: mapLocations,
+            fallbackCenter: destination?.point,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.space24),
         if (hasDestination) ...[
           _SectionHeader(title: l10n.mapDestination),
           _LocationTile(
@@ -125,6 +144,42 @@ class _LocationsList extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Builds categorized [MapLocation] markers from trip items.
+///
+/// SMP327-039 — geocoding is bounded to the trip *destination*: the backend
+/// resolves `destinationIata` -> coordinates (offline aviation data) and
+/// exposes them on [Trip.destinationLatitude] / [Trip.destinationLongitude].
+/// When present, we emit a single destination marker so the map can center
+/// on it. Activities / Accommodations still carry only free-text locations
+/// (no lat/lng), so they yield no markers yet — `activities` /
+/// `accommodations` are kept so the wiring is ready the moment coords land on
+/// those models.
+List<MapLocation> buildMapLocations({
+  required Trip? trip,
+  required List<Activity> activities,
+  required List<Accommodation> accommodations,
+}) {
+  final locations = <MapLocation>[];
+
+  final lat = trip?.destinationLatitude;
+  final lng = trip?.destinationLongitude;
+  if (lat != null && lng != null) {
+    locations.add(
+      MapLocation(
+        latitude: lat,
+        longitude: lng,
+        title: trip?.destinationName ?? '',
+        kind: MapLocationKind.destination,
+        icon: Icons.place,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  // Activities / Accommodations have no coordinates yet — see note above.
+  return locations;
 }
 
 class _SectionHeader extends StatelessWidget {
