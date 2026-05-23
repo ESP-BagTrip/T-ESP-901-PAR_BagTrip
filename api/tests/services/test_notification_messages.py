@@ -34,17 +34,13 @@ class TestNormalizeLocale:
 
 class TestRenderNotification:
     def test_french_render(self):
-        title, body = render_notification(
-            "TRIP_STARTED", "fr", trip_title="Rome"
-        )
+        title, body = render_notification("TRIP_STARTED", "fr", trip_title="Rome")
         assert title == "Bon voyage !"
         assert "Rome" in body
         assert "commence" in body
 
     def test_english_render(self):
-        title, body = render_notification(
-            "TRIP_STARTED", "en", trip_title="Rome"
-        )
+        title, body = render_notification("TRIP_STARTED", "en", trip_title="Rome")
         assert title == "Have a great trip!"
         assert "Rome" in body
 

@@ -115,9 +115,7 @@ class TestUnregisterDeviceToken:
             "src.api.device_tokens.routes.DeviceTokenService.unregister",
             side_effect=AppError("TOKEN_NOT_FOUND", 404, "Not found"),
         ):
-            response = client.request(
-                "DELETE", "/v1/device-tokens", json={"fcmToken": "missing"}
-            )
+            response = client.request("DELETE", "/v1/device-tokens", json={"fcmToken": "missing"})
 
         assert response.status_code == 404
         assert response.json()["detail"]["code"] == "TOKEN_NOT_FOUND"

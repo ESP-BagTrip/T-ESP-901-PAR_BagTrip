@@ -56,9 +56,7 @@ def test_trip_started_notification_sent_on_planned_to_ongoing():
         TripsService.auto_transition_statuses(db)
 
         calls = mock_notif.send_localized.call_args_list
-        started = [
-            c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED
-        ]
+        started = [c for c in calls if c.kwargs.get("notif_type") == NotificationType.TRIP_STARTED]
         assert len(started) == 1
         # Deep-link screen uses camelCase to match the Flutter route switch.
         assert started[0].kwargs["data"]["screen"] == "tripHome"
