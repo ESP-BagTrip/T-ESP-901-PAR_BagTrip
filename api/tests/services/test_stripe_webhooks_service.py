@@ -243,15 +243,52 @@ class TestChargeEvents:
         )
         assert intent.status == "CAPTURED"
 
-    def test_charge_dispute_created_logs_only(self, mock_db_session):
-        """Dispute event doesn't auto-mutate state — admin reviews on Stripe dashboard."""
-        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+    def test_charge_dispute_created_downgrades_to_free(self, mock_db_session):
+        """A chargeback revokes Premium immediately (SMP-327 decision)."""
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
+        # 1st .first() = idempotency check, 2nd = find_user_by_customer.
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
 
         result = StripeWebhooksService.process_event(
             mock_db_session,
             _event(
                 "charge.dispute.created",
-                {"charge": "ch_123", "amount": 1000, "reason": "fraudulent"},
+                {"customer": "cus_123", "charge": "ch_123", "amount": 1000, "reason": "fraudulent"},
+            ),
+        )
+        assert user.plan == "FREE"
+        assert user.plan_expires_at is None
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_dispute_created_does_not_downgrade_admin(self, mock_db_session):
+        """An ADMIN account is never downgraded by a dispute webhook."""
+        user = User(id=uuid.uuid4(), plan="ADMIN", stripe_customer_id="cus_admin")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.dispute.created",
+                {"customer": "cus_admin", "charge": "ch_a", "amount": 1000, "reason": "fraudulent"},
+            ),
+        )
+        assert user.plan == "ADMIN"
+
+    def test_charge_dispute_created_no_user_is_noop(self, mock_db_session):
+        """Unknown customer -> logged, no crash, event still recorded."""
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, None]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.dispute.created",
+                {"customer": "cus_unknown", "charge": "ch_x", "amount": 500, "reason": "general"},
             ),
         )
         assert result.processed_at is not None

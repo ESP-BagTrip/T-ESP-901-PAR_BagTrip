@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from src.enums import BookingIntentStatus
 from src.models.booking_intent import BookingIntent
 from src.models.stripe_event import StripeEvent
-from src.services.stripe_webhooks.handlers._helpers import get_obj_attr
+from src.services.stripe_webhooks.handlers._helpers import find_user_by_customer, get_obj_attr
 from src.utils.logger import logger
 
 
@@ -45,9 +45,10 @@ def handle_charge_dispute_created(
 ) -> None:
     """`charge.dispute.created` — chargeback opened.
 
-    No automatic state change — disputes need human review via the Stripe
-    dashboard. We log loudly so an admin notices, and keep the full event
-    payload in the StripeEvent table for audit / runbook reference.
+    Decision (SMP-327): a chargeback revokes Premium immediately. The user is
+    dropped back to FREE as soon as the dispute is opened. A dispute we later
+    win needs a manual re-upgrade — accepted trade-off for keeping this simple.
+    We still log loudly and keep the full payload in StripeEvent for audit.
     """
     obj = event.data.object
     charge_id = get_obj_attr(obj, "charge")
@@ -55,5 +56,15 @@ def handle_charge_dispute_created(
     reason = get_obj_attr(obj, "reason")
     logger.error(
         f"charge.dispute.created — charge={charge_id} amount={amount} reason={reason} "
-        f"(event {event.id}). Action required: review on Stripe dashboard."
+        f"(event {event.id}). Downgrading to FREE; review on Stripe dashboard."
     )
+
+    user = find_user_by_customer(db, event)
+    if not user:
+        logger.warn(f"charge.dispute.created: user not found for event {event.id}")
+        return
+    if user.plan != "ADMIN":
+        user.plan = "FREE"
+        user.plan_expires_at = None
+        db.commit()
+        logger.info(f"User {user.id} → FREE (chargeback dispute opened)")
