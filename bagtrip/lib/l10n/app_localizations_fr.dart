@@ -724,6 +724,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabProfile => 'Profil';
 
   @override
+  String get emailVerificationBannerText =>
+      'Vérifiez votre adresse e-mail pour sécuriser votre compte.';
+
+  @override
+  String get emailVerificationResend => 'Renvoyer';
+
+  @override
+  String get emailVerificationSent =>
+      'E-mail de vérification envoyé. Consultez votre boîte de réception.';
+
+  @override
+  String get emailVerifiedSuccess => 'Votre adresse e-mail a été vérifiée.';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override

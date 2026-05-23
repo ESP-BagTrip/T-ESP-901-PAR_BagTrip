@@ -64,6 +64,7 @@ User makeUser({
   bool isProfileCompleted = false,
   DateTime? createdAt,
   int? aiGenerationsRemaining,
+  bool emailVerified = false,
 }) {
   return User(
     id: id,
@@ -74,6 +75,7 @@ User makeUser({
     isProfileCompleted: isProfileCompleted,
     createdAt: createdAt ?? DateTime(2024),
     aiGenerationsRemaining: aiGenerationsRemaining,
+    emailVerified: emailVerified,
   );
 }
 

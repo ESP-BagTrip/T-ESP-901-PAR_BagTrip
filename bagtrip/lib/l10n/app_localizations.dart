@@ -1406,6 +1406,30 @@ abstract class AppLocalizations {
   /// **'Profil'**
   String get tabProfile;
 
+  /// No description provided for @emailVerificationBannerText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiez votre adresse e-mail pour sécuriser votre compte.'**
+  String get emailVerificationBannerText;
+
+  /// No description provided for @emailVerificationResend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer'**
+  String get emailVerificationResend;
+
+  /// No description provided for @emailVerificationSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail de vérification envoyé. Consultez votre boîte de réception.'**
+  String get emailVerificationSent;
+
+  /// No description provided for @emailVerifiedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre adresse e-mail a été vérifiée.'**
+  String get emailVerifiedSuccess;
+
   /// No description provided for @notificationsTitle.
   ///
   /// In fr, this message translates to:

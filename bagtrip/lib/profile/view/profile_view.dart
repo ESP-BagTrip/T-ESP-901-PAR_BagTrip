@@ -15,6 +15,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/recent_booking.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
+import 'package:bagtrip/profile/widgets/email_verification_banner.dart';
 import 'package:bagtrip/profile/widgets/logout_button.dart';
 import 'package:bagtrip/profile/widgets/profile_footer.dart';
 import 'package:bagtrip/profile/widgets/profile_header_card.dart';
@@ -59,6 +60,7 @@ class ProfileView extends StatelessWidget {
             final content = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const EmailVerificationBanner(),
                 ProfileHeaderCard(
                   name: state.name.isNotEmpty ? state.name : state.email,
                   memberSince: DateFormat.yMMM(

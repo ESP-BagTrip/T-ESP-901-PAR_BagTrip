@@ -17,11 +17,13 @@ void main() {
           'plan': 'PREMIUM',
           'aiGenerationsRemaining': 5,
           'planExpiresAt': '2025-01-15T00:00:00.000',
+          'emailVerified': true,
         };
 
         final user = User.fromJson(json);
 
         expect(user.id, 'user-1');
+        expect(user.emailVerified, true);
         expect(user.email, 'alice@example.com');
         expect(user.fullName, 'Alice Smith');
         expect(user.phone, '+33612345678');
@@ -53,6 +55,19 @@ void main() {
         expect(user.plan, 'FREE');
         expect(user.aiGenerationsRemaining, isNull);
         expect(user.planExpiresAt, isNull);
+        expect(user.emailVerified, false);
+      });
+
+      test('parses emailVerified false explicitly', () {
+        final json = <String, dynamic>{
+          'id': 'user-3',
+          'email': 'eve@example.com',
+          'emailVerified': false,
+        };
+
+        final user = User.fromJson(json);
+
+        expect(user.emailVerified, false);
       });
     });
 

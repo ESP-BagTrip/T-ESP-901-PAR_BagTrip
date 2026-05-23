@@ -17,6 +17,7 @@ final class UserProfileLoaded extends UserProfileState {
   final String? budget;
   final String? companions;
   final bool isUpdating;
+  final bool emailVerified;
 
   UserProfileLoaded({
     required this.name,
@@ -28,6 +29,7 @@ final class UserProfileLoaded extends UserProfileState {
     this.budget,
     this.companions,
     this.isUpdating = false,
+    this.emailVerified = false,
   });
 
   UserProfileLoaded copyWith({
@@ -40,6 +42,7 @@ final class UserProfileLoaded extends UserProfileState {
     String? budget,
     String? companions,
     bool? isUpdating,
+    bool? emailVerified,
   }) {
     return UserProfileLoaded(
       name: name ?? this.name,
@@ -51,6 +54,7 @@ final class UserProfileLoaded extends UserProfileState {
       budget: budget ?? this.budget,
       companions: companions ?? this.companions,
       isUpdating: isUpdating ?? this.isUpdating,
+      emailVerified: emailVerified ?? this.emailVerified,
     );
   }
 }

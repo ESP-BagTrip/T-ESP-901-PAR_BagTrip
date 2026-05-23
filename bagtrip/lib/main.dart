@@ -11,6 +11,9 @@ import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/components/snack_bar_scope.dart';
 import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -237,18 +240,74 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// Routes a `bagtrip://reset-password?token=…` deep link to the reset
-  /// password screen. Custom-scheme URIs surface the segment as either the
-  /// host (empty path) or a path segment depending on the platform, so both
-  /// are checked. Non-matching URIs are ignored.
+  /// Handles `bagtrip://` custom-scheme deep links. Custom-scheme URIs surface
+  /// the segment as either the host (empty path) or a path segment depending
+  /// on the platform, so both are checked. Non-matching URIs (Stripe's
+  /// `bagtrip://payment/result`, etc.) are ignored.
+  ///
+  /// Two links are consumed:
+  ///   - `reset-password?token=…` → navigates to the reset-password screen.
+  ///   - `verify-email?token=…`   → confirms email verification in the
+  ///     background. SOFT flow: no navigation, no blocking — on success the
+  ///     current user is refreshed (so the verify banner collapses) and a
+  ///     toast is shown when a navigator context is available.
   void _handleDeepLink(Uri? uri) {
     if (uri == null) return;
-    final isReset =
-        uri.host == 'reset-password' ||
-        uri.pathSegments.contains('reset-password');
-    if (!isReset) return;
-    final token = uri.queryParameters['token'] ?? '';
-    appRouter.go(ResetPasswordRoute(token: token).location);
+
+    bool matches(String segment) =>
+        uri.host == segment || uri.pathSegments.contains(segment);
+
+    if (matches('reset-password')) {
+      final token = uri.queryParameters['token'] ?? '';
+      appRouter.go(ResetPasswordRoute(token: token).location);
+      return;
+    }
+
+    if (matches('verify-email')) {
+      _handleVerifyEmailLink(uri.queryParameters['token'] ?? '');
+      return;
+    }
+  }
+
+  /// Confirms an email-verification deep link out of band. Never navigates and
+  /// never blocks — failures are only surfaced as feedback.
+  Future<void> _handleVerifyEmailLink(String token) async {
+    if (token.isEmpty) {
+      dev.log('verify-email deep link missing token');
+      return;
+    }
+
+    final result = await getIt<AuthRepository>().verifyEmail(token);
+    final context = appRouter.routerDelegate.navigatorKey.currentContext;
+
+    switch (result) {
+      case Success():
+        dev.log('Email verified via deep link');
+        // Refresh the current user so the soft banner collapses.
+        if (context != null && context.mounted) {
+          context.read<UserProfileBloc>().add(LoadUserProfile());
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            SnackBarScope.of(context).show(
+              context,
+              message: l10n.emailVerifiedSuccess,
+              type: SnackBarType.success,
+            );
+          }
+        }
+      case Failure(:final error):
+        dev.log('Email verification deep link failed: $error');
+        if (context != null && context.mounted) {
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            SnackBarScope.of(context).show(
+              context,
+              message: toUserFriendlyMessage(error, l10n),
+              type: SnackBarType.error,
+            );
+          }
+        }
+    }
   }
 
   @override
