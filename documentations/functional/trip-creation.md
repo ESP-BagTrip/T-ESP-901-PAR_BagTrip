@@ -1,226 +1,310 @@
-# Creation de voyage — Wizard multi-etapes
+# Creation de voyage - Wizard de planification
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La creation de voyage dans BagTrip repose sur un wizard multi-etapes orchestre par un `PlanTripBloc` (BLoC pattern). Le wizard guide l'utilisateur a travers 6 etapes (ou 5 en mode manuel) et supporte deux parcours distincts : un **flow manuel** (l'utilisateur choisit sa destination) et un **flow IA** (l'IA suggere des destinations puis genere un itineraire complet). Le tout culmine soit en creation directe d'un trip via l'API REST, soit en generation IA streamee via SSE puis acceptation du plan.
+BagTrip cree un voyage via un wizard 6 etapes (5 en flow manuel) qui guide
+l'utilisateur des contraintes (dates, voyageurs, budget) jusqu'a un plan genere
+par un agent multi-agent LangGraph et confirme par l'utilisateur. Cote mobile,
+l'experience est portee par un `PlanTripBloc` unique couple a un `PageView` sans
+swipe, qui consomme un flux Server-Sent Events ouvert sur
+`/v1/ai/plan-trip/stream`. Le serveur centralise toute la logique : orchestration
+LangGraph, persistance du DRAFT trip, creation des sous-entites (activites,
+transports, hebergements, bagages, budget) et livraison d'un `tripId` dans l'event
+terminal `complete`. L'endpoint `POST /v1/trips` reste disponible pour la creation
+manuelle "vide" mais le chemin nominal des deux flows passe par le pipeline SSE.
 
-## Architecture
+Deux variantes coexistent :
 
-### Fichiers cles
+- **Flow IA "Inspire-moi"** : l'utilisateur ne sait pas ou aller. Le bloc tire le
+  pipeline en mode `destinations_only`, affiche un carousel de propositions, et
+  bascule sur le pipeline complet a la selection.
+- **Flow manuel** : l'utilisateur tape sa destination (`aviation_data` offline,
+  Amadeus indirect). Le wizard saute l'etape propositions et la destination est
+  forcee dans la payload SSE.
 
-| Couche | Fichier | Role |
-|--------|---------|------|
-| Page | `bagtrip/lib/plan_trip/view/plan_trip_flow_page.dart` | Point d'entree, `BlocProvider`, `PageView` avec 6 pages |
-| BLoC | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart` | Logique metier, orchestration des etapes |
-| State | `bagtrip/lib/plan_trip/bloc/plan_trip_state.dart` | Etat immutable (Freezed) avec computed getters |
-| Events | `bagtrip/lib/plan_trip/bloc/plan_trip_event.dart` | 17 events couvrant navigation + data |
-| Models | `bagtrip/lib/plan_trip/models/` | `TripPlan`, `DateMode`, `BudgetPreset`, `DurationPreset`, `LocationResult`, `AiDestination`, `StepStatus`, `BudgetRange` |
+Quota IA, persistance et redirection vers la page detail sont identiques dans les
+deux cas.
 
-### Pattern de navigation
+## Cote Backend
 
-Le wizard utilise un `PageView` avec `NeverScrollableScrollPhysics` (pas de swipe manuel). La navigation se fait uniquement via les events `PlanTripNextStep`, `PlanTripPreviousStep`, et `PlanTripGoToStep`. Le `BlocConsumer.listener` anime la transition avec `PageController.animateToPage()` (courbe spring, duree `AppAnimations.wizardTransition`).
+### POST /v1/trips (creation manuelle)
 
-**Le flow manuel saute l'etape 3** (propositions IA) : quand `isManualFlow == true`, `_onNextStep` passe de l'etape 2 directement a l'etape 4, et `_onPreviousStep` fait le chemin inverse. Le total d'etapes est 5 en manuel vs 6 en IA.
+Defini dans `api/src/api/trips/routes.py:47`. Cree un trip "vide" a partir d'un
+`TripCreateRequest`. Point d'entree historique conserve pour les imports manuels :
 
-## Etape 0 — Dates (`StepDatesView`)
+- Auth via `Depends(get_current_user)`.
+- Validation Pydantic : `destinationName` ou `destinationIata` requis,
+  `startDate <= endDate`, `startDate >= today`.
+- Cover image auto-fetch via `unsplash_client.fetch_cover_image` si absente
+  (fallback gradient).
+- `TripsService.create_trip(...)` insere le `Trip` en `DRAFT`, ajoute le createur
+  comme premier `TripTraveler` (`traveler_type=ADULT`), commit, refresh.
+- Reponse `TripResponse` 201 enrichie d'un `completionPercentage` (0 a la
+  creation), role `OWNER`.
 
-L'utilisateur choisit ses dates via un `FlexibleDatePicker` qui supporte 3 modes :
+Champs : `title`, `originIata`, `destinationIata`, `destinationName`, `startDate`,
+`endDate`, `description`, `nbTravelers`, `coverImageUrl`, `budgetTarget`, `origin`
+(`MANUAL`/`AI`), `dateMode` (`EXACT`/`MONTH`/`FLEXIBLE`).
 
-| Mode (`DateMode`) | Donnees capturees | Validation |
+### POST /v1/ai/plan-trip/stream
+
+`api/src/api/ai/plan_trip_routes.py` - seul endpoint SSE. La route parse
+`PlanTripRequest`, verifie le quota via `Depends(require_ai_quota)` et delegue a
+`TripPlannerService.stream_plan`.
+
+`require_ai_quota` (`api/src/api/auth/plan_guard.py`) appelle
+`PlanService.check_ai_generation_quota` : reconciliation Stripe -> lecture de
+`PLAN_LIMITS[plan]["ai_generations_per_month"]` -> auto-reset si mois ecoule ->
+raise `AppError("AI_QUOTA_EXCEEDED", 402)` si epuise. Compteur incremente
+seulement a la fin d'un run reussi (`increment_ai_generation`).
+
+`TripPlannerService.stream_plan(request, user_id, db)` :
+
+- `mode == "destinations_only"` -> `InspireOrchestrator.stream(...)` emet
+  `progress`, `destinations`, `done`. Rien n'est persiste.
+- Sinon -> `FullPlanOrchestrator.stream(...)` emet `progress`, `destinations`,
+  `weather`, `activities`, `accommodations`, `transport`, `baggage`, `budget`,
+  parfois `warning`. Le `complete` interne porte un `trip_draft` (dict) intercepte
+  par le service.
+- Reconstruction d'un `TripDraftCommand` typed via `_trip_draft_from_dict`, puis
+  passe deterministe `schedule_activities(cmd)` (assignation jours + creneaux
+  morning/afternoon/evening via `_TIME_OF_DAY_MAP` 9:00/14:00/19:00).
+- `PlanDraftService.create_draft_from_command(db, user, cmd)` cree le `Trip`
+  (`origin=TripOrigin.AI`, `status=DRAFT`, `date_mode=EXACT`) via
+  `TripsService.create_trip`, puis insere : `Activity` (`validation_status=SUGGESTED`),
+  `Accommodation` (source `amadeus`/`estimated`), `ManualFlight` pour chaque
+  `TransportLeg` OUTBOUND/RETURN (mode FLIGHT/TRAIN), `BaggageItem`, `BudgetItem`
+  pour transport/accommodation/food/activity.
+- Emit du `complete` final `{"tripId", "status", "tripDraft"}` puis
+  `PlanService.increment_ai_generation(db, user)`.
+- `try / except / finally` garantit l'emission d'un `error` en cas d'exception et
+  d'un `done` final dans tous les cas, meme si le client coupe la connexion.
+
+### GET /v1/travel/locations
+
+`api/src/api/travel/routes.py:38`. Recherche de lieux par mot-cle pour le wizard.
+Query : `subType` (`CITY,AIRPORT` ou `CITY`) et `keyword`. Sert
+`aviation_data_service.search_by_keyword` sans appel reseau Amadeus (donnees
+offline), ce qui permet a la barre de l'etape 2 de debouncer agressivement.
+Reponse `LocationSearchResult` (`locations[]` : name, iataCode, city, countryCode,
+countryName, subType). L'inspiration Amadeus est consommee indirectement par
+`InspireOrchestrator`, pas par la mobile en direct.
+
+## Cote Mobile
+
+### PlanTripBloc - state et events
+
+`bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart` centralise tout. State freezed
+unique (`PlanTripState`) avec getters calcules :
+
+| Getter | Role |
+|---|---|
+| `nbTravelers` | `nbAdults + nbChildren + nbBabies` |
+| `areDatesValid` | switch sur `dateMode` |
+| `isDestinationValid` | `selectedManualDestination != null || selectedAiDestination != null` |
+| `tripDurationDays` | direct (exact) ou preset (flexible/month) |
+| `effectiveDurationDays` | `tripDurationDays ?? 7` (toujours non-null pour SSE) |
+| `representativeDates` | `(start, end)` resolu pour tous modes (15 du mois en `month`, J+30 en `flexible`) |
+| `totalSteps` | 5 (manuel) / 6 (IA) |
+
+Events (sealed) : `loadPersonalization`, `nextStep`/`previousStep`/`goToStep`,
+`setDateMode`/`setExactDates`/`setMonthPreference`/`setFlexibleDuration`,
+`setTravelerCounts`/`setBudgetPreset`/`setOriginCity`/`searchOrigin`,
+`searchDestination`/`selectManualDestination`/`requestAiSuggestions`/
+`selectAiDestination`, `swipeProposal`, `startGeneration`/`retryGeneration`,
+`createTrip`/`backToProposals`/`updateReviewDates`.
+
+### Etape 0 - Dates (`StepDatesView`)
+
+`FlexibleDatePicker` avec 3 modes :
+
+- **exact** : `startDate` + `endDate`, validation `endDate >= startDate`.
+- **month** : `preferredMonth` (1-12) + `preferredYear`.
+- **flexible** : `flexibleDuration` (`weekend=3`, `oneWeek=7`, `twoWeeks=14`,
+  `threeWeeks=21`).
+
+Bouton "Continuer" actif si `state.areDatesValid`.
+
+### Etape 1 - Voyageurs et budget (`StepTravelersBudgetView`)
+
+- **Ville d'origine** : champ texte, `searchOrigin` -> 
+  `LocationService.searchLocationsByKeyword(query, 'CITY')` (max 6). Pre-fill par
+  geolocalisation appareil (`GeoLocationService.getNearestCity`) au montage.
+  Obligatoire pour le flow IA.
+- **Voyageurs** : `TravelerStepper` -> `setTravelerCounts(adults, children,
+  babies)`. Categories clampees 0-10 (1-10 pour adults).
+- **Budget** : 4 presets via `BudgetChipSelector` : `backpacker` (< 50 EUR/j/p),
+  `comfortable` (50-150), `premium` (150-500), `noLimit`. Le clic calcule
+  `targetBudget = estimateBudget(preset, nbTravelers, days).max` stocke en state
+  et envoye comme contrainte numerique a l'agent.
+
+### Etape 2 - Destination (`StepDestinationView`)
+
+Deux interactions :
+
+- **Recherche manuelle** : `TextField` avec debounce 300 ms (Timer), min 2 chars.
+  Dispatch `searchDestination(query)` ->
+  `LocationService.searchLocationsByKeyword(query, 'CITY,AIRPORT')` (max 8). La
+  selection emit `selectManualDestination(loc)`, met `isManualFlow = true`, permet
+  d'avancer a l'etape 4 (3 sautee).
+- **Inspire-moi** : bouton gradient -> `requestAiSuggestions(locale)`. Le bloc
+  charge `PersonalizationStorage` (travelTypes, budget, companions, constraints),
+  calcule la saison via `startDate`/`preferredMonth`, valide `originCity` (sinon
+  `ValidationError`), et appelle `AiRepository.getInspiration(...)`.
+
+`AiRepositoryImpl.getInspiration` ouvre en realite un
+`planTripStream(mode: 'destinations_only')` et renvoie le premier payload
+`destinations` (ou `complete`). Les villes sont mappees en `AiDestination` (city,
+country, iata, matchReason, imageUrl, weatherSummary, topActivities). Le listener
+de la view emit `goToStep(3)` automatiquement.
+
+### Etape 3 - Propositions IA (`StepAiProposalsView`)
+
+Carousel des `AiDestination`. Chaque `AiDestinationCard` montre image hero, ville,
+pays, raison du match, chips meteo + budget, top activites. Clic "Choisir" :
+animation 800 ms scale+overlay+fade puis `swipeProposal(currentPage)` qui
+selectionne la destination et bascule a l'etape 4.
+
+### Etape 4 - Generation SSE (`StepGenerationView`)
+
+Auto-declenchement : `BlocConsumer.listener` dans `PlanTripFlowPage` emet
+`startGeneration(locale)` quand `currentStep == 4 && generationSteps.isEmpty`.
+
+Le bloc :
+
+1. Verifie `user.aiGenerationsRemaining` localement. Si <= 0 ->
+   `generationError: 'AI generation quota exceeded'`.
+2. Initialise `generationSteps` avec 5 cles en `pending` : `destinations`,
+   `activities`, `accommodations`, `baggage`, `budget`.
+3. Charge `travelTypes`/`companions`/`constraints` depuis
+   `PersonalizationStorage`.
+4. `_cancelSseStream()` annule toute souscription precedente.
+5. Ouvre `AiRepository.planTripStream(...)` avec `durationDays`, `departureDate`,
+   `returnDate`, `nbTravelers`, `originCity`, `destinationCity`,
+   `destinationIata`, `budgetPreset`, `targetBudget`, `dateMode`,
+   `preferredMonth`, `preferredYear`, `travelTypes`, `companions`,
+   `constraints`, `locale`.
+6. Attend sur un `Completer<void>` pour garder `emit` valide.
+
+Mapping des events par `_handleSseEvent` :
+
+| event | progress | mutations |
 |---|---|---|
-| `exact` | `startDate` + `endDate` (DateTime) | Les deux dates non-nulles, `endDate >= startDate` |
-| `month` | `preferredMonth` (int 1-12) + `preferredYear` (int) | Les deux non-nuls |
-| `flexible` | `flexibleDuration` (`DurationPreset`) | Preset selectionne |
+| `progress` | inchange | met a jour `generationMessage` |
+| `destinations` | 0.2 | `destinations=completed`, `activities=inProgress` |
+| `activities` | 0.4 | `activities=completed`, `accommodations=inProgress` |
+| `accommodations` | 0.6 | `accommodations=completed`, `baggage=inProgress` |
+| `baggage` | 0.8 | `baggage=completed`, `budget=inProgress` |
+| `budget` | 0.9 | `budget=completed` |
+| `weather`, `transport` | inchange | no-op (state preserve) |
+| `warning` | inchange | append a `generationWarnings` |
+| `complete` | 1.0 | `pendingTripId`, `generatedPlan=_tripPlanFromDraft(tripDraft)`, `currentStep=5` |
+| `error` | inchange | `generationError` |
+| `done` | 1.0 | fallback advance a step 5 si pas de plan |
 
-### Presets de duree (`DurationPreset`)
+`_tripPlanFromDraft` convertit le `tripDraft` snake_case en `TripPlan` Freezed :
+extraction du vol OUTBOUND/RETURN, prix par nuit hotel, agregation budget par
+categorie, highlights, descriptions, items bagage, data meteo brut.
 
-| Enum | Jours calcules |
-|------|----------------|
-| `weekend` | 3 |
-| `oneWeek` | 7 |
-| `twoWeeks` | 14 |
-| `threeWeeks` | 21 |
+UI : avatar IA pulsant (2400 ms boucle), titre anime (timer 420 ms),
+`AnimatedSwitcher` sur la checklist, timeout client a 300 secondes. Retry annule
+le stream et emit `retryGeneration(locale)`. Back/close declenche
+`backToProposals` -> `_cancelSseStream()` + reset des champs generation.
 
-Un badge resume dynamique s'affiche quand les dates sont valides (format localise via `intl`). Le bouton "Continuer" n'est actif que si `areDatesValid == true`.
+### Etape 5 - Review (`StepReviewView`)
 
-### Duree calculee (`tripDurationDays`)
+Lecture seule du `TripPlan` (`state.generatedPlan`), sans appel serveur. Sections :
+`ReviewCinematicHero` (cover, dates, duree, voyageurs), `ReviewDayTimeline`
+(activites schedulees jour par jour), `ReviewRecommendationSection` (repas,
+transports locaux), `ReviewBudgetReveal` (total, per-person, ventilation),
+`ReviewDecisionInline` (CTA primaire "Creer mon voyage", secondaire "Voir
+d'autres destinations").
 
-La propriete computee `tripDurationDays` dans le state retourne :
-- En mode `exact` : `endDate.difference(startDate).inDays`
-- En mode `flexible` : la valeur du preset (3/7/14/21)
-- En mode `month` : `null` (pas de duree determinable)
+Le CTA primaire emit `createTrip`. Le handler ne fait **aucun appel reseau** : le
+draft est deja persiste, le `pendingTripId` est simplement promu en
+`createdTripId`. Si manquant -> `ServerError`. Sinon `PlanTripFlowPage` ecoute la
+transition, haptic success + SnackBar + refresh `HomeBloc`/`TripManagementBloc` +
+`TripHomeRoute(tripId).go(context)`.
 
-## Etape 1 — Voyageurs et budget (`StepTravelersBudgetView`)
+Le CTA secondaire emit `backToProposals` (etape 2 manuel / 3 IA, reset du plan).
 
-### Voyageurs
+## Flux
 
-Un `TravelerStepper` (widget custom avec animation bounce) permet de selectionner de 1 a 10 voyageurs. La valeur est stockee dans `nbTravelers` (defaut : 1).
+### Flow IA complet (Inspire-moi)
 
-### Budget
+```
+User -> StepDates : setDateMode/setExactDates
+User -> StepTravelersBudget : origineVille / voyageurs / budget
+User -> StepDestination : "Inspire-moi"
+  Bloc -> AiRepository.getInspiration(originCity, ...)
+    POST /v1/ai/plan-trip/stream {mode: 'destinations_only'}
+    require_ai_quota -> InspireOrchestrator.stream
+    SSE: progress -> destinations -> done
+  Bloc -> emit aiSuggestions[]
+  View -> goToStep(3)
+User -> StepAiProposals : swipe + "Choisir"
+  Bloc -> swipeProposal -> selectedAiDestination + currentStep=4
+View -> auto-fire startGeneration(locale)
+  POST /v1/ai/plan-trip/stream {mode: 'full', originCity, destinationCity, destinationIata, ...}
+  FullPlanOrchestrator.stream
+  SSE: progress -> destinations -> weather -> activities -> accommodations
+        -> transport -> baggage -> budget -> complete(tripDraft)
+  _trip_draft_from_dict -> schedule_activities
+  PlanDraftService.create_draft_from_command
+    INSERT Trip(DRAFT, AI), Activities, ManualFlights, Accommodation, BaggageItem, BudgetItem
+    COMMIT
+  emit complete {tripId, status, tripDraft}
+  PlanService.increment_ai_generation
+  finally: emit done
+  Bloc -> pendingTripId + generatedPlan + currentStep=5
+User -> StepReview : "Creer mon voyage"
+  Bloc -> createdTripId = pendingTripId
+  View -> TripHomeRoute(tripId).go(context)
+```
 
-Un `BudgetChipSelector` affiche 4 presets toggle (re-cliquer deselectionne) :
+### Flow manuel
 
-| Preset (`BudgetPreset`) | Fourchette/jour/personne (Flutter) | Fourchette/jour/personne (API) |
-|---|---|---|
-| `backpacker` | 30-60 EUR | < 50 EUR |
-| `comfortable` | 80-150 EUR | 50-150 EUR |
-| `premium` | 200-400 EUR | 150-500 EUR |
-| `noLimit` | 400-1000 EUR | illimite |
+Identique a partir de l'etape 2 mais l'utilisateur tape sa ville :
 
-**Estimation locale** : quand un preset, un nombre de voyageurs et une duree sont disponibles, un `_BudgetEstimationBadge` affiche l'estimation totale calculee par la fonction pure `estimateBudget()` dans `bagtrip/lib/plan_trip/helpers/budget_estimation.dart`. Formule : `nbTravelers * minPerDay * days` a `nbTravelers * maxPerDay * days`.
+```
+User -> StepDestination : tape "Lisbonne" -> selectManualDestination -> isManualFlow=true
+User -> "Continuer" -> nextStep (saut step 3 -> step 4)
+View -> auto-fire startGeneration(locale)
+  Meme pipeline SSE 'full' avec destinationCity/destinationIata forces.
+User -> StepReview -> createTrip -> redirect TripHomeRoute
+```
 
-Le budget est **optionnel** : un lien "Passer" (`budgetSkipLabel`) permet de continuer sans selectionner de preset.
+### Annulation et retry
 
-## Etape 2 — Destination (`StepDestinationView`)
-
-Cette etape offre deux parcours :
-
-### Recherche manuelle
-
-- Champ de recherche avec **debounce 300ms** (minimum 2 caracteres)
-- Appel a `LocationService.searchLocationsByKeyword(query, 'CITY,AIRPORT')` qui interroge l'API Amadeus
-- Resultats affiches sous forme de `_LocationResultTile` avec drapeau emoji (genere via unicode), nom, pays, et code IATA
-- La selection d'un resultat fire `PlanTripSelectManualDestination`, met `isManualFlow = true` et affiche un badge de confirmation + bouton "Continuer"
-
-### "Inspire-moi" (flow IA)
-
-- Bouton gradient `_InspireMeButton` qui fire `PlanTripRequestAiSuggestions`
-- Le bloc charge les preferences de personnalisation via `PersonalizationStorage` (SharedPreferences par utilisateur : travelTypes, budget, companions, constraints)
-- Calcul de la saison a partir de `startDate` ou `preferredMonth`
-- Appel a `_aiRepository.getInspiration(...)`
-
-**ATTENTION** : La methode `getInspiration()` dans `AiRepositoryImpl` retourne actuellement `const Success([])` (stub). Le commentaire indique : "Legacy endpoint removed -- AI planning now uses planTripStream()." Par consequent, le bouton "Inspire-moi" ne produit jamais de suggestions. Voir section "Ce qu'il manque".
-
-Quand des suggestions IA arrivent (si l'implementation fonctionnait), un `BlocConsumer.listener` navigue automatiquement vers l'etape 3.
-
-### Separateur
-
-Les deux options sont separees par un `_OrSeparator` avec le texte "OU".
-
-## Etape 3 — Propositions IA (`StepAiProposalsView`)
-
-Accessible uniquement en flow IA. Affiche les destinations suggerees dans un `DestinationCarousel` avec les cartes `AiDestinationCard`.
-
-### AiDestinationCard
-
-Chaque carte contient :
-- Image hero (via `OptimizedImage` ou placeholder paysage)
-- Badge "IA" en haut a droite
-- Ville + pays en overlay bas de l'image
-- Raison du match (`matchReason`)
-- Chips meteo + budget estime
-- Jusqu'a 3 activites suggerees en pills
-
-### Interaction de selection
-
-- Hint "swipe to discover" visible 3 secondes
-- Bouton "Choisir cette destination" (`_ChooseButton`)
-- Au clic : animation en 3 phases (scale up 5% -> overlay vert -> fade des autres cartes), duree 800ms
-- A la fin de l'animation : fire `PlanTripSwipeProposal(currentPage)` qui selectionne la destination et avance a l'etape 4
-
-## Etape 4 — Generation IA (`StepGenerationView`)
-
-La generation demarre automatiquement a l'arrivee sur l'etape (le `BlocConsumer.listener` dans `PlanTripFlowPage` fire `PlanTripStartGeneration` quand `currentStep == 4` et `generationSteps.isEmpty`).
-
-### Verification de quota
-
-Avant de lancer le stream SSE, le bloc verifie `user.aiGenerationsRemaining`. Si le quota est epuise, une erreur est emise sans appel reseau.
-
-### SSE Streaming
-
-Le bloc appelle `_aiRepository.planTripStream()` qui ouvre une connexion SSE POST vers `/v1/ai/plan-trip/stream`. Les parametres envoyes incluent `travelTypes`, `budgetRange`, `durationDays`, `companions`, `constraints`, `departureDate`, `returnDate`.
-
-### Checklist de progression
-
-Le state maintient un `Map<String, StepStatus> generationSteps` avec 5 cles :
-
-| Cle | Icone | Progression |
-|-----|-------|-------------|
-| `destinations` | `place_outlined` | 20% |
-| `activities` | `local_activity_outlined` | 40% |
-| `accommodations` | `hotel_outlined` | 60% |
-| `baggage` | `luggage_outlined` | 80% |
-| `budget` | `account_balance_wallet_outlined` | 90% |
-
-Chaque `StepStatus` (enum `pending`, `inProgress`, `completed`, `error`) est affiche avec un `AnimatedSwitcher` et des icones distinctes (cercle vide, spinner, check vert, erreur rouge).
-
-### Avatar IA pulsant
-
-Un `_PulsingAiAvatar` avec `AnimationController` en boucle (1500ms, reverse) cree un effet de halo respirant autour de l'icone `auto_awesome`.
-
-### Gestion d'erreurs et timeout
-
-- **Timeout client** : 60 secondes sans progres -> affichage d'un etat d'erreur
-- **Erreur SSE** : event `error` dans le stream -> idem
-- **Retry** : bouton "Reessayer" qui annule l'abonnement SSE, puis fire `PlanTripStartGeneration` a nouveau
-
-### Event `complete`
-
-Quand l'event SSE `complete` arrive avec `tripPlan`, le bloc appelle `_tripPlanFromSseData()` pour convertir le JSON en `TripPlan` (model Freezed). Le state passe a `currentStep: 5`.
-
-## Etape 5 — Review (`StepReviewView`)
-
-### Hero SliverAppBar
-
-En-tete extensible (260px) avec gradient + overlay sombre, affichant :
-- Ville et pays de destination
-- Chips "frosted glass" : duree, budget, meteo
-
-### Sections de contenu
-
-1. **Points forts** (`highlights`) : chips colorees des 4 premieres activites
-2. **Vol** (`FlightPreviewCard`) : route, details, prix, source (amadeus/estimated)
-3. **Hebergement** (`AccommodationPreviewCard`) : nom, sous-titre, prix, source
-4. **Itineraire jour par jour** (`DayActivitiesTab`) : onglets par jour avec activites, descriptions, categories
-5. **Essentiels de voyage** : checklist interactive (case a cocher avec `lineThrough`)
-6. **Budget detaille** (`BudgetBreakdownChart`) : repartition visuelle du budget
-
-### Actions
-
-- **"Creer mon voyage"** (`_CreateTripButton`) : animation press-scale (0.97), spinner pendant la creation
-- **"Voir d'autres destinations"** : retour a l'etape 2 (manuel) ou 3 (IA), reset du plan genere
-
-### Flow manuel vs IA
-
-| | Flow manuel | Flow IA |
-|---|---|---|
-| Etape 3 | Sautee | Carousel de propositions |
-| Etape 4 | Generation declenchee mais sans destination IA | Generation via SSE |
-| Creation | `_createManualTrip()` via `TripRepository.createTrip()` | `_createAiTrip()` via `AiRepository.acceptInspiration()` |
-| Endpoint | `POST /trips` (REST classique) | `POST /v1/ai/plan-trip/accept` |
-
-### Acceptation du plan IA (backend)
-
-L'endpoint `POST /v1/ai/plan-trip/accept` (`AcceptPlanRequest`) :
-1. Resout la destination (primaire ou alternative via `selectedDestinationIndex`)
-2. Recupere une image de couverture via Unsplash
-3. Cree le trip via `TripsService.create_trip()` avec origin="AI"
-4. Cree les activites avec scheduling intelligent (`suggested_day` + `time_of_day` -> `TIME_OF_DAY_MAP`)
-5. Cree les items bagages (IA ou fallback i18n en/fr)
-6. Commit en DB et retourne l'id du trip
-
-## Composants partages
-
-| Widget | Fichier | Usage |
-|--------|---------|-------|
-| `PremiumStepIndicator` | `design/widgets/premium_step_indicator.dart` | Indicateur d'avancement en haut du wizard |
-| `StepHeader` | `design/widgets/step_header.dart` | Resume compact des choix precedents (dates, voyageurs, budget, destination) |
-| `FlexibleDatePicker` | `design/widgets/flexible_date_picker.dart` | Picker 3 modes (exact, month, flexible) |
-| `BudgetChipSelector` | `design/widgets/budget_chip_selector.dart` | Selection de chips budget |
-| `DestinationCarousel` | `design/widgets/destination_carousel.dart` | Carousel horizontal pour les propositions IA |
+- Back/close sur etape 4 -> `backToProposals` -> annulation `_sseSubscription` +
+  reset generation.
+- Erreur SSE / timeout 300 s -> `retryGeneration` -> annulation + relance.
+- `PlanTripBloc.close()` -> annulation systematique pour ne pas fuir une
+  souscription.
 
 ## Ce qu'il manque
 
-| Element | Description | Priorite |
-|---------|-------------|----------|
-| `getInspiration()` stub | `bagtrip/lib/service/ai_service.dart:23-33` — La methode retourne `const Success([])`. Le bouton "Inspire-moi" de l'etape 2 ne produit jamais de suggestions. Il faudrait soit reimplementer l'appel vers un endpoint fonctionnel (ex: `plan-trip/stream` en mode `destinations_only`), soit supprimer le bouton. | P0 |
-| Pas de validation de l'etape 1 | `bagtrip/lib/plan_trip/view/step_travelers_budget_view.dart` — Le bouton "Continuer" est toujours actif (`enabled` non conditionne). L'utilisateur peut continuer sans avoir interagi avec le stepper ni le budget. C'est voulu pour le budget (optionnel), mais le nombre de voyageurs n'est jamais valide explicitement. | P2 |
-| `originCity` non transmis au SSE | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:357-596` — La methode `_buildSseParams()` ne transmet pas `originCity` (la ville de depart de l'utilisateur). Le champ existe dans `PlanTripRequest` et `TripPlanState` cote API mais n'est jamais renseigne cote mobile. Sans ville de depart, les recherches de vols ne peuvent pas etre faites. | P1 |
-| `travelTypes`, `companions`, `constraints` non transmis au SSE | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:577-596` — `_buildSseParams()` ne transmet que `durationDays`, `departureDate`, `returnDate`, et `budgetRange`. Les preferences de personnalisation (travelTypes, companions, constraints) ne sont pas incluses dans les parametres SSE, meme si l'API les supporte. | P1 |
-| Pas de mode `destinations_only` cote mobile | L'API supporte `mode="destinations_only"` pour une recherche legere de destinations. Ce mode n'est utilise nulle part cote Flutter. Il pourrait servir a reimplementer "Inspire-moi" sans lancer le pipeline complet. | P1 |
-| Tests bloc partiels | `bagtrip/test/blocs/plan_trip_bloc_test.dart` existe mais il faudrait verifier la couverture des events SSE (`_handleSseEvent`), du retry generation, et du flow complet IA. | P2 |
-| Pas de persistence du plan en cours | Si l'utilisateur quitte le wizard (bouton X), tout le state est perdu. Pas de brouillon ni de resume sauvegarde. | P2 |
-| Image de destination non affichee dans la review | `bagtrip/lib/plan_trip/view/step_review_view.dart` — Le hero SliverAppBar utilise un gradient fixe, pas l'image Unsplash qui sera fetched a l'acceptation. L'utilisateur ne voit jamais de visuel de la destination pendant la review. | P2 |
-| `nbTravelers` non transmis au SSE | `bagtrip/lib/plan_trip/bloc/plan_trip_bloc.dart:577-596` — Le nombre de voyageurs n'est pas inclus dans `_buildSseParams()`. L'API le supporte via `nbTravelers` dans `PlanTripRequest`. | P1 |
+- **Persistance du brouillon cote mobile** : si l'utilisateur quitte avant
+  l'etape 5, le `PlanTripBloc` est detruit et le state perdu, alors qu'un `Trip`
+  DRAFT existe en DB. Pas de logique pour reprendre un wizard.
+- **Cleanup des DRAFTs orphelins** : un trip cree par
+  `PlanDraftService.create_draft_from_command` reste en DB meme si l'utilisateur
+  ne valide jamais l'etape 5. Pas de job de purge cote API.
+- **Quota IA decrement avant validation step 5** : compteur incremente des le
+  `complete` SSE, donc un draft jamais valide consomme un quota. A documenter
+  cote produit.
+- **Image de couverture sur l'etape 4-5** : la cover Unsplash est fetchee cote
+  backend mais n'est pas restituee dans le `tripDraft` SSE. La review utilise un
+  helper local (`_resolveCoverUrl`).
+- **Coverage des events `weather`/`transport`** : no-op cote mobile alors que
+  les payloads pourraient enrichir la timeline (meteo jour par jour).
+- **Validation step 1 imprecise** : le bouton "Continuer" est toujours actif,
+  meme sans interaction utilisateur. Les defaults (1 adulte, pas de budget)
+  passent silencieusement.
+- **Pas de mode hors-ligne** : le wizard exige une connexion (search + SSE).
+  Aucun fallback ni file d'attente.
+- **Acceptation partielle** : pas d'option pour valider seulement certaines
+  parties du plan IA (garder activites, discarder vols). L'utilisateur edite a
+  posteriori dans le trip detail.

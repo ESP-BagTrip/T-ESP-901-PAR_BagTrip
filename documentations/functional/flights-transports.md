@@ -1,181 +1,354 @@
 # Vols et Transports
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La feature Vols & Transports couvre l'ensemble du cycle de vie des vols dans BagTrip : recherche de vols via Amadeus, consultation des resultats et details, creation de vols manuels, suivi temps reel via AirLabs, affichage boarding-pass et gestion du booking (intent, paiement Stripe, confirmation Amadeus). Le systeme distingue deux types de vols : MAIN (vols principaux aller/retour) et INTERNAL (vols internes au sejour).
+La feature Vols couvre tout le cycle de vie d'un transport aerien : recherche
+multi-criteres via Amadeus, persistance par trip, recherche multi-destination,
+repricing pre-booking, vols manuels (CRUD sans Amadeus), enrichissement temps reel
+via AirLabs (statut, gates, retards), booking complet Stripe + Amadeus Flight Order.
+
+Cote mobile : `FlightSearchForm` multi-mode, liste de resultats avec tri / filtres,
+`FlightResultDetailsPage` avec bouton "Book", `ReplaceSearchSheet` pour swapper un
+vol existant.
+
+Cote backend, deux flux coexistent : proxy stateless `/v1/travel/flight/offers`
+(cache 15 min en memoire, recherche hors trip) et flux persiste
+`/v1/trips/{tripId}/flights/searches` (stocke recherche + offres en DB pour
+repricing et booking ulterieurs). Deux types de vols cohabitent : `MAIN` (aller /
+retour structurants) et `INTERNAL` (segments multi-destination).
 
 ---
 
-## Architecture mobile (Flutter)
+## Cote Backend
 
-### BLoCs
+### Recherches persistees
 
-Le parcours vol est decoupe en 4 BLoCs independants :
+Routes : `api/src/api/flights/searches/routes.py`. Service :
+`api/src/services/flight_search_service.py`.
 
-| BLoC | Fichier | Role |
-|------|---------|------|
-| `FlightSearchBloc` | `bagtrip/lib/flight_search/bloc/flight_search_bloc.dart` | Formulaire de recherche : selection aeroports, dates, passagers, classe, multi-destination |
-| `FlightSearchResultBloc` | `bagtrip/lib/flight_search_result/bloc/flight_search_result_bloc.dart` | Chargement, filtrage et tri des resultats de recherche |
-| `FlightResultDetailsBloc` | `bagtrip/lib/flight_result_details/bloc/flight_result_details_bloc.dart` | Affichage des details d'une offre selectionnee |
-| `TransportBloc` | `bagtrip/lib/transports/bloc/transport_bloc.dart` | CRUD vols manuels + lookup AirLabs |
-| `BookingBloc` | `bagtrip/lib/booking/bloc/booking_bloc.dart` | Paiement Stripe (authorize, present sheet, capture) |
+- `POST /v1/trips/{tripId}/flights/searches` (201, editor-only) : appelle Amadeus
+  `search_flight_offers`, persiste la `FlightSearch` + N `FlightOffer`. Body :
+  `originIata`, `destinationIata`, `departureDate`, `returnDate?`, `adults`
+  (1-9), `children?`, `infants?`, `travelClass?`, `nonStop?`, `currency?`.
+  Reponse : `searchId` + `offers[]` (id, grandTotal, currency, stops calcules
+  depuis `itineraries[0].segments.length - 1`).
+- `GET /v1/trips/{tripId}/flights/searches/{searchId}` : recharge la recherche.
+  Pour les viewers, `grandTotal` et `baseTotal` sont masques (None), seule la
+  devise reste visible.
+- `POST /v1/trips/{tripId}/flights/searches/multi` (201) : multi-segment.
+  Appels Amadeus en parallele via `asyncio.gather(..., return_exceptions=True)`,
+  un segment qui echoue est skip gracefully. Chaque segment produit sa
+  `FlightSearch` + ses offres ; reponse `MultiDestSearchResponse`.
+
+La persistance stocke `amadeus_request` et `amadeus_response` brutes pour
+rejouer / debug.
+
+### Offres de vol
+
+Routes : `api/src/api/flights/offers/routes.py`. Service :
+`api/src/services/flight_offer_pricing_service.py`.
+
+- `GET /v1/trips/{tripId}/flights/offers/{offerDbId}` : renvoie le `offer_json`
+  Amadeus stocke. Pour les viewers, le bloc `price` est ecrase par
+  `{currency: <X>}` (shallow-copy pour ne pas muter le JSON en DB).
+- `POST /v1/trips/{tripId}/flights/offers/{offerDbId}/price` (editor-only) :
+  repricing pre-booking. Reconstruit un objet `FlightOffer` depuis `offer_json`,
+  appelle `amadeus_client.confirm_flight_price(...)`, met a jour `grand_total`
+  + `currency`, stocke la reponse dans `priced_offer_json`. Ce JSON est ensuite
+  envoye au Flight Order create.
+
+### Vols manuels (CRUD sans Amadeus)
+
+Routes : `api/src/api/flights/manual/routes.py`. Service :
+`api/src/services/manual_flight_service.py`.
+
+- `POST /v1/trips/{tripId}/flights/manual` (201) : creation. Champs :
+  `flightNumber` (upper + trim, obligatoire), `airline?`, `departureAirport?`,
+  `arrivalAirport?`, `departureDate?`, `arrivalDate?`, `price?` (Decimal),
+  `currency?`, `notes?`, `flightType` (`MAIN`/`INTERNAL`). Si `price` est
+  fourni, un `BudgetItem` lie est cree (`category=FLIGHT`, `source_type=
+  manual_flight`, `is_planned=True`).
+- `GET /v1/trips/{tripId}/flights/manual` : liste.
+- `GET /v1/trips/{tripId}/flights/manual/{flightId}` : detail.
+- `PATCH /v1/trips/{tripId}/flights/manual/{flightId}` : update partiel. Router
+  fait le field mapping camel -> snake et passe les seuls champs set
+  (`model_dump(exclude_unset=True)`). Le service synchronise le `BudgetItem`
+  lie : update si present, creation si absent, delete si `price=None`. Sentinel
+  `Decimal | None = ...` pour distinguer "pas touche" et "passe a null".
+- `DELETE /v1/trips/{tripId}/flights/manual/{flightId}` (204) : suppression
+  cascade du `BudgetItem` lie avant le delete du vol.
+
+Garde commune : `_check_trip_not_completed(trip)` refuse les mutations avec
+`TRIP_COMPLETED` 403 sur trip `COMPLETED`.
+
+### Infos temps reel (AirLabs)
+
+Routes : `api/src/api/flights/info/routes.py`. Service :
+`api/src/services/airlabs_service.py` (facade mince sur le client).
+
+- `GET /v1/travel/flights/{flightNumber}/info` : lookup AirLabs. Validation
+  regex IATA `^[A-Z0-9]{2}\d{1,4}$` (ex. `AF1234`). 503
+  `AIRLABS_NOT_CONFIGURED` si `AIRLABS_API_KEY` absent. Reponse : `flightIata`,
+  `airlineIata`, `airlineName`, `status`, et pour depart/arrivee : `iata`,
+  `terminal`, `gate`, `time`, `actual`, `delay`.
+
+Le client AirLabs maintient un cache memoire TTL 5 min, aucune persistance DB.
+
+### Flight Orders (booking confirme)
+
+Routes : `api/src/api/flights/orders/routes.py`.
+
+- `GET /v1/trips/{tripId}/flights/orders` : liste les commandes confirmees ou
+  annulees. Les viewers ne voient pas `paymentId`.
+- `GET /v1/trips/{tripId}/flights/orders/{orderId}` : detail.
+- `DELETE /v1/trips/{tripId}/flights/orders/{orderId}` (204) : suppression.
+  Erreur `CONFIRMED_FLIGHT_IMMUTABLE` 403 si `status == CONFIRMED` ("Un vol
+  confirme ne peut pas etre supprime. Contactez la compagnie pour une
+  annulation.").
+
+### Booking flow (intent + Stripe + Amadeus)
+
+Service : `api/src/services/booking_orchestrator_service.py`. Flow complet
+documente dans `booking-flow.md` ; cote vols :
+
+1. Mobile cree un `BookingIntent` (type=`FLIGHT`, `selected_offer_id`) via
+   `POST /v1/trips/{tripId}/booking-intents`.
+2. Authorize Stripe : `POST /v1/booking-intents/{id}/authorize` cree un
+   PaymentIntent (capture=manual). Statut passe a `AUTHORIZED`.
+3. `POST /v1/booking-intents/{id}/book` appelle
+   `BookingOrchestratorService.book(...)` avec `traveler_ids` + `contacts` :
+   - check `AUTHORIZED` -> passe en `BOOKING_PENDING`,
+   - charge l'offre (priorise `priced_offer_json` sinon `offer_json`),
+   - charge les `TripTraveler`, mappe en `FlightOrderTraveler` via
+     `TravelersService.traveler_to_amadeus_payload`,
+   - appelle `amadeus_client.create_flight_order(...)`,
+   - extrait `amadeus_order_id` (`AMADEUS_ERROR` 500 si absent) et un
+     `ticket_url` (`amadeus://order/{id}`) si `associatedRecords` contient
+     `originSystemCode=GDS`,
+   - bloc atomique `unit_of_work(db)` : `FlightOrder` (status=CONFIRMED) +
+     `BudgetItem` (`is_planned=False`, source_type=`flight_order`) + set
+     `booking_intent.amadeus_order_id`,
+   - exception -> rollback DB, statut intent `FAILED`, `last_error` stocke.
+
+Helper `_extract_flight_metadata` pull (origin, destination, departure_date)
+depuis `itineraries[0].segments[0/-1]` pour labelliser le budget item
+("Vol : CDG -> NRT"). Fallback ("", "", None) si la shape Amadeus diverge.
+
+### Proxy Amadeus stateless
+
+Routes : `api/src/api/travel/routes.py`.
+
+- `GET /v1/travel/flight/offers` : proxy direct vers Amadeus + validation
+  (adults 1-9, infants <= adults, includedAirlineCodes XOR
+  excludedAirlineCodes, max 1-250). Cache TTL 15 min memoire
+  (`cachetools.TTLCache`, 256 entries, key sha256 des params).
+- `GET /v1/travel/flight/destinations` : Flight Inspiration Search.
+- `GET /v1/travel/flight/cheapest-dates` : Flight Cheapest Date Search.
+- `GET /v1/travel/locations[/nearest|/{id}]` : recherche aeroports / villes
+  via `aviation_data_service` (donnees offline embarquees).
+
+### Modeles SQLAlchemy
+
+- `FlightSearch` : trip_id, origin/destination_iata, dates, pax, travel_class,
+  non_stop, currency, amadeus_request/response (JSONB).
+- `FlightOffer` : trip_id, flight_search_id, amadeus_offer_id, source,
+  validating_airline_codes, currency, grand_total, base_total, offer_json,
+  priced_offer_json.
+- `FlightOrder` : trip_id, flight_offer_id, booking_intent_id,
+  amadeus_flight_order_id, status (`FlightOrderStatus`), booking_reference,
+  payment_id, ticket_url, amadeus_create_order_request/response.
+- `ManualFlight` : trip_id, flight_number, airline, departure/arrival_airport,
+  dates, price, currency, notes, flight_type (`MAIN`/`INTERNAL`).
+
+### Permissions
+
+Toutes les routes trip-scoped passent par `TripAccess`
+(`api/src/api/auth/trip_access.py`) : `get_trip_access` (lecture),
+`get_trip_editor_access` (mutation). Masquage prix systematique pour
+`TripRole.VIEWER` sur offres + orders.
+
+---
+
+## Cote Mobile
 
 ### Formulaire de recherche
 
-Le `FlightSearchForm` (`bagtrip/lib/flight_search/view/flight_search_form.dart`) propose trois modes via `TripTypeSelector` :
+`bagtrip/lib/flight_search/view/flight_search_form.dart`. BLoC :
+`bagtrip/lib/flight_search/bloc/flight_search_bloc.dart`.
 
-- **Aller simple** (index 0) : depart + arrivee + date de depart
-- **Aller-retour** (index 1) : idem + date de retour
-- **Multi-destinations** (index 2) : liste de `FlightSegment` avec chainage automatique (l'arrivee du segment N devient le depart du segment N+1)
+`FlightSearchForm` est un `ListView` BLoCConsumer compose de
+`ManualFlightHeader`, `TripTypeSelector` (3 modes : 0 = aller simple, 1 =
+aller-retour, 2 = multi-destination), `ManualFlightAirportsCard` +
+`ManualFlightDateCards` (modes 0/1) ou `MultiDestinationForm` (mode 2),
+`ManualFlightCabinSelector` (ECONOMY / PREMIUM_ECONOMY / BUSINESS),
+`ManualFlightTripDetailsCard` (adultes / enfants / bebes + prix max), CTA
+degrade.
 
-Champs du formulaire :
-- Aeroports depart/arrivee avec autocompletion via `LocationService.searchLocationsByKeyword()` (type `AIRPORT`)
-- Dates depart/retour
-- Nombre de passagers (adultes, enfants, bebes)
-- Classe de voyage (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST) via index
-- Prix maximum optionnel
-- Swap aeroports (event `SwapAirports`)
-- Pre-remplissage via `InitWithPrefilledData` (utilise pour les liens depuis le trip detail)
+Events principaux : `SearchDepartureAirport`, `SearchArrivalAirport`,
+`SetTripType`, `Set{Adults,Children,Infants,TravelClass}`,
+`Select{Departure,Arrival}Airport`, `Set{Departure,Return}Date`, `SetMaxPrice`,
+`{Add,Remove}FlightSegment`, `SelectMultiDest{Departure,Arrival}Airport`,
+`SetMultiDestDate`, `ShowValidationErrors`, `SwapAirports`,
+`InitWithPrefilledData`.
 
-Le modele `FlightSearchPrefill` (`bagtrip/lib/flight_search/models/flight_search_prefill.dart`) porte `originIata`, `destinationIata`, `departureDate`, `returnDate`, `nbTravelers`.
+Specificite multi-destination : `AddFlightSegment` chaine automatiquement
+l'arrivee du segment N comme depart du segment N+1.
+
+Au submit, le form construit un `FlightSearchArguments`. Si `onSubmit` est
+fourni (cas replace), il delegue au caller sans naviguer ; sinon push vers
+`FlightSearchResultRoute`. En cas de champs invalides : `ShowValidationErrors`
++ snackbar.
 
 ### Resultats de recherche
 
-`FlightSearchResultBloc` appelle `LocationService.searchFlights()` qui fait un GET sur `{baseUrl}/travel/flight/offers` (endpoint proxy vers Amadeus).
+`FlightSearchResultBloc` charge via `LocationService.searchFlights()` qui frappe
+le proxy stateless `/v1/travel/flight/offers`. Le parsing passe par
+`Flight.fromAmadeusJson()` : horaires + IATA outbound/return, duree ISO formatee
+("PT1H30M" -> "1h30"), compagnie via dictionnaire `carriers` (fallback IATA),
+type avion via `aircraft`, prix `grandTotal`/`base`, classe cabine/booking,
+bagages inclus (`BaggageInfo`), nombre d'escales (segments - 1).
 
-Les resultats sont parses via `Flight.fromAmadeusJson()` (`bagtrip/lib/flight_search_result/models/flight.dart`) qui extrait :
-- Horaires et codes IATA de depart/arrivee (outbound + return si aller-retour)
-- Duree ISO 8601 formatee (PT1H30M -> 1h30)
-- Compagnie via dictionnaire `carriers`
-- Type avion via dictionnaire `aircraft`
-- Prix (grandTotal, base)
-- Classe de cabine, classe de booking, base tarifaire
-- Bagages inclus (`BaggageInfo` : quantite, poids, unite)
-- Nombre d'escales (segments - 1)
-
-**Filtres disponibles** (event `ApplyFilters`) :
-- Tri par prix (lowest/highest)
-- Filtre par compagnie aerienne
-- Bagages cabine inclus
-- Bagages soute inclus
-- Heure de depart (avant/apres)
-
-**Navigation par date** : l'event `SelectDate` permet de relancer la recherche sur la veille ou le lendemain, en recalculant la date retour pour conserver la meme duree de voyage.
+Filtres (event `ApplyFilters`) : tri par prix asc/desc, compagnie, bagages
+cabine, bagages soute, plage horaire depart. Navigation J-1/J+1 via
+`SelectDate` qui conserve la duree de voyage.
 
 ### Details d'une offre
 
-`FlightResultDetailsBloc` est un simple holder qui stocke le `Flight` selectionne. La vue (`bagtrip/lib/flight_result_details/view/flight_result_details_view.dart`) affiche 4 cartes :
-- `FlightDetailCard` : horaires, route, escales
-- `BaggageInfoCard` : bagages cabine/soute inclus
-- `ClassInfoCard` : cabine, classe de booking, base tarifaire
-- `FareInfoCard` : prix base, prix total, places disponibles, date limite de ticketing
+`bagtrip/lib/flight_result_details/view/flight_result_details_page.dart` +
+view + `FlightResultDetailsBloc` (holder simple).
 
-### Vols manuels
+La view rend 4 cards : `FlightDetailCard` (outbound + retour si present, tag
+stops `secondary`/`warning`), `BaggageInfoCard` (cabine + soute),
+`ClassInfoCard` (cabine + booking + fare basis), `FareInfoCard` (prix, base,
+places dispo, date limite ticketing).
 
-Le `TransportBloc` gere le CRUD des vols manuels via `TransportRepository` :
+Bouton `bookFlight` visible si `flight.tripId != null &&
+flight.flightOfferId != null`. Au tap : `CreateBookingIntent(tripId,
+flightOfferId)` au `BookingBloc`. Listener : `PaymentSheetReady ->
+PresentPaymentSheet`, `PaymentSuccess -> PaymentSuccessRoute`,
+`PaymentCancelled` / `PaymentFailed -> snackbar`.
 
-| Event | Action |
-|-------|--------|
-| `LoadTransports` | Charge tous les vols manuels du trip, separes en `mainFlights` (MAIN) et `internalFlights` (INTERNAL) |
-| `CreateManualFlight` | Cree un vol avec : flightNumber (obligatoire), airline, airports, dates, price, notes, flightType |
-| `DeleteManualFlight` | Supprime un vol (owner only) |
-| `LookupFlightInfo` | Auto-completion via AirLabs (declenche apres 800ms de debounce sur 4+ caracteres) |
+### Replace flight flow
 
-Le `ManualFlightForm` (`bagtrip/lib/transports/widgets/manual_flight_form.dart`) est structure en 3 sections :
-1. **Route** : aeroports depart/arrivee + numero de vol avec lookup automatique
-2. **Schedule** : dates depart/arrivee avec date+time pickers adaptatifs
-3. **Details** : compagnie, type (MAIN/INTERNAL via SegmentedButton), prix, notes
+Composant cle : `ReplaceSearchSheet`
+(`bagtrip/lib/design/widgets/replace_search_sheet.dart`) + helper
+`showReplaceSearchSheet(...)`. Scaffold reutilisable pour tout
+search-and-replace trip-detail (vols, hotels) :
 
-Validations cote mobile :
-- Numero de vol obligatoire
-- Aeroports depart et arrivee doivent etre differents
-- Date d'arrivee doit etre apres la date de depart
+- modal bottom sheet 95% hauteur,
+- `isDismissible: false`, `enableDrag: false` (pas de dismiss tap-outside pour
+  ne pas perdre l'etat de recherche),
+- header titre + sous-titre + close, handle bar 40x4, contenu = `child`.
 
-### Boarding Pass
+Cote panel flights (`trip_detail/view/panels/flights_panel.dart`), tap
+"Replace" -> sheet ouvre un `FlightSearchForm` avec `onSubmit` custom qui
+ajoute `replaceFlightId: flight.id` aux `FlightSearchArguments`. Apres
+selection de la nouvelle offre -> dispatch `ReplaceFlightFromDetail(oldFlightId,
+newFlightData)` au `TripDetailBloc`.
 
-Le `FlightBoardingPassCard` (`bagtrip/lib/trip_detail/widgets/flight_boarding_pass_card.dart`) affiche un vol manuel sous forme de carte boarding-pass stylisee avec :
-- Zone 1 : numero de vol + compagnie + badge de statut (derive via `deriveFlightStatus`)
-- Zone 2 : codes IATA depart/arrivee en gros + horaires + duree + icone avion
-- Zone 3 : date + prix
-- Ligne de perforation avec encoches laterales (notches circulaires)
-- Swipe-to-delete (Dismissible) pour les owners sur les trips non completes
-- Animation de pression (scale 0.98 -> 1.0)
+Handler atomique
+(`trip_detail/bloc/trip_detail_transport_handlers.dart::_onReplaceFlight`) :
 
-### Booking (reservation)
+1. Snapshot de la liste originale.
+2. Optimistic UI : retrait du vieux vol + recompute `completionResult`.
+3. `DELETE /flights/manual/{old}` : echec -> restore snapshot + emit
+   `operationError`.
+4. `POST /flights/manual` : succes -> append + recompute ; echec -> rollback
+   total + `operationError`.
 
-Le `BookingBloc` orchestre le paiement via Stripe :
-1. `AuthorizePayment` -> appel backend -> recoit `clientSecret`
-2. `PresentPaymentSheet` -> Stripe SDK (`initPaymentSheet` + `presentPaymentSheet`)
-3. `CapturePayment` -> confirmation backend
+`operationError` emis puis immediatement clear via `clearOperationError` ->
+snackbar transient sans coller le state.
 
-Etats : `PaymentAuthorizing` -> `PaymentSheetReady` -> `PaymentSuccess` / `PaymentCancelled` / `PaymentFailed`
+### Boarding pass UI
+
+`FlightBoardingPassCard` (`bagtrip/lib/trip_detail/widgets/`) : carte
+boarding-pass stylisee pour un vol manuel. Zone numero + compagnie + badge
+statut (`deriveFlightStatus`), zone codes IATA grands + horaires + icone avion,
+zone date + prix, ligne de perforation avec encoches laterales.
+Swipe-to-delete (Dismissible) owners only sur trips non completes. Animation
+scale 0.98 -> 1.0 a la pression.
+
+### Repository transports
+
+`bagtrip/lib/repositories/transport_repository.dart`. Methodes :
+`createManualFlight`, `getManualFlights`, `deleteManualFlight`,
+`updateManualFlight`, `lookupFlight` (`FlightInfo` AirLabs, debounce 800 ms
+sur 4+ caracteres dans `ManualFlightForm`), `searchFlightsPersisted`,
+`searchMultiDestFlights`. Retour systematique en `Future<Result<T>>` (jamais
+de throw).
 
 ---
 
-## Architecture backend (FastAPI)
+## Integration Amadeus
 
-### Endpoints vols
+Wrapper : `api/src/services/amadeus_service.py` (facade mince). Client :
+`api/src/integrations/amadeus/`.
 
-#### Recherche de localisations
-- `GET /v1/travel/locations?keyword=&subType=AIRPORT` — Proxy vers Amadeus Reference Data Locations, avec cache memoire cote mobile (`_searchCache`)
+- `auth.py` : OAuth2 client credentials avec cache token (refresh auto).
+- `flights.py` : `search_flight_offers`, `search_flight_destinations`
+  (inspiration), `search_flight_cheapest_dates`, `confirm_flight_price`
+  (pricing), `create_flight_order` (booking).
+- `locations.py` : recherche aeroports / villes (utilise par d'autres flows ;
+  les routes `/travel/locations` passent par `aviation_data_service` offline).
+- Timeouts : 20s offres, 15s destinations / cheapest dates, 30s create order.
 
-#### Recherche de vols (proxy Amadeus)
-- `GET /v1/travel/flight/offers` — Proxy vers Amadeus GET `/v2/shopping/flight-offers`, parametres : originLocationCode, destinationLocationCode, departureDate, returnDate, adults, children, infants, travelClass, currencyCode
+Cache : proxy `/travel/flight/offers` -> `TTLCache` 15 min memoire (256
+entries). Pas de cache cote search persistee (fraicheur des prix pre-booking).
 
-#### Recherches persistees
-- `POST /v1/trips/{tripId}/flights/searches` — Cree une recherche, appelle Amadeus, persiste le `FlightSearch` + N `FlightOffer` en base. Requete : `originIata` (3 chars), `destinationIata`, `departureDate`, `returnDate?`, `adults` (1-9), `children?`, `infants?`, `travelClass?`, `nonStop?`, `currency?`. Retourne `searchId` + liste de `FlightOfferSummary` (id, grandTotal, currency, stops).
-- `GET /v1/trips/{tripId}/flights/searches/{searchId}` — Details d'une recherche avec toutes les offres. Les viewers n'ont pas acces aux prix (grandTotal/baseTotal masques).
+Layering : routes -> `AmadeusService` (jamais `amadeus_client` direct depuis
+une route, regle CLAUDE.md). Les services metier (`FlightSearchService`,
+`FlightOfferPricingService`, `BookingOrchestratorService`) appellent
+`amadeus_client` directement (couche en aval du wrapper).
 
-#### Offres de vol
-- `GET /v1/trips/{tripId}/flights/offers/{offerDbId}` — Recupere le JSON complet d'une offre. Les viewers n'ont acces qu'a la devise (prix masques).
-- `POST /v1/trips/{tripId}/flights/offers/{offerDbId}/price` — Repricing via Amadeus Pricing API (owner only). Appelle `FlightOfferPricingService`.
+---
 
-#### Commandes de vol (flight orders)
-- `GET /v1/trips/{tripId}/flights/orders` — Liste les commandes. Les viewers ne voient pas le paymentId.
-- `GET /v1/trips/{tripId}/flights/orders/{orderId}` — Detail d'une commande.
-- `DELETE /v1/trips/{tripId}/flights/orders/{orderId}` — Suppression (impossible si statut CONFIRMED : erreur `CONFIRMED_FLIGHT_IMMUTABLE`).
+## Flux
 
-#### Vols manuels
-- `POST /v1/trips/{tripId}/flights/manual` — Cree un vol manuel. Champs : flightNumber (obligatoire), airline, departureAirport, arrivalAirport, departureDate, arrivalDate, price (Decimal), currency, notes, flightType (MAIN/INTERNAL).
-- `GET /v1/trips/{tripId}/flights/manual` — Liste tous les vols manuels.
-- `GET /v1/trips/{tripId}/flights/manual/{flightId}` — Detail.
-- `DELETE /v1/trips/{tripId}/flights/manual/{flightId}` — Suppression (owner only).
+### Recherche -> selection -> booking 3DS
 
-#### Info vol temps reel
-- `GET /v1/travel/flights/{flightNumber}/info` — Lookup AirLabs. Validation regex IATA : `^[A-Z0-9]{2}\d{1,4}$`. Retourne : flightIata, airlineIata, airlineName, status, departure/arrival (iata, terminal, gate, time, actual, delay).
+1. Utilisateur ouvre `FlightSearchForm` -> submit -> navigation vers
+   `FlightSearchResultRoute` avec `FlightSearchArguments`.
+2. `FlightSearchResultBloc` charge via proxy `/v1/travel/flight/offers`.
+3. Tap sur une carte -> push `FlightResultDetailsRoute(flight)`. Si
+   `tripId + flightOfferId` presents, bouton Book visible.
+4. Tap Book -> `CreateBookingIntent` -> backend cree `BookingIntent` +
+   PaymentIntent Stripe -> `PaymentSheetReady`.
+5. `PresentPaymentSheet` -> Stripe SDK (Apple Pay / cards / 3DS).
+6. Apres succes 3DS -> `CapturePayment` -> backend appelle
+   `BookingOrchestratorService.book()` -> create flight order Amadeus +
+   `FlightOrder` + `BudgetItem` atomiques (`unit_of_work`).
+7. `PaymentSuccess(intentId)` -> `PaymentSuccessRoute`.
 
-#### Booking Intents
-- `POST /v1/trips/{tripId}/booking-intents` — Cree un intent (type: `flight`), lie a une `flightOfferId`. Retourne id, type, status (INIT), amount, currency, selectedOfferId.
-- `GET /v1/booking-intents/{intentId}` — Recupere un intent.
-- `POST /v1/booking-intents/{intentId}/book` — Booking effectif via `BookingOrchestratorService`. Requete : `travelerIds` + `contacts`. Retourne : bookingIntent (id, status) + amadeus (type, orderId).
+### Replace flight (atomic DELETE + CREATE)
 
-### Integrations externes
+1. Trip detail panel flights -> menu contextuel "Replace" sur un vol existant.
+2. `showReplaceSearchSheet(...)` ouvre un `FlightSearchForm` avec `onSubmit`
+   custom + `replaceFlightId`.
+3. Selection de la nouvelle offre -> `ReplaceFlightFromDetail`.
+4. Handler atomique : optimistic prune -> DELETE old -> CREATE new ->
+   rollback complet si echec sur l'une des deux operations.
 
-#### Amadeus (`api/src/integrations/amadeus/`)
-- **Auth** (`auth.py`) : OAuth2 client credentials, token cache
-- **Flights** (`flights.py`) : `search_flight_offers`, `search_flight_destinations` (inspiration), `search_flight_cheapest_dates`, `confirm_flight_price` (POST pricing), `create_flight_order` (POST booking)
-- **Locations** (`locations.py`) : `search_locations_by_keyword`, `search_location_by_id`, `search_location_nearest`
-- Timeout : 20s pour les offres, 15s pour les destinations/dates, 30s pour les bookings
+### Ajout d'un vol manuel
 
-#### AirLabs (`api/src/integrations/airlabs/client.py`)
-- `AirLabsClient.lookup_flight(flight_iata)` : GET `https://airlabs.co/api/v9/flight`
-- Cache memoire avec TTL de 5 minutes
-- Requires `AIRLABS_API_KEY` dans les settings
+1. "Ajouter un vol" -> `ManualFlightForm`.
+2. Saisie du numero -> debounce 800 ms -> `LookupFlightInfo` -> AirLabs
+   preremplit airline / depart / arrivee / horaires.
+3. Ajustement prix, type (MAIN/INTERNAL), notes.
+4. Submit -> `POST /flights/manual` -> creation + `BudgetItem` lie auto.
+5. Trip detail recompute completion, `BudgetItem` apparait dans budget
+   categorie `FLIGHT`.
 
-### Modeles SQLAlchemy
-- `FlightSearch` (`api/src/models/flight_search.py`) : origin_iata, destination_iata, departure_date, return_date, adults, etc.
-- `FlightOffer` (`api/src/models/flight_offer.py`) : trip_id, amadeus_offer_id, offer_json (JSONB), grand_total, base_total, currency, priced_offer_json
-- `FlightOrder` (`api/src/models/flight_order.py`) : trip_id, status (CONFIRMED/CANCELLED), booking_reference, payment_id, ticket_url
-- `ManualFlight` (`api/src/models/manual_flight.py`) : trip_id, flight_number, airline, airports, dates, price, currency, notes, flight_type (MAIN/INTERNAL)
-- `BookingIntent` (`api/src/models/booking_intent.py`) : trip_id, user_id, type, status, amount, currency, selected_offer_id, amadeus_order_id
+### Multi-destination
 
-### Permissions (TripAccess)
-
-Toutes les routes vols utilisent le systeme `TripAccess` (`api/src/api/auth/trip_access.py`) :
-- **Owner** : lecture + ecriture (CRUD, pricing, booking)
-- **Viewer** : lecture seule, prix masques sur les offres et orders
+1. Mode 2 `TripTypeSelector` -> `MultiDestinationForm`.
+2. `AddFlightSegment` chaine automatiquement depart N+1 = arrivee N.
+3. Submit -> `POST /v1/trips/{id}/flights/searches/multi`.
+4. Backend lance N appels Amadeus en parallele
+   (`asyncio.gather(..., return_exceptions=True)`), persiste segment par
+   segment. Un segment qui echoue est skip sans casser les autres.
+5. Reponse `MultiDestSearchResponse` (liste de `FlightSearchResponse`).
 
 ---
 
@@ -183,11 +356,10 @@ Toutes les routes vols utilisent le systeme `TripAccess` (`api/src/api/auth/trip
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Multi-destination backend | Le `LocationService.searchFlights()` a un TODO explicite : "Implement multi-destination search when backend supports it". Le formulaire multi-dest est complet cote Flutter mais la recherche backend ne prend qu'un seul segment. (`bagtrip/lib/service/location_service.dart:29`) | P1 |
-| Update vol manuel | Le `ManualFlightService` cote API ne propose pas de route PATCH/PUT pour modifier un vol manuel existant. Le `TransportRepository` Flutter n'expose pas non plus de methode update. | P1 |
-| Tests bloc FlightSearchResult | Pas de fichier de test dedie pour `FlightSearchResultBloc` (le `FlightSearchBloc` a un test dans `test/blocs/flight_search_bloc_test.dart`). | P2 |
-| Tests bloc FlightResultDetails | Pas de fichier de test pour `FlightResultDetailsBloc`. | P2 |
-| Tests bloc Booking | Pas de fichier de test pour `BookingBloc`. | P2 |
-| Persistence des recherches cote mobile | Le mobile utilise le endpoint proxy `/travel/flight/offers` (non persiste) plutot que le endpoint persiste `POST /trips/{id}/flights/searches`. Les deux flux coexistent sans integration. | P1 |
-| Gestion erreurs Stripe avancee | Le `BookingBloc` ne gere que `FailureCode.Canceled` — pas de retry ni de gestion des erreurs reseau specifiques Stripe. | P2 |
-| Boarding pass QR code | Le `FlightBoardingPassCard` est un affichage visuel pur — pas de QR code, pas de scan, pas de lien vers un billet electronique. | P2 |
+| Update vol manuel cote mobile | Route PATCH et service backend existent, mais `TransportRepository.updateManualFlight` n'est pas branche dans `ManualFlightForm` (pas de mode edition). Aujourd'hui = delete + recreate. | P1 |
+| Persistance recherches cote mobile | Le mobile utilise le proxy stateless `/v1/travel/flight/offers` plutot que `POST /trips/{id}/flights/searches`. Les deux flux coexistent, l'historique persiste n'est pas exploite. | P1 |
+| Tests blocs results / details / booking | Pas de fichier de test pour `FlightSearchResultBloc`, `FlightResultDetailsBloc`, `BookingBloc`. Le `FlightSearchBloc` est couvert. | P2 |
+| Gestion erreurs Stripe avancee | `BookingBloc` ne gere que `FailureCode.Canceled`. Pas de retry, pas de differenciation des erreurs reseau / decline / 3DS. | P2 |
+| Boarding pass QR / billet | `FlightBoardingPassCard` purement visuel : pas de QR, pas de lien vers le billet electronique, `ticket_url` Amadeus (`amadeus://order/...`) non exploite. | P2 |
+| AirLabs : pas de persistance | Lookups non persistes ni rafraichis en arriere-plan (cache memoire TTL 5 min seulement). Pas de notification proactive en cas de delay / cancellation. | P2 |
+| Cancellation flight order | La route DELETE refuse les ordres `CONFIRMED`. Pas de flow d'annulation Amadeus expose. | P3 |

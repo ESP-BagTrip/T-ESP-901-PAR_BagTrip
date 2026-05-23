@@ -1,415 +1,158 @@
-# Design System Mobile BagTrip (Flutter)
+# Design system mobile
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-Le design system BagTrip est organise en couches : des **tokens** primitifs (spacing, radius, couleurs), un **theme** Material3 + Cupertino, des **composants adaptatifs** (Android/iOS), et des **widgets design** reutilisables. Toutes les valeurs visuelles sont centralisees -- aucun hex brut ni magic number ne doit apparaitre dans les features. La police unique est **B612** (`FontFamily.b612`).
+Le design system de BagTrip vit dans trois couches imbriquees : tokens primitifs (espacements, rayons, ombres, animations) dans `lib/design/tokens.dart`, palette semantique (`AppColors`) qui wrap la palette brute fluttergen (`ColorName`), et composants reutilisables (adaptatifs Material/Cupertino, briques trip-detail SMP-324, empty states, sheets, FAB pattern). Aucun composant ne hardcode une valeur de couleur, d'espace ou de rayon : si le token manque, il s'ajoute dans le bon fichier, jamais inline.
+
+La regle d'or : tout ce qui touche au visuel passe par un token ou un composant deja existant. La duplication d'un `Color(0xFF...)`, d'un `BorderRadius.circular(20)` ou d'un `Platform.isIOS` est consideree comme une dette a refactor lors de la review.
+
+Les composants adaptatifs sont l'epine dorsale du multi-plateforme : ils prennent la decision Material/Cupertino une seule fois et exposent une API neutre que les pages consomment sans condition `if (Platform.isIOS)`. Pour le check direct quand il faut diverger plus fond (ex : FAB Android vs IconButton AppBar iOS), on passe toujours par `AdaptivePlatform.isIOS`, jamais par `Platform.isIOS`.
 
 ## Tokens
 
-### Spacing -- `lib/design/tokens.dart`
+Tous declares dans `lib/design/tokens.dart`. Chaque classe est un namespace prive (`const ClassName._()`), aucune instance n'est creee.
 
-Systeme base 4/8px via `AppSpacing` :
+### AppSpacing
 
-| Token | Valeur | Usage typique |
-|-------|--------|---------------|
-| `space4` | 4px | Micro espacement, gap entre icone et texte |
-| `space8` | 8px | Espacement compact, padding chips |
-| `space12` | 12px | Padding interne cartes |
-| `space16` | 16px | Padding standard sections |
-| `space24` | 24px | Marges externes, padding modals |
-| `space32` | 32px | Sections larges |
-| `space40` | 40px | Grandes separations |
-| `space48` | 48px | Bottom padding ecrans |
-| `space56` | 56px | Espacement exceptionnel |
+| Token | Valeur | Usage type |
+|---|---|---|
+| `space4` | 4 px | gaps inter-icones, vertical chip padding |
+| `space8` | 8 px | gaps inter-rows, padding compact |
+| `space12` | 12 px | drag handle padding, chip horizontal |
+| `space15` | 15 px | CTA principal Plan trip wizard (vertical) |
+| `space16` | 16 px | padding standard cards / sheets |
+| `space22` | 22 px | marge horizontale Plan trip (densite Ive) |
+| `space24` | 24 px | section spacing |
+| `space32` | 32 px | bottom padding scrollable Android |
+| `space40` / `space48` / `space56` | 40 / 48 / 56 px | hero blocks, large gutters |
 
-EdgeInsets pre-calcules disponibles : `allEdgeInsetSpace*`, `horizontalSpace*`, `verticalSpace*`, `onlyTopSpace*`, `onlyBottomSpace*`, etc.
+EdgeInsets pre-calcules : `allEdgeInsetSpace{4,8,12,16,24,32,40,48}`, `horizontalSpace{4,8,12,16,22,24}`, `verticalSpace{4,8,12,15,16,24}`, `onlyTopSpace{8,16,24}`, `onlyBottomSpace{8,16,24}`, `onlyLeftSpace{8,16}`, `onlyRightSpace{8,16}`. Toujours preferer un EdgeInsets pre-calcule a un `EdgeInsets.all(AppSpacing.spaceN)` inline.
 
-```dart
-// Utilisation
-Padding(padding: AppSpacing.allEdgeInsetSpace16, child: content)
-const SizedBox(height: AppSpacing.space24)
-```
-
-### Tailles fixes -- `AppSize`
-
-```dart
-class AppSize {
-  static const double height42 = 42.0;   // Hauteur boutons
-  static const double width42 = 42.0;
-  static const double iconSizeHeight24 = 24.0;
-  static const double boxSize8 = 8.0;
-  static const double boxSize16 = 16.0;
-}
-```
-
-### Radius -- `AppRadius`
+### AppRadius
 
 | Token | Valeur | Usage |
-|-------|--------|-------|
-| `small4` | 4px | Tags, badges |
-| `medium8` | 8px | Chips, petits containers |
-| `large16` | 16px | Cartes, bottom sheets |
-| `large20` | 20px | Panels glass, modals |
-| `large24` | 24px | Grands containers |
-| `large28` | 28px | Containers speciaux |
-| `large32` | 32px | Containers plein ecran |
-| `pill` | 999px | Boutons arrondis, badges |
-
-```dart
-// Utilisation
-Container(
-  decoration: BoxDecoration(borderRadius: AppRadius.large16),
-)
-```
-
-Note : les constantes `cornerRaidus4` et `cornerRaidus8` contiennent un typo (`Raidus` au lieu de `Radius`) -- les variantes `cornerRadius20/24/28/32` sont correctes.
-
-### Couleurs
-
-#### Palette generee -- `lib/gen/colors.gen.dart`
-
-Generee par FlutterGen depuis `assets/color/colors.xml`. Contient les couleurs brutes : `ColorName.primary` (#295F98), `ColorName.secondary` (#35A8B5), `ColorName.surface` (#FFFFFF), etc. **Ne jamais utiliser directement** dans les features.
-
-#### Couche semantique -- `lib/design/app_colors.dart`
-
-Wrapper semantique autour de `ColorName`. A utiliser partout :
-
-```dart
-class AppColors {
-  // Surfaces
-  static const Color surface = ColorName.surface;
-  static const Color surfaceLight = ColorName.surfaceLight;
-  static const Color surfaceDark = ColorName.surfaceDark;
-
-  // Texte
-  static const Color onSurface = ColorName.primaryTrueDark;
-  static const Color textSecondary = Color(0xFF5B6A7B);   // 5.2:1 contrast
-  static const Color textTertiary = Color(0xFF4A5568);     // 6.3:1 contrast
-  static const Color textDisabled = Color(0xFF6B7280);     // 4.6:1 AA minimum
-
-  // Brand
-  static const Color primary = ColorName.primary;          // #295F98
-  static const Color secondary = ColorName.secondary;      // #35A8B5
-
-  // Status
-  static const Color success = ColorName.success;          // #4CAF50
-  static const Color warning = ColorName.warning;          // #FF9800
-  static const Color error = ColorName.error;              // #F44336
-  static const Color info = ColorName.info;                // #2196F3
-
-  // Budget categories (light + dark variants)
-  static const Color categoryFlight = Color(0xFFBBDEFB);
-  static const Color categoryAccommodation = Color(0xFFE1BEE7);
-  // ...
+|---|---|---|
+| `cornerRadius2` | 2 | dots indicator, swatches |
+| `cornerRadius3` | 3 | page indicator paywall |
+| `cornerRaidus4` / `cornerRaidus8` | 4 / 8 | chips, petits inputs |
+| `cornerRadius12` | 12 | inputs medium |
+| `cornerRadius13` | 13 | context pill Plan trip header |
+| `cornerRaidus16` | 16 | cards standard |
+| `cornerRadius20` | 20 | tops de bottom sheets |
+| `cornerRadius24` / `cornerRadius28` | 24 / 28 | hero cards |
+| `cornerRadius32` | 32 | sections premium |
+| pill | 999 | status chip, badge |
 
-  // Shadows pre-calcules
-  static final Color shadowLight = Color(0xFF000000).withValues(alpha: 0.06);
-  static final Color shadowSubtle = Color(0xFF000000).withValues(alpha: 0.04);
-}
-```
-
-#### Couleurs de personnalisation -- `lib/design/personalization_colors.dart`
+`BorderRadius` precomputes : `small4`, `medium8`, `medium12`, `large13`, `large16`, `large20`, `large24`, `large28`, `large32`, `pill`, `handleBar` (drag handle 40x4), `dot` (page indicator). Pour un radius hors liste, le creer dans `tokens.dart` plutot que `BorderRadius.circular(X)` inline.
 
-Palette premium pour les flows onboarding/personnalisation :
+### AppSize
 
-```dart
-class PersonalizationColors {
-  // Gradients background (bleu -> violet doux)
-  static const List<Color> backgroundGradient = [gradientStart, gradientMid, gradientEnd];
-  static const List<Color> accentGradient = [accentBlue, accentViolet];
+`height42` / `width42` (CTA height standard), `iconSizeHeight24`, `boxSize8`, `boxSize16`. Liste volontairement courte : la majorite des sizes restent contextuelles.
 
-  // Glass / frosted surfaces
-  static const Color surfaceGlass = Color(0x1AFFFFFF);
-  static const Color surfaceGlassBorder = Color(0x26FFFFFF);
+### AppShadows
 
-  // Card states
-  static const Color cardBorderSelected = Color(0xFF5B7CFD);
-  static const Color chipSelected = Color(0x265B7CFD);
-}
-```
+Trois constantes : `cardPrimary` (drop shadow 8% alpha, offset (0,4), blur 6), `cardAmbient` (companion 4% alpha, offset (0,2), blur 4), et `card` qui combine les deux. C'est ce que 90% des cards utilisent : `boxShadow: AppShadows.card`. Avant ce token, ~30 cards portaient un `BoxShadow(color: ColorName.primary.withValues(alpha: 0.08), ...)` copie-colle.
 
-### Police
+### AppAnimationDurations
 
-Police unique **B612** enregistree dans `lib/gen/fonts.gen.dart` :
+| Token | Duree | Usage |
+|---|---|---|
+| `microInteraction` | 150 ms | tap ripples, icon flips |
+| `quick` | 200 ms | chip hover, subtle reveals |
+| `standard` | 300 ms | bottom sheets, list item mutations |
+| `lengthy` | 600 ms | hero transitions, celebrations |
 
-```dart
-class FontFamily {
-  static const String b612 = 'B612';
-}
-```
+Toute `Duration(milliseconds: ...)` codee en dur dans un widget est un smell : si la valeur ne matche pas un des 4 tokens, c'est probablement un bug de tempo.
 
-Appliquee globalement via `fontFamily: FontFamily.b612` dans les ThemeData light et dark.
+## Couleurs
 
-## Theme -- `lib/design/app_theme.dart`
+Deux niveaux. `ColorName` (`lib/gen/colors.gen.dart`) est genere par fluttergen depuis `assets/color/colors.xml` et expose la palette brute (primary `#295F98`, secondary `#35A8B5`, primaryTrueDark `#0E2135`, etc.). `AppColors` (`lib/design/app_colors.dart`) wrap cette palette en tokens semantiques : `AppColors.surface`, `AppColors.primary`, `AppColors.textSecondary`, `AppColors.success`, `AppColors.error`.
 
-4 themes exposes par `AppTheme` :
+Categories :
 
-| Methode | Usage |
-|---------|-------|
-| `AppTheme.light()` | ThemeData Material3 light |
-| `AppTheme.dark()` | ThemeData Material3 dark |
-| `AppTheme.cupertinoLight()` | CupertinoThemeData light |
-| `AppTheme.cupertinoDark()` | CupertinoThemeData dark |
+- Surfaces : `surface`, `surfaceLight`, `surfaceDark`, `surfaceVariant`.
+- Text accessible (contraste AA precalcule) : `textSecondary` (5.2:1 sur blanc), `textTertiary` (6.3:1), `textDisabled` (4.6:1 minimum AA), `textSecondaryDark` (4.5:1 sur fond `#0E2135`).
+- Brand : `primary`, `primaryDark`, `primaryLight`, `primarySoftLight`, `primaryTrueDark`, `secondary`, `secondaryLight`.
+- Status : `success`, `warning`, `warningLight`, `error`, `errorDark`, `info`, `infoLight`.
+- Categories activite (foreground tints) : `activityCulture` (indigo), `activityNature` (green), `activityFood` (deepOrange), `activitySport` (blue), `activityShopping` (purple), `activityNightlife` (deepPurple), `activityRelaxation` (teal).
+- Categories budget : pastel light (`categoryFlight`, `categoryAccommodation`, ...) + variante dark (`categoryFlightDark`, ...) + resolver `categoryFlightOf(Brightness)` qui retourne la bonne variante selon le theme.
+- Plan trip step accents : `stepInProgress`, `stepInProgressSubtitle`, `stepCompletedSubtitle`, `stepProgressGlow`, `stepSuccessBg`, `stepSuccessBorder`.
+- Review step (warm grays) : `reviewMuted`, `reviewSubtle`, `reviewFaint`, `reviewInk`, `reviewUnchecked`, `reviewDivider`, `reviewBorderLight`, `reviewHeroDark`.
+- Banners : `dangerBg/Border/Icon/Text`, `warningBg/Border/Icon/Text`, `errorBg/Text`.
+- Shadows ad-hoc : `shadowLight` (6% noir), `shadowSubtle` (4% noir), `shadowFaint` (2% noir).
 
-Le theme Cupertino est injecte via `cupertinoOverrideTheme` dans `main.dart` :
+Les category mappers consomment `AppColors.activityXxx` via les extensions `ActivityCategoryPresentation` et `BudgetCategoryPresentation` (`lib/design/category_mappers.dart`), qui exposent `.icon`, `.color` et `.label(l10n)`. Avant ces extensions, le switch icone/couleur etait duplique dans 4 fichiers (activity_card, activity_form, timeline_activity_card, timeline_activity_row).
 
-```dart
-MaterialApp.router(
-  theme: AppTheme.light().copyWith(
-    cupertinoOverrideTheme: AppTheme.cupertinoLight(),
-  ),
-  darkTheme: AppTheme.dark().copyWith(
-    cupertinoOverrideTheme: AppTheme.cupertinoDark(),
-  ),
-)
-```
+Le theme global est defini dans `lib/design/app_theme.dart` : `AppTheme.light()`, `AppTheme.dark()`, et les variantes Cupertino `cupertinoLight()` / `cupertinoDark()` consommees par l'`AdaptiveScaffold` et le `MaterialApp`. Le `seedColor` est `ColorName.primary` (light) ou `ColorName.secondary` (dark).
 
-Configurations notables du theme :
-- Boutons `ElevatedButton` : fond `secondary` (#35A8B5), hauteur 42px, radius 16px, elevation 0.
-- Cards : elevation 0, couleur `primarySoftLight`, radius 16px.
-- Scaffold background : `PersonalizationColors.gradientStart` (#F0F4FA) en light, `primaryTrueDark` (#0E2135) en dark.
+## Typography
 
-## Scroll Behavior adaptatif
+Trois familles disponibles dans `lib/gen/fonts.gen.dart` : `FontFamily.b612` (UI primaire), `FontFamily.dMSans`, `FontFamily.dMSerifDisplay` (hero / serif accents). En pratique, tout passe par `B612` qui est defini comme `fontFamily` global dans `AppTheme` et `CupertinoTextThemeData`.
 
-`_AdaptiveScrollBehavior` dans `main.dart` ajuste la physique de scroll :
-- **iOS** : `BouncingScrollPhysics` (rebond natif)
-- **Android** : `ClampingScrollPhysics` + overscroll glow
+Hierarchie textuelle (definie dans `AppTheme.light()` et `dark()`) :
 
-## Detection de plateforme -- `lib/core/platform/adaptive_platform.dart`
+| Style | Poids | Couleur light | Usage |
+|---|---|---|---|
+| `titleLarge` | w700 | `ColorName.primary` | titres pages |
+| `titleMedium` | w700 | `ColorName.primaryTrueDark` | titres sections / cards |
+| `bodyMedium` | regular | `ColorName.primaryTrueDark` | corps de texte |
+| `labelLarge` | w600 | `AppColors.surface` (blanc) | labels CTA |
 
-```dart
-abstract class AdaptivePlatform {
-  static bool get isIOS => Platform.isIOS;
-  static bool get isAndroid => Platform.isAndroid;
-  static T select<T>({required T material, required T cupertino}) {
-    return isIOS ? cupertino : material;
-  }
-}
-```
+Pour les chiffres et codes IATA (vols), `B612` est conserve volontairement (alignement monospace-friendly). Aucune typo ne doit etre ecrite avec `fontFamily: 'something'` en chaine litterale : passer par `FontFamily.b612`.
 
-**Regle stricte** : toujours utiliser `AdaptivePlatform.isIOS` et jamais `Platform.isIOS` directement.
+## Extensions
 
-## Composants adaptatifs -- `lib/components/adaptive/`
+### DateTimeExt (`lib/core/extensions/datetime_ext.dart`)
 
-11 composants qui rendent automatiquement Material sur Android et Cupertino sur iOS :
+- `dt.daysUntilNow` : nombre de jours entiers de `dt` a maintenant (calendar-day truncation, donc "demain a 01:00" = 1 jour quel que soit l'heure courante). Negatif si `dt` est passe.
+- `dt.daysSinceNow` : oppose de `daysUntilNow`.
+- `checkIn.nightsUntil(checkOut)` : nuits entre deux dates, clamped a 1 minimum (un same-day check-in/out compte 1 nuit pour le pricing).
+- `departure.flightDurationTo(arrival)` : format `"2h05"`, clampe a `"0h00"` si negatif.
 
-### AdaptiveScaffold
+Avant ces extensions, chaque card avait son propre `var nights = a.checkOut!.difference(a.checkIn!).inDays; if (nights < 1) nights = 1;` recopie 5+ fois.
 
-`Scaffold` (Android) / `CupertinoPageScaffold` (iOS) avec SafeArea automatique sur iOS.
+### PriceFormatExt (`lib/core/extensions/price_format_ext.dart`)
 
-### AdaptiveAppBar
+`price.formatPrice()` produit `"123 EUR"` (defaut `currency: 'EUR'`). Single source of truth pour le format prix : si on bascule un jour sur `NumberFormat.simpleCurrency`, c'est ici qu'on change, pas dans 20 widgets.
 
-Factory statique qui retourne un `AppBar` Material ou un `GlassAppBar` (liquid_glass_widgets) selon la plateforme :
+## Composants adaptatifs
 
-```dart
-AdaptiveAppBar.build(
-  context: context,
-  title: 'Mes voyages',
-  actions: [IconButton(...)],
-)
-```
+Tous dans `lib/components/adaptive/`. Les pages consomment l'API neutre et ne savent pas si elles tournent sur Material ou Cupertino. Le check de plateforme se fait via `AdaptivePlatform.isIOS` (`lib/core/platform/adaptive_platform.dart`), jamais `Platform.isIOS` direct.
 
-Sur iOS, le `GlassAppBar` utilise le shader Liquid Glass pour l'effet verre natif iOS 26.
+| Composant | Fichier | Android | iOS |
+|---|---|---|---|
+| `AdaptiveButton` | `adaptive_button.dart` | `ElevatedButton` width=infinity | `CupertinoButton.filled` |
+| `AdaptiveAppBar.build(...)` | `adaptive_app_bar.dart` | `AppBar` | `GlassAppBar` + auto back button si `canPop` |
+| `showAdaptiveAlertDialog` | `adaptive_dialog.dart` | `AlertDialog` | `CupertinoAlertDialog` |
+| `showAdaptiveEditDialog` | `adaptive_edit_dialog.dart` | `AlertDialog` + `TextFormField` | `CupertinoAlertDialog` + `CupertinoTextField` |
+| `showAdaptiveActionSheet` | `adaptive_action_sheet.dart` | bottom sheet Material + ListTiles | `CupertinoActionSheet` |
+| `AdaptiveTextField` | `adaptive_text_field.dart` | `TextFormField` outlined | `CupertinoTextField` systemGrey6 bg |
+| `showAdaptiveDatePicker` | `adaptive_date_picker.dart` | `showDatePicker` Material | `CupertinoDatePicker` modal popup |
+| `showAdaptiveTimePicker` | `adaptive_time_picker.dart` | `showTimePicker` clock | `CupertinoDatePicker` mode time |
+| `AdaptiveScaffold` | `adaptive_scaffold.dart` | `Scaffold` | `CupertinoPageScaffold` + SafeArea |
+| `AdaptiveIndicator` | `adaptive_indicator.dart` | `CircularProgressIndicator` | `CupertinoActivityIndicator` (via `.adaptive()`) |
+| `AdaptiveContextMenu` | `adaptive_context_menu.dart` | passthrough (child inchange) | `CupertinoContextMenu.builder` |
 
-### AdaptiveButton
+`AdaptiveButton` et `AdaptiveTextField` injectent automatiquement les `Semantics` necessaires (label, role, enabled). Les dialogs prennent `confirmLabel` et `cancelLabel` localises par le caller — ils n'ont pas de strings hardcodes.
 
-`ElevatedButton` / `CupertinoButton.filled`. Supporte `isLoading` avec indicateur adaptatif.
+Helper generique `AdaptivePlatform.select<T>(material: ..., cupertino: ...)` quand un widget custom doit choisir une valeur sans creer un composant adaptatif dedie.
 
-### AdaptiveTextField
+## FAB pattern
 
-`TextFormField` / `CupertinoTextField`. Background gris arrondi sur iOS, `OutlineInputBorder` sur Android.
+L'app utilise deux affordances pour les actions de creation rapide, choisies par plateforme :
 
-### AdaptiveDialog
+- **Android** : `FloatingActionButton.extended(...)` dans `Scaffold.floatingActionButton`.
+- **iOS** : `IconButton(icon: Icon(CupertinoIcons.add))` dans `AppBar.actions`.
 
-```dart
-showAdaptiveAlertDialog(
-  context: context,
-  title: 'Supprimer ?',
-  confirmLabel: 'Supprimer',
-  cancelLabel: 'Annuler',
-  isDestructive: true,
-  onConfirm: () => bloc.add(DeleteTrip(tripId)),
-);
-```
+Le switch passe par `AdaptivePlatform.isIOS` directement (pas de wrapper, c'est trop divergent en placement pour un composant unique).
 
-Rend `CupertinoAlertDialog` sur iOS, `AlertDialog` sur Android.
+Regle critique : **jamais** de FAB et CTA empty state simultanes. Quand la liste est vide, seul le CTA de l'`ElegantEmptyState` reste visible (FAB masque). Quand la liste contient au moins un item, le CTA empty state disparait et seul le FAB / icone AppBar reste. Ca evite le doublon visuel "Ajouter ma premiere depense" + bouton flottant qui distrait l'oeil.
 
-### AdaptiveActionSheet
-
-`CupertinoActionSheet` (iOS) / `showModalBottomSheet` avec handle bar (Android).
-
-### AdaptiveEditDialog
-
-Dialog avec champ texte. Retourne la nouvelle valeur ou `null` si annule.
+## Bottom sheets
 
-### AdaptiveDatePicker / AdaptiveTimePicker
-
-Calendrier Material (Android) / roue CupertinoDatePicker (iOS) avec barre Cancel/Done.
-
-### AdaptiveIndicator
-
-`CircularProgressIndicator.adaptive()` -- spinner natif par plateforme.
-
-### AdaptiveContextMenu
-
-`CupertinoContextMenu` sur iOS (long press -> menu d'actions avec preview). Passe-plat sur Android.
-
-```dart
-AdaptiveContextMenu(
-  actions: [
-    AdaptiveContextAction(
-      label: 'Modifier',
-      icon: CupertinoIcons.pencil,
-      onPressed: () => _edit(),
-    ),
-    AdaptiveContextAction(
-      label: 'Supprimer',
-      icon: CupertinoIcons.trash,
-      onPressed: () => _delete(),
-      isDestructive: true,
-    ),
-  ],
-  child: TripCard(trip: trip),
-)
-```
-
-## Animations -- `lib/design/app_animations.dart`
-
-Constantes centralisees nommees par intention :
-
-| Token | Valeur | Usage |
-|-------|--------|-------|
-| `springCurve` | `Curves.easeOutBack` | Emphasis, rebond subtil |
-| `standardCurve` | `Curves.easeOutCubic` | Transitions standard, fades |
-| `staggerDelay` | 80ms | Delai entre items de liste |
-| `cardTransition` | 350ms | Hero transitions, cartes |
-| `microInteraction` | 200ms | Feedback tap, changement couleur |
-| `wizardTransition` | 300ms | Transitions entre etapes |
-| `fadeIn` | 400ms | Empty states, halo |
-| `pressFeedback` | 150ms | Scale/press rapide |
-
-### StaggeredFadeIn -- `lib/components/staggered_fade_in.dart`
-
-Widget d'animation qui fait apparaitre les elements de liste avec un delai indexe. Chaque item fade-in + slide-up :
-
-```dart
-StaggeredFadeIn(
-  index: i,
-  baseDelay: AppAnimations.staggerDelay,
-  child: ActivityCard(activity: activities[i]),
-)
-```
-
-## Haptics -- `lib/design/app_haptics.dart`
-
-Feedback haptique centralise, **iOS uniquement** (Android gere au niveau OS) :
-
-| Methode | Intensite | Usage |
-|---------|-----------|-------|
-| `AppHaptics.light()` | Light | Selection, toggle, tap chip |
-| `AppHaptics.medium()` | Medium | Press bouton, selection carte |
-| `AppHaptics.success()` | Heavy | Trip creee, etape completee |
-| `AppHaptics.error()` | Vibrate | Echec validation, erreur reseau |
-
-```dart
-GestureDetector(
-  onTap: () {
-    AppHaptics.medium();
-    onTap();
-  },
-  child: card,
-)
-```
-
-## Widgets Design reutilisables
-
-### `lib/components/`
-
-| Widget | Description |
-|--------|-------------|
-| **ElegantEmptyState** | Etat vide avec halo gradient, icone, titre, CTA. Animation fade-in + slide-up. Remplace le legacy `EmptyState`. |
-| **ErrorView** | Ecran d'erreur avec icone, message, bouton retry. |
-| **LoadingView** | Spinner adaptatif + message optionnel. |
-| **PaginatedList** | ListView avec scroll infini, support groupement, pull-to-refresh. |
-| **OfflineBanner** | Banniere jaune animee en haut de l'ecran quand offline. |
-| **BottomTabBar** | Tab bar adaptative : `GlassBottomBar` (iOS) / `NavigationBar` (Android). Badge sur l'onglet Activity. |
-| **OptimizedImage** | Image reseau cachee via `CachedNetworkImage` avec shimmer loading et placeholder gradient. Deux presets : `.tripCover` (800px) et `.activityImage` (400px). |
-| **AppSnackBar** | Snackbar overlay avec 3 types (error/success/info). Toast frosted glass sur iOS, Material elevation sur Android. |
-| **SummaryDateCard** | Carte date pour les ecrans recap : icone calendrier, label, date formatee. |
-| **CustomCalendarPicker** | Calendrier modal avec navigation par mois, selection range, highlight today. |
-
-### `lib/design/widgets/`
-
-| Widget | Description |
-|--------|-------------|
-| **GlassPanel** | Panel frosted glass. iOS : `LiquidGlassContainer` (Liquid Glass shader). Android : `BackdropFilter` avec blur 12px. |
-| **PrimaryButton** | Bouton pleine largeur adaptatif (CupertinoButton.filled / ElevatedButton) avec loading state. |
-| **StatusBadge** | Badge de statut avec 5 types (pending, confirmed, forecasted, active, completed). Couleur automatique. |
-| **StepHeader** | Resume compact des etapes wizard, expandable (collapsed: icones inline / expanded: detail complet). |
-| **PremiumStepIndicator** | Indicateur de progression en points (dot actif elargi 20px, inactifs 8px) avec animation. |
-| **PremiumCtaButton** | CTA premium avec gradient bleu->violet, ombre coloree, animation scale au press. |
-| **AiSuggestionCard** | Carte suggestion IA avec image, destination, match reason, badges, info chips (duree/prix). |
-| **StreamingChecklist** | Checklist animee pour visualiser la progression SSE. Stagger fade-in + cross-fade pending/done + haptic sur completion. |
-| **BudgetChipSelector** | Grille 2x2 de chips budget avec emoji, label, range. Selection unique avec animation. |
-| **DestinationCarousel** | Carousel horizontal page par page avec effet scale sur les cartes adjacentes + indicateurs dots. |
-| **FlexibleDatePicker** | Picker 3 modes (exact/mois/flexible) avec segment control adaptatif. |
-| **PremiumPaywall** | Bottom sheet premium avec liste de features et CTA upgrade Stripe. |
-
-## SnackBar System
-
-Le systeme de snackbar est base sur un `InheritedWidget` overlay (`lib/components/snack_bar_scope.dart`) :
-
-1. `SnackBarScope` est wrape autour de l'app dans `main.dart` via `MaterialApp.router(builder:)`.
-2. Les snackbars sont des `OverlayEntry` positionnees en haut de l'ecran avec SafeArea.
-3. Animation : slide-down elastique + fade-in (600ms entree, 400ms sortie, 4s affichage).
-4. Un seul snackbar visible a la fois (le precedent est `remove()`).
-
-```dart
-AppSnackBar.showSuccess(context, message: 'Voyage cree !');
-AppSnackBar.showError(context, message: error.toUserFriendlyMessage());
-```
-
-## Assets generes -- `lib/gen/`
-
-| Fichier | Contenu | Regeneration |
-|---------|---------|--------------|
-| `colors.gen.dart` | `ColorName.*` (25 couleurs) | `build_runner` apres modif `assets/color/colors.xml` |
-| `fonts.gen.dart` | `FontFamily.b612` | `build_runner` apres ajout de polices |
-| `assets.gen.dart` | `Assets.images.*` (AppIcon SVG, flight, hotel, etc.) | `build_runner` apres ajout d'images |
-
-## Pattern FAB adaptatif
-
-Convention stricte pour le bouton d'ajout :
-
-```dart
-// Android : FAB dans le Scaffold
-floatingActionButton: canEdit && !AdaptivePlatform.isIOS
-    ? FloatingActionButton.extended(
-        onPressed: _showForm,
-        label: Text(l10n.addActivity),
-        icon: const Icon(Icons.add),
-      )
-    : null,
-
-// iOS : IconButton dans l'AppBar
-appBar: AppBar(
-  actions: [
-    if (canEdit && AdaptivePlatform.isIOS)
-      IconButton(
-        icon: const Icon(CupertinoIcons.add),
-        onPressed: _showForm,
-      ),
-  ],
-),
-```
-
-**Regle** : jamais de FAB + CTA empty state en meme temps. Si la liste est vide, CTA dans l'empty state seulement.
-
-## Pattern Bottom Sheet
-
-Toute bottom sheet doit suivre cette decoration :
+Tout `showModalBottomSheet` suit la meme convention : fond transparent (`backgroundColor: Colors.transparent`), Container interne avec radius haut 20, drag handle bar 40x4 centree, `isScrollControlled: true` quand le contenu peut depasser.
 
 ```dart
 showModalBottomSheet(
@@ -421,31 +164,117 @@ showModalBottomSheet(
       color: Colors.white,
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
-      const SizedBox(height: 12),
-      Center(child: Container(
-        width: 40, height: 4,
-        decoration: BoxDecoration(
-          color: Colors.grey.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(2),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 12),
+        Center(
+          child: Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.3),
+              borderRadius: AppRadius.handleBar,
+            ),
+          ),
         ),
-      )),
-      // ... content
-    ]),
+        // contenu
+      ],
+    ),
   ),
 );
 ```
 
+Pour les formulaires d'edition d'item trip-detail, ne pas reinventer ce chrome : passer par `showItemFormSheet(...)` + `ItemFormScaffold` (cf. section SMP-324). Idem pour un flow remplacer-via-recherche : `showReplaceSearchSheet(...)`.
+
+**Chaining de sheets** : un piege classique est d'ouvrir une sheet B depuis une sheet A en appelant `Navigator.pop` puis `showModalBottomSheet` avec le meme `context`. Le `context` capture par la sheet A est invalide apres `pop`. La regle : capturer le bloc parent et le context parent **avant** le `pop`.
+
+```dart
+final bloc = context.read<MyBloc>();
+final parentContext = context;
+Navigator.of(context).pop();
+showModalBottomSheet(
+  context: parentContext,
+  builder: (_) => BlocProvider.value(value: bloc, child: ...),
+);
+```
+
+## Patterns trip-detail SMP-324
+
+Quatre briques portent toute l'UX trip-detail. Tout nouveau type d'item (Activity, ManualFlight, Accommodation, BudgetItem, futurs domaines) consomme ces 4 composants par defaut au lieu de les reinventer.
+
+### ItemStatusChip (`lib/design/widgets/item_status_chip.dart`)
+
+Single source of truth pour le rendu visuel de `validation_status`. Enum `ItemStatusChipKind` : `suggested` (halo dore `#FFF4D6` + icone `auto_awesome`), `validated` (vert + `check_circle`), `manual` (gris + `edit_note`).
+
+Modes `compact: true` (icone seule, dense card header) ou `compact: false` (icone + label localise via `l10n.itemStatusSuggested/Validated/Manual`). `Semantics(container: true, label: ...)` integre pour l'a11y.
+
+Adapter `ItemStatusChip.fromBackend(raw)` mappe la string backend (`"SUGGESTED"` / `"VALIDATED"` / `"MANUAL"`) vers l'enum, avec fallback `manual` sur unknown — un nouveau statut ajoute cote serveur ne crash pas le client.
+
+### ItemFormScaffold + showItemFormSheet (`lib/design/widgets/item_form_scaffold.dart`)
+
+Chrome standardise pour TOUT formulaire d'edition d'item. Owne drag handle, keyboard padding (`viewInsetsOf`), top radius 20, header avec `ItemStatusChip` optionnel, scroll, slot actions (boutons primary + secondary en `Row` egal). Le form ne ship que ses champs propres (`fields`), son titre, son subtitle optionnel, son `statusKind` et la liste `actions`.
+
+Constante `ItemFormSheetLayout.maxHeightFactor = 0.8` : la sheet ne depasse jamais 80% de l'ecran (place pour la scrim et le swipe-to-dismiss).
+
+Le helper `showItemFormSheet(context: ..., child: ItemFormScaffold(...))` standardise l'ouverture (transparent barrier, scroll-controlled, alignement bas).
+
+### QuickPreviewSheet (`lib/design/widgets/review/sheets/quick_preview_sheet.dart`)
+
+Sheet d'apercu legere quand l'utilisateur tape un item dans un panel. Slots :
+
+- `validateAction` : priorise Validate en CTA primaire quand l'item est SUGGESTED — promotion automatique, le `primaryAction` (Edit / Replace) recule en secondaire.
+- `primaryAction` : CTA principal (Edit, Replace).
+- `secondaryAction` : action mineure.
+- `destructiveAction` : suppression.
+- `openFullLabel` + `onOpenFull` : footer opt-in qui navigue vers la sous-page complete.
+
+`DraggableScrollableSheet` avec `initialChildSize: 0.55`, `minChildSize: 0.35`, `maxChildSize: 0.92` — l'utilisateur peut tirer la sheet jusqu'a quasi plein ecran sans naviguer. Viewer-mode passe `primaryAction: null` pour masquer toute action mutative.
+
+### ReplaceSearchSheet + showReplaceSearchSheet (`lib/design/widgets/replace_search_sheet.dart`)
+
+Sheet plein ecran (95% de la hauteur) pour wrap un search-and-replace flow (vols, hotels). Le caller compose l'inner widget tree (formulaire de recherche, resultats, confirmation) — la sheet owne seulement le chrome (rounded top 20, header avec close button, divider, hauteur).
+
+`isDismissible: false` et `enableDrag: false` : le tap-outside dismiss est desactive volontairement pour preserver le state mid-search (l'utilisateur doit explicitement cancel via le bouton close). Le bloc handler atomique cote detail (ex : `ReplaceFlightFromDetail`) est responsable du DELETE+CREATE avec rollback.
+
+### Repository validation extension
+
+Cote bloc, validation passe par les extensions `validate(...)` sur `ActivityRepository`, `TransportRepository`, `AccommodationRepository`, `BudgetRepository` (`lib/repositories/validation_extensions.dart`). Single payload `{validation_status: VALIDATED}`. Le handler bloc utilise toujours l'extension, jamais `updateXxx({validation_status: ...})` direct.
+
+## Empty states
+
+Composant unique : `ElegantEmptyState` (icone halotee, animation d'entree subtile, CTA optionnel). Le legacy `EmptyState` a ete supprime. Chaque feature vide (activites, vols, hotels, bagages, depenses, partages) passe par `ElegantEmptyState` avec :
+
+- icone domaine (via la category mapper si applicable),
+- titre + body localises,
+- CTA optionnel quand l'utilisateur est editor (masque pour viewer).
+
+Quand l'empty state expose un CTA, le FAB / l'icone AppBar est masque (cf. section FAB pattern).
+
+## iOS tab bar et AppShell
+
+`AppShell` (la coquille `GoRouter` qui contient les onglets) cache la `GlassBottomBar` sur les sous-pages : elle n'est visible que sur les routes racine `/home`, `/activity` et `/profile`. Les sous-pages (`/home/:tripId/...`) n'affichent rien en bas — l'utilisateur reste guide par l'`AdaptiveAppBar` et son back button.
+
+Consequence pour le scroll : les sous-pages doivent prevoir un bottom padding adapte au socle iOS (qui occupe ~100 px de safe area + glass bar quand visible). Pattern :
+
+```dart
+SliverPadding(
+  padding: EdgeInsets.only(
+    bottom: AdaptivePlatform.isIOS ? 100 : AppSpacing.space32,
+  ),
+  sliver: ...,
+)
+```
+
+Sans ce padding, le dernier item de liste passe sous la glass bar (sur les pages racine) ou sous la home indicator (sur les sous-pages).
+
 ## Ce qu'il manque
 
-| Element | Description | Priorite |
-|---------|-------------|----------|
-| Typo dans AppRadius | `cornerRaidus4` et `cornerRaidus8` contiennent un typo (`Raidus` au lieu de `Radius`) dans `lib/design/tokens.dart` | P2 |
-| Pas de dark mode pour AppColors semantiques | `AppColors` definit les couleurs statiquement sans variante dark -- les couleurs comme `textSecondary`, `textTertiary`, `categoryFlight` ne s'adaptent pas au dark mode | P1 |
-| PremiumPaywall hardcode en francais | `lib/design/widgets/premium_paywall.dart:82` contient `'Passez a Premium'` en dur au lieu de passer par l10n | P1 |
-| AdaptiveIndicator ignore ses parametres | `lib/components/adaptive/adaptive_indicator.dart` accepte `radius` et `color` mais `radius` n'est pas utilise dans le build, et `color` est passe via `valueColor` qui ne fonctionne pas avec le constructeur `.adaptive()` | P2 |
-| Pas de dark mode pour PersonalizationColors | `lib/design/personalization_colors.dart` ne definit que des couleurs light -- le flow personnalisation sera illisible en dark mode | P1 |
-| GlassPanel Android sans test dark mode | `lib/design/widgets/glass_panel.dart` utilise `PersonalizationColors.surfaceGlass` (blanc translucide) qui sera invisible sur fond dark | P2 |
-| DestinationCarousel hauteur fixe | `lib/design/widgets/destination_carousel.dart:62` utilise `height: 320` en dur au lieu d'un token ou d'une valeur responsive | P2 |
-| CustomCalendarPicker pas adaptatif | `lib/components/custom_calendar_picker.dart` utilise un Dialog Material brut sur toutes les plateformes sans variante Cupertino | P2 |
-| Pas de composant AdaptiveSwitch | Le catalogue adaptatif ne contient pas de switch/toggle -- les features utilisant des toggles doivent gerer manuellement Material/Cupertino | P2 |
+- **Storybook / catalogue visuel** : aucun outil pour browser les tokens et composants visuellement. Un widget book (`storybook_flutter` ou equivalent) ferait gagner du temps en design review.
+- **Dark mode tokens incomplets** : `AppTheme.dark()` existe et le seed bascule sur `secondary`, mais plusieurs couleurs ad-hoc (banners, step accents, review warm grays) n'ont pas de variante dark. La toggle existe en preferences mais reste experimentale.
+- **Typography scale doc** : la hierarchie reelle (h1 / h2 / body / caption) n'est pas explicitement nommee — les pages consomment `textTheme.titleLarge` etc. sans guide d'usage clair par contexte.
+- **Animation curves** : les durees sont tokenises (`AppAnimationDurations`) mais les courbes (`Curves.easeOutCubic`, `Curves.fastOutSlowIn`, etc.) restent inline. A consolider si la cinetique commence a diverger entre features.
+- **Spacing 22 px special** : `space22` existe uniquement pour la marge Plan trip wizard (densite Ive). Le pourquoi est documente inline mais pas dans un guide design — risque de propagation a d'autres ecrans sans intention.
+- **AppShadows variantes** : seul `card` est tokenise. Les ombres custom (modal, sheet, glass) restent inline. A elargir si une 2eme variante apparait.
+- **Adaptive scaffold incomplet** : `AdaptiveScaffold` ne wrappe pas tous les slots Material (drawer, bottomSheet, persistentFooterButtons). Suffisant pour l'app actuelle mais limite pour de futures pages complexes.
+- **Typos `cornerRaidus*`** : trois constantes (`cornerRaidus4`, `cornerRaidus8`, `cornerRaidus16`) portent une typo historique. A renommer en suivant la convention `cornerRadius*` lors d'un cleanup pass.

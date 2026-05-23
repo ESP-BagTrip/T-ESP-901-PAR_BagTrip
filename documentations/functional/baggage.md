@@ -1,173 +1,150 @@
-# Bagages (Checklist IA)
+# Bagages
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La feature Bagages fournit une checklist interactive pour preparer ses affaires avant un voyage. Elle combine gestion manuelle (ajout, suppression, reordonnancement) avec des suggestions IA contextualisees basees sur la destination, la duree du voyage et les activites prevues. Chaque item a un statut "packed" avec une barre de progression visuelle et une celebration a 100%.
+La feature Bagages fournit une checklist interactive de packing pour chaque voyage. L'utilisateur cree des items manuellement (nom, quantite, categorie) ou demande des suggestions a l'IA, qui prend en compte la destination, la duree, les activites prevues et le nombre de voyageurs. Chaque item porte un flag `is_packed` que l'utilisateur coche au fur et a mesure. Une barre de progression circulaire affiche le ratio packed/total et une celebration se declenche a 100%.
 
----
+La checklist est offline-first via `CachedBaggageRepository` : lecture cache si hors-ligne, ecritures mises en file via `OfflineWriteQueue` et rejouees au retour de la connexion. Les permissions sont scopees par role (Owner / Editor / Viewer) via les dependencies trip-access du backend, et toute mutation est bloquee une fois le trip passe au statut COMPLETED.
 
-## Architecture mobile (Flutter)
+## Cote Backend
 
-### BLoC
+### Endpoints (`/v1/trips/{tripId}/baggage`)
 
-`BaggageBloc` (`bagtrip/lib/baggage/bloc/baggage_bloc.dart`) gere l'integralite de la feature via `BaggageRepository`.
+| Methode | Route | Acces | Description |
+|---------|-------|-------|-------------|
+| POST | `/baggage` | Editor | Cree un item. Retourne 201 |
+| GET | `/baggage` | Owner + Viewer | Liste tous les items du trip |
+| PATCH | `/baggage/{baggageItemId}` | Editor | Mise a jour partielle (nom, qte, packed, categorie, notes) |
+| DELETE | `/baggage/{baggageItemId}` | Editor | Supprime. Retourne 204 |
+| POST | `/baggage/suggest` | Editor + quota IA | Suggestions IA contextualisees |
+
+Les dependencies `get_trip_editor_access` / `get_trip_access` portent les checks d'ownership. Le suggest passe aussi par `require_ai_quota` (plan free/premium) puis incremente le compteur via `PlanService.increment_ai_generation()`.
+
+### Modele SQLAlchemy (`BaggageItem`)
+
+| Champ | Type | Notes |
+|-------|------|-------|
+| `id` | UUID PK | |
+| `trip_id` | UUID FK trips | indexe |
+| `name` | String | obligatoire |
+| `quantity` | Integer | default 1 |
+| `is_packed` | Boolean | default false |
+| `category` | String | default `OTHER` (enum `BaggageCategory`) |
+| `notes` | String? | optionnel |
+| `created_at` / `updated_at` | DateTime tz | auto |
+
+Categories de l'enum : `DOCUMENTS`, `CLOTHING`, `ELECTRONICS`, `TOILETRIES`, `HEALTH`, `ACCESSORIES`, `OTHER`.
+
+### Service (`BaggageItemsService`)
+
+CRUD classique avec guard `_check_trip_not_completed()` sur create/update/delete : un trip au statut `COMPLETED` ne peut plus voir ses bagages modifies (`AppError TRIP_COMPLETED` 403).
+
+### Suggestions IA (`suggest_baggage_items`)
+
+1. **Construction du prompt utilisateur** (FR/EN selon `Accept-Language`, normalise via `normalize_locale`) avec :
+   - `destination_name` du trip (fallback "Unknown" / "Inconnue")
+   - duree en jours (`end_date - start_date`)
+   - jusqu'a 8 titres d'activites prevues (si la relation est chargee)
+   - `nb_travelers`
+   Le bloc de labels traduits vit dans `_BAGGAGE_SUGGEST_LABELS` (constant module-level), une cle par locale.
+2. **Appel LLM** via `LLMService.acall_llm()` avec le prompt systeme rendu par `render("baggage", locale=...)` (templates Jinja2 dans `src/agent/prompts/templates/{en,fr}/baggage.j2`).
+3. **Parsing** de `result["items"]` en `[{name, quantity, category, reason}]`. Le service ne fait aucune validation forte sur les categories renvoyees (chaine libre cote retour).
+4. **Deduplication** : on exclut toute suggestion dont le `name` (case-insensitive) existe deja dans les items du trip via `get_baggage_items_by_trip()`.
+5. **Fallback** : si le LLM jette une exception, log via `logger.error("Baggage suggest LLM call failed", {"error": ...})` et retour d'une liste hardcodee de 6 essentiels (Passport, Travel adapter, Sunscreen, First aid kit, Phone charger, Change of clothes). La dedup s'applique aussi au fallback : si l'utilisateur a deja "Passport" en base, il ne re-apparaitra pas.
+
+Reponse : `BaggageSuggestionListResponse { items: [BaggageSuggestionItem] }` ou chaque item a `name`, `quantity` (default 1), `category` (default "OTHER"), `reason?`. Le contrat est volontairement permissif pour rester compatible avec les variantes de structure renvoyees par le LLM.
+
+## Cote Mobile
+
+### Page & navigation
+
+`BaggageBlocPage` (`bagtrip/lib/baggage/view/baggage_page.dart`) recoit `tripId`, `role` (default `OWNER`), `isCompleted` (default `false`), cree le `BaggageBloc` via `BlocProvider`, fire `LoadBaggage(tripId)` immediatement dans le `create` callback et rend `BaggageView`. La route est exposee sous `/home/:tripId/baggage` via `GoRouter` type. Le bloc reste local a la page (contrairement a `HomeBloc` qui vit app-level) — sortir de la page reset le state.
+
+### BLoC (`BaggageBloc`)
+
+Le bloc consomme `BaggageRepository` (injecte via `getIt`, fallback testable). Events :
 
 | Event | Action |
 |-------|--------|
-| `LoadBaggage` | Charge tous les items du trip, calcule packed/total |
-| `TogglePacked` | Bascule l'etat packed d'un item. Detecte la transition vers 100% pour declencher la celebration |
-| `DeleteBaggageItem` | Supprime un item |
-| `CreateBaggageItem` | Cree un item avec nom, quantite et categorie |
-| `SuggestBaggage` | Appelle l'IA pour des suggestions contextualisees. Preserve la liste courante pendant le chargement |
-| `AcceptSuggestion` | Accepte une suggestion IA : cree l'item en base puis recharge la liste, retire la suggestion acceptee |
-| `DismissSuggestion` | Rejette une suggestion (retrait de la liste locale, pas d'appel API) |
-| `UpdateBaggageItem` | Met a jour un item existant (nom, quantite, categorie) via PATCH. Owner only |
-| `ReorderBaggageItem` | Reordonne les items non-packed par drag & drop (local uniquement, pas persiste) |
+| `LoadBaggage` | Charge tous les items, calcule `packedCount`/`totalCount` |
+| `TogglePacked` | PATCH `isPacked` inverse + detection transition vers 100% |
+| `CreateBaggageItem` | POST item, append au state |
+| `UpdateBaggageItem` | PATCH (nom/qte/categorie), remplace dans la liste |
+| `DeleteBaggageItem` | DELETE, retire du state |
+| `SuggestBaggage` | POST `/suggest`, preserve les items pendant le chargement |
+| `AcceptSuggestion` | Cree l'item depuis la suggestion + reload + retire la suggestion |
+| `DismissSuggestion` | Retire la suggestion localement (aucun appel API) |
+| `ReorderBaggageItem` | Drag & drop des items non-packed (local uniquement) |
 
-### Etats
+States : `BaggageInitial`, `BaggageLoading`, `BaggageLoaded` (items + counts + suggestions + celebrationTriggered), `BaggageSuggestionsLoading` (preserve items + counts), `BaggageQuotaExceeded`, `BaggageError`.
 
-| State | Description |
-|-------|-------------|
-| `BaggageInitial` | Etat initial |
-| `BaggageLoading` | Chargement en cours |
-| `BaggageLoaded` | Contient : `items`, `packedCount`, `totalCount`, `suggestions` (vide par defaut), `celebrationTriggered` |
-| `BaggageSuggestionsLoading` | Chargement IA en cours (preserve items + counts de l'etat precedent) |
-| `BaggageQuotaExceeded` | Quota IA depasse |
-| `BaggageError` | Erreur avec `AppError` |
+### Packing toggle & celebration
 
-### Modeles Freezed
+Dans `_onTogglePacked` :
+- `wasPreviouslyAllPacked = current.packedCount == current.totalCount`
+- `isNowAllPacked = packed == total && total > 0`
+- Si transition de non-complet vers complet : `celebrationTriggered = true` dans le state suivant
+- Le widget `BaggageCelebration` ecoute ce flag pour declencher l'animation
 
-**BaggageItem** (`bagtrip/lib/models/baggage_item.dart`) :
-- `id`, `tripId`, `name` (obligatoires)
-- `quantity` (int?), `isPacked` (defaut false), `category` (String?), `notes` (String?)
-- `createdAt`, `updatedAt`
+### Categories cote mobile
 
-**SuggestedBaggageItem** (`bagtrip/lib/models/suggested_baggage_item.dart`) :
-- `name` (obligatoire)
-- `quantity` (defaut 1), `category` (defaut 'Autre'), `reason` (optionnel — justification de l'IA)
-
-### Categories de bagages
-
-Definies dans `api/src/enums.py` sous `BaggageCategory` :
-
-| Valeur | Description |
-|--------|-------------|
-| `DOCUMENTS` | Passeport, billets, etc. |
-| `CLOTHING` | Vetements |
-| `ELECTRONICS` | Chargeur, adaptateur, etc. |
-| `TOILETRIES` | Produits d'hygiene |
-| `HEALTH` | Trousse de secours, medicaments |
-| `ACCESSORIES` | Accessoires divers |
-| `OTHER` | Autre |
+Les categories cote bagage ne passent pas par `category_mappers.dart` (qui ne couvre que `ActivityCategory` et `BudgetCategory`). Elles sont gerees comme des `String?` libres dans le modele `BaggageItem` Freezed, et l'UI (`BaggageAddForm`, `BaggageEditForm`) propose un selecteur sur les valeurs de l'enum backend (`DOCUMENTS`, `CLOTHING`, `ELECTRONICS`, `TOILETRIES`, `HEALTH`, `ACCESSORIES`, `OTHER`).
 
 ### Widgets
 
-| Widget | Fichier | Role |
-|--------|---------|------|
-| `BaggagePage` | `baggage/view/baggage_page.dart` | Cree le BlocProvider et fire `LoadBaggage` |
-| `BaggageView` | `baggage/view/baggage_view.dart` | UI principale |
-| `BaggageProgressHeader` | `baggage/widgets/baggage_progress_header.dart` | Arc de progression circulaire (CustomPaint) + barre lineaire + compteur "X/Y" |
-| `BaggageItemTile` | `baggage/widgets/baggage_item_tile.dart` | Ligne d'un item avec checkbox, tap-to-edit, `AdaptiveContextMenu` iOS (edit + delete) |
-| `BaggageAddForm` | `baggage/widgets/baggage_add_form.dart` | Formulaire d'ajout (nom, quantite, categorie) |
-| `BaggageEditForm` | `baggage/widgets/baggage_edit_form.dart` | Formulaire d'edition d'un item existant (nom, quantite, categorie), pre-rempli |
-| `BaggageSuggestionCard` | `baggage/widgets/baggage_suggestion_card.dart` | Carte de suggestion IA avec boutons accepter/rejeter et animation fade-out |
-| `BaggageCelebration` | `baggage/widgets/baggage_celebration.dart` | Animation de celebration quand tout est packed |
+| Widget | Role |
+|--------|------|
+| `BaggageView` | UI principale (header, liste, FAB suggest IA) |
+| `BaggageProgressHeader` | Arc circulaire `_ProgressArcPainter` + barre lineaire + compteur "X/Y" |
+| `BaggageItemTile` | Ligne avec checkbox, tap-to-edit, `AdaptiveContextMenu` iOS |
+| `BaggageAddForm` | Bottom sheet d'ajout (nom, quantite, categorie) |
+| `BaggageEditForm` | Bottom sheet d'edition pre-remplie |
+| `BaggageSuggestionCard` | Carte IA (icone `auto_awesome`, nom, reason, accepter / rejeter, fade-out 300ms) |
+| `BaggageCelebration` | Animation 100% packed |
 
-### Fonctionnalites UX detaillees
+### Offline-first (`CachedBaggageRepository`)
 
-**Barre de progression** (`BaggageProgressHeader`) :
-- Arc circulaire (`_ProgressArcPainter`) avec ratio packed/total
-- Compteur numerique au centre de l'arc
-- Barre lineaire en dessous avec `LinearProgressIndicator`
-- Couleur : `AppColors.success`
+Wrapper implementant `BaggageRepository` autour du remote `BaggageItemService` (fichier reel : `bagtrip/lib/service/cached_baggage_repository.dart`, le chemin `lib/core/cache/` ne contient pas ce wrapper). Stockage Hive box `baggage_cache`, cle par trip `baggage:{tripId}`.
 
-**Suggestions IA** (`BaggageSuggestionCard`) :
-- Icone `auto_awesome` (sparkle) dans un cercle primaire
-- Nom de l'item + raison de la suggestion en sous-titre
-- Bouton accepter (check vert) et rejeter (croix grise)
-- Animation d'opacite au fade-out (300ms) avant le callback
+- **GET (`getByTrip`)** : online -> remote + put cache `baggage:{tripId}`. Offline -> lecture cache, `Failure(UnknownError("No cached data available"))` si vide.
+- **POST / PATCH / DELETE** : online -> remote + invalide la cle cache. Offline -> enqueue dans `OfflineWriteQueue` (operation `baggage:createBaggageItem` / `updateBaggageItem` / `deleteBaggageItem`), retour `Failure(NetworkError("Operation queued for sync"))` pour signaler l'attente.
+- **Replay** : `_registerReplayHandlers()` enregistre les 3 handlers au constructor. Au retour de la connexion, `OfflineWriteQueue` rejoue chaque entree dans l'ordre FIFO, invalide le cache trip a chaque succes pour forcer un refetch propre au prochain `getByTrip`.
+- **Suggest IA** : non cache, non queue (necessite obligatoirement le LLM serveur). Echec immediat si offline.
+- **Connectivite** : la decision online/offline est lue depuis `ConnectivityService.isOnline`, lui-meme alimente par `ConnectivityBloc` et l'ecoute du package `connectivity_plus`.
 
-**Celebration** :
-- Detectee dans `_onTogglePacked` : quand `packed == total` et ce n'etait pas le cas avant
-- `celebrationTriggered: true` dans `BaggageLoaded`
-- Widget `BaggageCelebration` pour l'animation
+## Flux
 
-**Drag & drop** :
-- `ReorderBaggageItem` reordonne uniquement les items non-packed
-- Les items packed restent a la fin de la liste
-- L'ordre n'est pas persiste cote serveur
+### Suggest IA -> validate -> pack
 
----
+1. L'utilisateur tape sur le bouton "Suggestions IA" dans `BaggageView`.
+2. `SuggestBaggage` est dispatche -> bloc emet `BaggageSuggestionsLoading` (items courants preserves).
+3. `CachedBaggageRepository.suggestBaggage()` delegue au remote (`POST /suggest`).
+4. Backend : `require_ai_quota` -> `BaggageItemsService.suggest_baggage_items()` (prompt context -> LLM -> dedup) -> `PlanService.increment_ai_generation()`.
+5. Reponse renvoyee comme liste de `SuggestedBaggageItem` -> bloc emet `BaggageLoaded` avec `suggestions` peuplees.
+6. L'UI rend chaque suggestion dans une `BaggageSuggestionCard`. L'utilisateur :
+   - **Accepte** -> `AcceptSuggestion` -> POST `/baggage` -> reload de la liste -> suggestion retiree
+   - **Rejette** -> `DismissSuggestion` -> retrait local sans appel API
+7. Une fois l'item cree, l'utilisateur le coche dans `BaggageItemTile` -> `TogglePacked` -> PATCH `isPacked: true`.
+8. Quand `packed == total`, le bloc set `celebrationTriggered: true` -> `BaggageCelebration` joue l'animation une fois.
 
-## Architecture backend (FastAPI)
+### Quota depasse
 
-### Endpoints bagages
+Si l'utilisateur free a epuise son quota IA, `require_ai_quota` retourne 403 `AI_QUOTA_EXCEEDED`. Le repository remonte un `QuotaExceededError`, le bloc emet `BaggageQuotaExceeded`, l'UI affiche un upsell premium et conserve les items courants sans toucher a la liste.
 
-- `POST /v1/trips/{tripId}/baggage` — Cree un item. Body : `name` (obligatoire), `quantity?`, `isPacked?`, `category?` (BaggageCategory enum), `notes?`. Owner only. Retourne 201.
+### Trip completed
 
-- `GET /v1/trips/{tripId}/baggage` — Liste tous les items du trip. Owner + Viewer.
-
-- `PATCH /v1/trips/{tripId}/baggage/{baggageItemId}` — Mise a jour partielle (name, quantity, isPacked, category, notes). Owner only.
-
-- `DELETE /v1/trips/{tripId}/baggage/{baggageItemId}` — Suppression. Owner only. Retourne 204.
-
-- `POST /v1/trips/{tripId}/baggage/suggest` — Suggestions IA. Owner only + verification quota IA (`require_ai_quota`). Appelle `BaggageItemsService.suggest_baggage_items()` puis incremente le compteur IA via `PlanService.increment_ai_generation()`.
-
-### Service IA — Suggestions de bagages
-
-`BaggageItemsService.suggest_baggage_items()` (`api/src/services/baggage_items_service.py`) :
-
-1. Construit un prompt contextualise avec :
-   - Destination du trip
-   - Duree du voyage (en jours)
-   - Activites prevues (jusqu'a 8 titres)
-   - Nombre de voyageurs
-
-2. Appelle `LLMService.acall_llm()` avec le prompt systeme `BAGGAGE_PROMPT`
-
-3. Parse la reponse en liste de `{name, quantity, category, reason}`
-
-4. **Deduplication** : filtre les suggestions dont le nom (case-insensitive) existe deja dans les items du trip
-
-5. **Fallback** : si le LLM echoue, retourne une liste par defaut de 6 items essentiels (Passport, Travel adapter, Sunscreen, First aid kit, Phone charger, Change of clothes)
-
-### Schema de reponse suggestions
-
-```
-BaggageSuggestionItem :
-  name (str), quantity (int, defaut 1), category (str, defaut "OTHER"), reason (str?)
-
-BaggageSuggestionListResponse :
-  items: list[BaggageSuggestionItem]
-```
-
-### Modele SQLAlchemy
-
-`BaggageItem` (`api/src/models/baggage_item.py`) :
-- `id` (UUID, PK)
-- `trip_id` (FK vers trips)
-- `name` (String, not null)
-- `quantity` (Integer), `is_packed` (Boolean), `category` (String)
-- `notes` (String)
-- `created_at`, `updated_at`
-
-### Permissions
-
-- Owner : CRUD complet + suggestions IA
-- Viewer : lecture seule
-- Les modifications sont bloquees sur les trips au statut COMPLETED
-
----
+Toute mutation (`create`, `update`, `delete`, `suggest` cote service) est bloquee si `trip.status == COMPLETED` via `_check_trip_not_completed()` (403 `TRIP_COMPLETED`). Cote mobile, `BaggageView` recoit `isCompleted` et masque les CTAs d'edition.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Persistence du reordonnancement | L'event `ReorderBaggageItem` reordonne les items localement dans le bloc mais ne persiste pas l'ordre cote API (pas de champ `position`/`order` dans le modele). A la prochaine ouverture, l'ordre est perdu. (`bagtrip/lib/baggage/bloc/baggage_bloc.dart:270-287`) | P2 |
-| ~~Edition d'un item existant~~ | ~~Le mobile n'expose pas de formulaire d'edition.~~ ✅ `UpdateBaggageItem` event + `BaggageEditForm` bottom sheet (nom, qte, categorie) + tap-to-edit + `AdaptiveContextMenu` iOS | ~~P1~~ ✅ |
-| Partage de checklist entre voyageurs | Les viewers peuvent voir la checklist mais pas contribuer. Pas de notion de "checklist partagee" ou d'assignation d'items a des voyageurs specifiques. | P2 |
-| Export/impression de la checklist | Pas de fonctionnalite d'export PDF ou de partage de la checklist. | P2 |
-| Tri et filtrage par categorie | L'UI n'offre pas de filtre par categorie (DOCUMENTS, CLOTHING, etc.). Les items sont affiches dans l'ordre non-packed puis packed. | P2 |
-| Tests widget BaggageCelebration | Pas de test dedie pour le widget `BaggageCelebration` (`bagtrip/lib/baggage/widgets/baggage_celebration.dart`). | P2 |
+| Persistence du reordonnancement | `ReorderBaggageItem` reordonne localement mais le modele n'a pas de champ `position`. A la prochaine ouverture, l'ordre est perdu. | P2 |
+| Categorie typee cote Flutter | Les categories restent des `String?` libres au lieu d'un enum Freezed mappe via `category_mappers.dart`. Pas de single source of truth icon/color/label. | P2 |
+| Partage actif entre voyageurs | Les viewers lisent la checklist mais ne contribuent pas. Pas d'assignation d'items a un voyageur. | P2 |
+| Tri / filtrage par categorie | L'UI affiche items non-packed puis packed, sans filtre par categorie (DOCUMENTS, CLOTHING, etc.). | P2 |
+| Export / impression checklist | Pas de generation PDF ni de partage hors-app. | P3 |
+| Cache des suggestions IA | `suggestBaggage` court-circuite le cache. Une rerelance offline echoue meme si la derniere reponse est recente. | P3 |
+| Tests widget `BaggageCelebration` | Animation non couverte par un test dedie. | P2 |

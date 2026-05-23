@@ -1,403 +1,315 @@
 # Architecture technique -- Admin Panel (Next.js)
 
-> Panel d'administration BagTrip. Application Next.js 15 (App Router) permettant la supervision de l'ensemble des donnees de la plateforme : utilisateurs, voyages, reservations, paiements, feedbacks, notifications.
-
----
-
-## Stack technique
-
-| Couche | Technologie | Version |
-|--------|------------|---------|
-| Framework | Next.js (App Router, Turbopack) | 15.5.0 |
-| Langage | TypeScript | 5.9.3 |
-| UI | TailwindCSS | 4.x |
-| Composants UI | Radix UI (Tabs, Slot) + shadcn/ui pattern | -- |
-| State management (serveur) | TanStack React Query | 5.85+ |
-| State management (client) | Zustand (persisted) | 5.0+ |
-| Tableaux de donnees | TanStack React Table | 8.21+ |
-| Formulaires | React Hook Form + Zod | 7.62+ / 4.3+ |
-| HTTP client | Axios | 1.11+ |
-| Charts | Recharts | 3.1+ |
-| Notifications toast | Sonner | 2.0+ |
-| Paiements | Stripe.js | 8.6+ |
-| Icones | Lucide React | 0.542+ |
-| Tests E2E | Cypress + code-coverage | 15.x |
-| Linting | ESLint (next/core-web-vitals + next/typescript) | 9.x |
-| Formatage | Prettier | 3.6+ |
-| Docker | Node 20 Alpine | -- |
-
----
-
-## Structure du projet
-
-```
-admin-panel/
-├── src/
-│   ├── app/                        # Next.js App Router
-│   │   ├── layout.tsx              # Root layout (Providers, fonts)
-│   │   ├── page.tsx                # Landing page publique
-│   │   ├── error.tsx               # Global error boundary
-│   │   ├── (auth)/
-│   │   │   ├── login/page.tsx      # Login / Register
-│   │   │   └── error.tsx           # Auth error boundary
-│   │   └── (dashboard)/
-│   │       ├── dashboard/page.tsx  # Dashboard principal (tabs)
-│   │       ├── test/page.tsx       # Page de test booking flow (Stripe)
-│   │       └── error.tsx           # Dashboard error boundary
-│   ├── features/                   # Feature modules (lazy-loaded)
-│   │   ├── registry.ts            # Tab registry central
-│   │   ├── dashboard/             # KPIs + charts
-│   │   ├── users/                 # Gestion utilisateurs
-│   │   ├── trips/                 # Voyages
-│   │   ├── profiles/              # Profils voyageurs
-│   │   ├── travelers/             # Voyageurs (par trip)
-│   │   ├── flights/               # Reservations vols
-│   │   ├── flight-searches/       # Recherches vols
-│   │   ├── booking-intents/       # Intentions de reservation
-│   │   ├── accommodations/        # Hebergements
-│   │   ├── baggage-items/         # Articles bagages
-│   │   ├── activities/            # Activites
-│   │   ├── budget-items/          # Depenses budget
-│   │   ├── trip-shares/           # Partages voyage
-│   │   ├── feedbacks/             # Retours utilisateurs
-│   │   └── notifications/         # Notifications (+ envoi)
-│   ├── services/                  # API service layer
-│   ├── hooks/                     # Hooks globaux (auth, users, dashboard, admin data)
-│   ├── stores/                    # Zustand stores
-│   ├── types/                     # TypeScript types
-│   ├── components/                # Composants partages
-│   │   ├── ui/                    # Primitives UI (shadcn pattern)
-│   │   ├── providers/             # React Query + Toaster providers
-│   │   └── DataTable.tsx          # Table generique paginee
-│   ├── shared/                    # Composants/hooks partages entre features
-│   │   ├── components/            # TabSkeleton, TabErrorBoundary
-│   │   └── hooks/                 # usePaginatedQuery
-│   ├── lib/                       # Utilitaires core
-│   │   ├── axios.ts               # Client HTTP configure
-│   │   ├── query-client.ts        # React Query client
-│   │   ├── utils.ts               # cn() helper (clsx + tailwind-merge)
-│   │   └── validations/           # Schemas Zod
-│   └── utils/                     # Utilitaires metier
-│       ├── constants.ts           # Endpoints API, pagination, formats date
-│       ├── format.ts              # Formatage dates, devises, nombres
-│       ├── date.ts                # safeFormatDate (date-fns)
-│       └── validation.ts          # Validation email, password, required
-├── cypress/                       # Tests E2E
-│   ├── e2e/homepage.cy.ts        # Tests homepage (nav, hero, stats, features, responsive, a11y)
-│   └── support/commands.ts       # Custom commands (loginAsAdmin, visitDashboard)
-├── cypress.config.ts              # Config Cypress (E2E + component + code-coverage)
-├── Dockerfile.dev                 # Docker Node 20 Alpine
-├── Makefile                       # Commandes make
-├── tailwind.config.ts             # Theme custom (primary, success, warning, danger)
-├── eslint.config.mjs              # ESLint flat config
-└── package.json
-```
-
----
-
-## Architecture applicative
-
-### Route groups (App Router)
-
-L'application utilise les route groups Next.js pour separer les contextes :
-
-- **`(auth)/`** -- Pages publiques d'authentification (login/register)
-- **`(dashboard)/`** -- Pages protegees (dashboard, test booking flow)
-
-Chaque groupe dispose de son propre `error.tsx` (error boundary).
-
-### Feature modules et Tab Registry
-
-Le dashboard est construit sur un systeme d'onglets dynamiques. Le fichier `features/registry.ts` centralise la configuration :
-
-```typescript
-export const TAB_REGISTRY: TabConfig[] = [
-  { id: 'dashboard', name: 'Dashboard', component: lazy(() => import('./dashboard/...')) },
-  { id: 'users',     name: 'Utilisateurs', component: lazy(() => import('./users/...')) },
-  // ... 15 onglets au total
-]
-```
-
-Chaque feature module suit la meme structure :
-
-```
-features/<nom>/
-├── columns.tsx        # Definition des colonnes TanStack Table
-├── hooks.ts           # Hook usePaginatedQuery specifique
-└── components/
-    └── <Nom>Tab.tsx   # Composant tab (DataTable + pagination)
-```
-
-Les tabs sont chargees en **lazy loading** (`React.lazy`) avec `Suspense` (fallback `TabSkeleton`) et encapsulees dans `TabErrorBoundary`.
-
-### Les 15 onglets du dashboard
-
-| Onglet | Feature | Donnees affichees |
-|--------|---------|-------------------|
-| Dashboard | `dashboard` | KPIs (users, trips, revenus, feedbacks) + charts Recharts |
-| Utilisateurs | `users` | CRUD users avec modification du plan (FREE/PREMIUM/ADMIN) |
-| Trips | `trips` | Liste voyages (titre, IATA, dates, statut, budget) |
-| Profils Voyageurs | `profiles` | Profils (style, budget, companions, completion) |
-| Voyageurs | `travelers` | Voyageurs par trip (nom, type, DOB, genre) |
-| Booking Intents | `booking-intents` | Intentions (type, statut, montant, Stripe PI ID) |
-| Res. Vols | `flights` | Reservations vols (offre, statut, booking ref) |
-| Rech. Vols | `flight-searches` | Recherches (IATA, dates, classe, nb passagers) |
-| Hebergements | `accommodations` | Hotels (nom, adresse, dates, prix/nuit) |
-| Bagages | `baggage-items` | Articles (nom, categorie, quantite, is_packed) |
-| Activites | `activities` | Activites (titre, date, horaires, lieu, categorie, cout) |
-| Budget Items | `budget-items` | Depenses (label, montant, categorie, is_planned) |
-| Partages | `trip-shares` | Partages (user, trip, role, date invitation) |
-| Feedbacks | `feedbacks` | Retours (note, highlights/lowlights, recommend) |
-| Notifications | `notifications` | Notifications (type, titre, body, lu/non-lu) + envoi |
-
----
-
-## State management
-
-### TanStack React Query (etat serveur)
-
-Toutes les donnees API transitent par React Query :
-
-- **Query client global** (`lib/query-client.ts`) : `staleTime: 5min`, `gcTime: 10min`, retry intelligent (pas de retry sur 401/403), toast automatique sur erreur de mutation
-- **Hooks globaux** (`hooks/`) : `useAuth`, `useUsers`, `useFeedbacks`, `useDashboard`, `useAdminData`
-- **Hooks feature** (`features/<nom>/hooks.ts`) : utilisent `usePaginatedQuery` du shared
-- **Hook partage** (`shared/hooks/usePaginatedQuery.ts`) : abstraction pagination (page state + queryFn parametree)
-
-### Zustand (etat client)
-
-Deux stores :
-
-- **`useDashboardStore`** -- Onglet actif du dashboard (`activeTab`)
-- **`useUIStore`** (persiste via `zustand/persist`) -- Sidebar ouverte/fermee, theme light/dark
-
----
-
-## Couche services (API)
-
-Le client HTTP (`lib/axios.ts`) est un Axios instance avec :
-
-- `baseURL` configurable via `NEXT_PUBLIC_API_URL`
-- `withCredentials: true` (cookies JWT)
-- Intercepteur 401 : redirection automatique vers `/login`
-
-### Services disponibles
-
-| Service | Fichier | Responsabilite |
-|---------|---------|----------------|
-| `authService` | `services/auth.ts` | Login, register, getCurrentUser, logout |
-| `usersService` | `services/users.ts` | CRUD users, toggle status, export CSV |
-| `dashboardService` | `services/dashboard.ts` | Metriques, activity logs, charts |
-| `adminService` | `services/admin.ts` | 12 endpoints admin (trips, travelers, flights, accommodations, baggage, activities, budget, trip-shares, notifications...), update plan, send notification |
-| `tripsService` | `services/trips.ts` | CRUD trips |
-| `travelersService` | `services/travelers.ts` | CRUD travelers par trip |
-| `flightsService` | `services/flights.ts` | Recherche vols, detail/pricing offres |
-| `bookingIntentsService` | `services/booking-intents.ts` | CRUD booking intents, book flight/hotel |
-| `paymentsService` | `services/payments.ts` | Authorize, capture, cancel, confirm-test |
-| `feedbacksService` | `services/feedbacks.ts` | Liste feedbacks, suppression |
-
-### Endpoints API consommes
-
-Les endpoints sont centralises dans `utils/constants.ts` :
-
-- **Auth** : `/v1/auth/register`, `/v1/auth/login`, `/v1/auth/me`, `/v1/auth/logout`
-- **Admin** : `/admin/trips`, `/admin/travelers`, `/admin/flight-bookings`, `/admin/traveler-profiles`, `/admin/booking-intents`, `/admin/flight-searches`, `/admin/accommodations`, `/admin/baggage-items`, `/admin/activities`, `/admin/budget-items`, `/admin/trip-shares`, `/admin/feedbacks`, `/admin/notifications`, `/admin/notifications/send`, `/admin/users`, `/admin/dashboard/metrics`, `/admin/dashboard/activity`
-- **V1** : `/v1/trips`, `/v1/trips/:id/travelers`, `/v1/trips/:id/flights/searches`, `/v1/trips/:id/booking-intents`, `/v1/booking-intents/:id`, `/v1/booking-intents/:id/book`, `/v1/booking-intents/:id/payment/*`
-
----
-
-## Composants partages
-
-### DataTable
-
-Composant generique (`components/DataTable.tsx`) base sur TanStack React Table :
-
-- Colonnes typees via `ColumnDef<T>`
-- Tri (sorting) cote client
-- Pagination serveur-side ou client-side
-- Skeleton loading
-- Etat vide "Aucune donnee disponible"
-
-### Primitives UI (shadcn pattern)
-
-`components/ui/` contient les primitives stylisees avec `class-variance-authority` + `cn()` :
-
-- `Button` (variantes : default, destructive, outline, ghost, link ; tailles : default, sm, lg, icon)
-- `Input`, `Card` (CardHeader, CardTitle, CardContent), `Badge`, `Table`, `Tabs`, `Skeleton`
-
-### Providers
-
-- **`Providers`** -- Compose `QueryProvider` + `Toaster` (Sonner, position top-right)
-- **`QueryProvider`** -- `QueryClientProvider` + `ReactQueryDevtools` (dev only)
-
-### Shared
-
-- **`TabSkeleton`** -- Placeholder skeleton pour le lazy loading des tabs
-- **`TabErrorBoundary`** -- Error boundary class component avec bouton "Reessayer"
-
----
-
-## Authentification et middleware
-
-### Middleware Next.js (`middleware.ts`)
-
-Protection des routes cote serveur (edge runtime) :
-
-- **Routes publiques** : `/`, `/login`
-- **Routes protegees** : `/dashboard`, `/test`, `/users`, `/feedbacks`
-- Verification du cookie `access_token`
-- Redirection vers `/login` si non authentifie
-- Redirection vers `/dashboard` si deja authentifie (depuis `/login`)
-
-### Hook `useAuth`
-
-Gestion complete de l'authentification cote client :
-
-- `getCurrentUser` via React Query (active uniquement si cookie `auth-status=authenticated` present)
-- Mutations `login` / `register` avec redirection automatique vers `/dashboard`
-- `logout` : appel API + `queryClient.clear()` + redirection `/login`
-- Expose : `user`, `isAuthenticated`, `isLoading`, `login`, `register`, `logout`, etats de mutation
-
-### Validation formulaires
-
-Schemas Zod (`lib/validations/auth.ts`) :
-
-- **Login** : email (requis, format valide), password (requis, min 6 caracteres)
-- **Register** : login + fullName (optionnel) + phone (optionnel)
-
----
-
-## Validation et formatage
-
-### Validation (`utils/validation.ts`)
-
-Fonctions utilitaires : `validateEmail`, `validatePassword` (8+ chars, majuscule, minuscule, chiffre, special), `validateRequired`, `validateMinLength`, `validateMaxLength`.
-
-### Formatage (`utils/format.ts` et `utils/date.ts`)
-
-- `formatDate`, `formatDateTime`, `formatRelativeTime` (date-fns, locale fr)
-- `formatCurrency` (Intl.NumberFormat EUR), `formatNumber`, `formatPercentage`
-- `truncateText`
-- `safeFormatDate` -- fallback vers "---" si date invalide
-
----
-
-## Dashboard et visualisation
-
-Le `DashboardTab` affiche :
-
-- **7 cartes KPI** : Utilisateurs, Actifs/Inactifs, Trips, Revenus, Feedbacks, Note moyenne, Feedbacks en attente
-- **3 graphiques Recharts** :
-  - LineChart inscriptions utilisateurs (par semaine/mois/annee)
-  - BarChart revenus (par semaine/mois/annee)
-  - BarChart distribution feedbacks (pleine largeur)
-
-Les donnees sont rafraichies toutes les 5 minutes (`refetchInterval`).
-
----
-
-## Page de test booking flow
-
-La page `/test` (`(dashboard)/test/page.tsx`) fournit une interface de test manuelle pour le flux complet de reservation :
-
-1. **Authentification** -- Affiche l'utilisateur connecte
-2. **Creation trip** -- Paris vers Rome (hardcode)
-3. **Ajout traveler** -- John Doe avec passeport
-4. **Recherche vols** -- Via Amadeus
-5. **Selection offre** -- Clic sur une offre
-6. **Booking intent** -- Creation d'intention de reservation
-7. **Autorisation paiement** -- Stripe PaymentIntent
-8. **Confirmation paiement** -- Mode test (confirm-test)
-9. **Reservation vol** -- Book flight
-10. **Capture paiement** -- Finalisation
-
-Integre Stripe.js pour la gestion des paiements en mode test.
-
----
-
-## Notifications admin
-
-La feature notifications inclut un composant specifique `SendNotificationModal` permettant aux administrateurs :
-
-- D'envoyer une notification a tous les utilisateurs (broadcast)
-- De selectionner des utilisateurs specifiques via checkbox
-- De definir titre et corps du message
-- Type automatique : `ADMIN`
-
----
+> Derniere mise a jour : 2026-05-23
+
+## Vue d'ensemble
+
+Le back-office BagTrip est une application Next.js 16 (App Router) reservee aux comptes
+au role `ADMIN`. Il consomme exclusivement l'API FastAPI sur le prefixe `/admin/*` (plus
+quelques endpoints `/v1/*` pour l'auth et le flow de booking de test) et sert d'outil
+operateur pour superviser les utilisateurs, les voyages, les paiements Stripe, les
+recherches/reservations Amadeus, les feedbacks et les notifications push.
+
+Le panel est volontairement **client-rendered** : pratiquement toutes les pages sous
+`/app/*` sont marquees `'use client'` et chargent leurs donnees via TanStack Query +
+Axios. Les Server Components Next.js ne portent que le layout racine et les wrappers de
+shell. Aucun Server Action n'est expose -- choix explicite post-incident 2026-04-26 ou
+une RCE Server Actions a touche le panel pre-prod.
+
+## Stack
+
+| Couche               | Techno                                            | Version  |
+| -------------------- | ------------------------------------------------- | -------- |
+| Framework            | Next.js (App Router, Turbopack)                   | 16.2.4   |
+| React                | React + ReactDOM                                  | 19.1.0   |
+| Langage              | TypeScript (strict, `noUnusedLocals`)             | 5.9.3    |
+| State serveur        | TanStack React Query + Devtools                   | 5.85+    |
+| State client         | Zustand (persisted)                               | 5.0+     |
+| Tables               | TanStack React Table                              | 8.21+    |
+| Forms                | React Hook Form + Zod                             | 7.72 / 4 |
+| HTTP                 | Axios (`withCredentials`)                         | 1.11+    |
+| UI primitives        | Radix UI + shadcn pattern                         | --       |
+| Styling              | TailwindCSS                                       | 4.x      |
+| Charts               | Recharts                                          | 3.8+     |
+| Theme                | next-themes (light / dark / system)               | 0.4+     |
+| Toasts               | Sonner                                            | 2.0+     |
+| Paiements (page dev) | Stripe.js                                         | 8.6+     |
+| Metriques runtime    | prom-client (route `/api/metrics`)                | 15.1+    |
+| Tests unit / DOM     | Vitest + Testing Library + jsdom                  | 4.1+     |
+| Tests E2E            | Cypress + `@cypress/code-coverage`                | 15.x     |
+| Lint / format        | ESLint flat (`next/core-web-vitals`) + Prettier 3 | 9 / 3.6  |
+
+Build : `output: 'standalone'` (Docker image minimale, Node 20 Alpine, port 8000).
+
+## Architecture App Router
+
+L'arborescence sous `src/app/` repose sur deux groupes :
+
+- `(auth)/` : pages publiques (login + error boundary auth).
+- `app/` : zone protegee, montee derriere `AuthGuard` + `AppShell` (sidebar + topbar +
+  command palette `Cmd+K`).
+
+| Route                          | Type       | Role                                                                       |
+| ------------------------------ | ---------- | -------------------------------------------------------------------------- |
+| `/`                            | Public     | Landing marketing (CTA login)                                              |
+| `/login`                       | Public     | Formulaire credentials (Zod + RHF), redirige `/app` si deja loggue         |
+| `/app`                         | Protegee   | Overview : KPIs, charts users/revenus/feedbacks/trips, recent activity     |
+| `/app/users`                   | Protegee   | Liste utilisateurs paginee + filtres                                       |
+| `/app/users/[id]`              | Protegee   | Detail user (plan, ban, reset quota IA, suppression)                       |
+| `/app/trips`                   | Protegee   | Liste voyages (statut, dates, budget, IATA)                                |
+| `/app/trips/[id]`              | Protegee   | Detail trip avec sous-entites (activities, accommodations, baggage, etc.)  |
+| `/app/booking-intents`         | Protegee   | Intentions de paiement Stripe (autoriser, capturer, refund)                |
+| `/app/flight-bookings`         | Protegee   | Reservations vols Amadeus confirmees                                       |
+| `/app/flight-searches`         | Protegee   | Recherches de vols loggees                                                 |
+| `/app/activities`              | Protegee   | Toutes les activites cross-trips                                           |
+| `/app/accommodations`          | Protegee   | Hebergements                                                               |
+| `/app/baggage`                 | Protegee   | Items bagages                                                              |
+| `/app/budget`                  | Protegee   | Items budget                                                               |
+| `/app/trip-shares`             | Protegee   | Partages de voyage (roles viewer / editor)                                 |
+| `/app/travelers`               | Protegee   | Voyageurs (passagers Amadeus)                                              |
+| `/app/traveler-profiles`       | Protegee   | Profils de preferences (style, budget, contraintes)                        |
+| `/app/feedbacks`               | Protegee   | Retours post-trip                                                          |
+| `/app/notifications`           | Protegee   | Liste + envoi (broadcast ou ciblage)                                       |
+| `/app/audit-log`               | Protegee   | Journal d'audit (entity, action, acteur, payload)                          |
+| `/app/settings`                | Protegee   | Profil admin, theme, logout                                                |
+| `/app/dev/booking-flow`        | Protegee   | Outil dev : flow complet trip + Amadeus + Stripe en mode test              |
+| `/api/metrics`                 | API route  | Endpoint Prometheus (prom-client)                                          |
+| `/dashboard/*`                 | Redirect   | Legacy 308 vers `/app/*` (middleware)                                      |
+
+Chaque sous-route porte ses propres `error.tsx` / `loading.tsx` (boundary + skeleton).
+
+## Authentification
+
+Le contrat d'auth est entierement porte cote API (JWT acces + refresh, cookies httpOnly).
+Le panel se contente d'observer la presence d'un cookie d'acces et de garder le shell
+client en phase avec le role.
+
+### Cookies
+
+- `<prefix>access_token` (httpOnly) : pose par l'API au login. Sert au middleware Next.
+- `<prefix>auth-status=authenticated` (lisible JS) : utilise par `useAuth` pour decider
+  s'il doit appeler `/v1/auth/me` (evite un GET 401 a froid).
+
+Le prefixe vient de `NEXT_PUBLIC_COOKIE_NAME_PREFIX` (vide en local, namespace par env
+en preprod / prod).
+
+### Middleware (`src/middleware.ts`)
+
+- Matche tout sauf `api`, statiques Next, favicon, PNG.
+- Routes publiques : `/`, `/login`. `/login` + cookie acces => redirige `/app`.
+- Routes protegees : tout `/app/*`. Pas de cookie => redirige `/login`.
+- Compat legacy : tout `/dashboard*` est redirige `308` vers `/app*`.
+
+Le middleware ne valide pas le role (le JWT n'est pas decode en edge). La verification
+ADMIN se fait cote client via `AuthGuard`, qui appelle `useAuth()` et logout immediat
+si `user.plan !== 'ADMIN'`.
+
+### Login flow
+
+1. `/login` rend un formulaire RHF + resolver Zod (`lib/validations/auth.ts` : email
+   valide, password min 6).
+2. `useAuth().login()` appelle `authService.login()` -> `POST /v1/auth/login`. L'API
+   pose les cookies access + refresh + auth-status.
+3. Si `data.user.plan !== 'ADMIN'`, `useAuth` declenche un `authService.logout()`
+   immediat et leve `NotAdminError` (revoque la session ouverte cote API).
+4. Sinon, le user est mis en cache React Query (`['auth', 'currentUser']`) et le router
+   pousse vers `/app`.
+5. Le shell monte, `AuthGuard` verifie `isAdmin` une seconde fois sur le cache.
+
+Logout : `authService.logout()` + `queryClient.clear()` + redirect `/login`.
+
+## Services
+
+Couche `src/services/` : axios + typings, **aucune logique metier**. Toute regle vit
+dans l'API.
+
+### `lib/axios.ts` (apiClient)
+
+Instance Axios partagee :
+
+- `baseURL` = `NEXT_PUBLIC_API_URL` (defaut `http://localhost:3000`).
+- `withCredentials: true` -> envoie les cookies httpOnly sur chaque requete.
+- Header `Content-Type: application/json`.
+- Intercepteur reponse : sur `401`, redirect hard `window.location.href = '/login'`
+  (force un reset complet du shell et du cache).
+
+Pas de JWT dans un header `Authorization` : le token reste en cookie httpOnly. Le panel
+ne lit jamais le token.
+
+### `services/auth.ts`
+
+`login(credentials)`, `getCurrentUser()`, `logout()`. Wrappe `/v1/auth/login`,
+`/v1/auth/me`, `/v1/auth/logout`.
+
+### `services/admin.ts`
+
+Le service central. Consomme les endpoints `/admin/*` :
+
+- Lectures paginees : `getAllTrips`, `getAllTravelers`, `getAllFlightBookings`,
+  `getAllTravelerProfiles`, `getAllBookingIntents`, `getAllFlightSearches`,
+  `getAllAccommodations`, `getAllBaggageItems`, `getAllActivities`,
+  `getAllBudgetItems`, `getAllTripShares`, `getAllNotifications`.
+- Users : `getUserDetail`, `updateUser`, `updateUserPlan`, `resetAiQuota`, `banUser`,
+  `unbanUser`, `deleteUser`, `bulkChangePlan`, `bulkBan`.
+- Trips : `getTripDetail`, `updateTrip`, `deleteTrip`, `archiveTrip` + CRUD des
+  sous-entites (`createActivity`, `updateActivity`, `deleteActivity`,
+  `createAccommodation`, `updateAccommodation`, `deleteAccommodation`,
+  `deleteBudgetItem`, `deleteBaggageItem`, `deleteShare`).
+- Bookings : `getBookingIntentDetail`, `forceBookingStatus`, `cancelBooking`,
+  `markBookingRefunded`.
+- Feedbacks : `deleteFeedback`.
+- Notifications : `sendNotification({ user_ids, title, body, type, trip_id })`.
+- Audit : `getAuditLogs(params)`.
+
+Tous renvoient la donnee deja typee (`AdminListResponse<T>` pour les listes paginees).
+
+### Autres services
+
+`trips.ts`, `travelers.ts`, `flights.ts`, `booking-intents.ts`, `payments.ts`,
+`feedbacks.ts`, `users.ts`, `dashboard.ts` : facade type-safe sur les autres endpoints
+(notamment ceux consommes par la page dev `/app/dev/booking-flow`).
+
+## React Query patterns
+
+Configuration globale (`lib/query-client.ts`) :
+
+- `staleTime: 5 min`, `gcTime: 10 min`.
+- Queries : retry x3 sauf sur `401 / 403` (pas de boucle infinie).
+- Mutations : pas de retry sur 4xx (les conflits / validation API restent visibles).
+- `MutationCache.onError` global : pousse un toast Sonner avec `error.response.data.detail`
+  ou un message generique. Tous les services peuvent donc lever sans gestion locale.
+
+Patterns recurrents :
+
+- **Listes paginees** : hook generique `shared/hooks/usePaginatedQuery.ts` qui combine
+  state local de page + queryFn parametree. Chaque feature `features/<nom>/hooks.ts`
+  l'instancie avec sa `queryKey` et son service.
+- **Dashboard** : `features/dashboard/hooks.ts` expose `useDashboardMetrics`,
+  `useUserRegistrationsChart(period)`, `useRevenueChart(period)`, `useFeedbacksChart`,
+  `useTripStatusDistribution`, `useRecentActivity(limit)`. `refetchInterval` plus court
+  sur les KPIs (live feel).
+- **Mutations** : invalidation systematique de la query mere apres succes
+  (`queryClient.invalidateQueries({ queryKey })`).
+- **Cookie-guarded queries** : `useAuth` n'active `getCurrentUser` qu'avec
+  `enabled: hasAuthCookie()` pour eviter un 401 au boot.
+
+## Features
+
+15 modules sous `src/features/<nom>/` (columns TanStack Table, hooks, composants tab).
+La majorite des pages `/app/*` se contente d'importer le composant racine + ses hooks.
+
+| #  | Feature             | Route                    | Donnees                                                        |
+| -- | ------------------- | ------------------------ | -------------------------------------------------------------- |
+| 1  | dashboard           | `/app`                   | KPIs (users, trips, revenus, rating), charts, activity feed    |
+| 2  | users               | `/app/users[/:id]`       | Liste + detail + plan FREE/PREMIUM/ADMIN, ban, quota IA        |
+| 3  | trips               | `/app/trips[/:id]`       | Trips + sous-entites groupees par voyage                       |
+| 4  | activities          | `/app/activities`        | Activites cross-trips (titre, date, lieu, categorie, cout)     |
+| 5  | accommodations      | `/app/accommodations`    | Hebergements (hotel, dates, prix/nuit, notes)                  |
+| 6  | budget-items        | `/app/budget`            | Depenses (label, montant, categorie, is_planned)               |
+| 7  | baggage-items       | `/app/baggage`           | Items bagages (nom, categorie, is_packed)                      |
+| 8  | trip-shares         | `/app/trip-shares`       | Partages (viewer / editor, invitation, statut)                 |
+| 9  | booking-intents     | `/app/booking-intents`   | Intentions Stripe (type, status, montant, PI id)               |
+| 10 | flight-searches     | `/app/flight-searches`   | Recherches vols loggees (IATA, dates, classe)                  |
+| 11 | flights             | `/app/flight-bookings`   | Reservations vols confirmees (offer, booking ref)              |
+| 12 | travelers           | `/app/travelers`         | Voyageurs (nom, type, DOB, genre, passeport)                   |
+| 13 | profiles            | `/app/traveler-profiles` | Profils preferences (style, budget, companions, completion)    |
+| 14 | feedbacks           | `/app/feedbacks`         | Retours post-trip (rating, highlights, recommend)              |
+| 15 | notifications       | `/app/notifications`     | Notifications + envoi broadcast / cible                        |
+
+Auxiliaire :
+
+- `audit-log` (page directe, pas de feature module) -> `/app/audit-log` consomme
+  `adminService.getAuditLogs` avec filtres entity / action.
+- `settings` -> `/app/settings` (profil, theme via `next-themes`, logout).
+- `dev/booking-flow` -> `/app/dev/booking-flow` (outil dev pour rejouer trip + Amadeus
+  + Stripe en mode test, exclu de la couverture).
+
+## Hardening post-incident
+
+L'incident 2026-04-26 (RCE Server Actions sur preprod) a fixe plusieurs principes
+d'architecture qui s'appliquent encore aujourd'hui :
+
+- **Pas de Server Actions exposees.** Recherche `'use server'` dans `src/` = 0 hit. Le
+  panel n'expose aucun endpoint POST sans frontiere d'API explicite : tout passe par
+  l'API FastAPI authentifiee.
+- **Pas de mutation cote serveur Next.** Le layout racine est passif (fonts, Providers).
+  Les mutations metiers (DELETE user, force booking status, send notification) partent
+  toujours d'un handler client + `apiClient` + cookie httpOnly. Resultat : la surface
+  d'attaque n'est pas le runtime Next, c'est l'API derriere son JWT + ses guards.
+- **Validation Zod en entree de tout formulaire.** Le login utilise `loginSchema`
+  (`lib/validations/auth.ts`) et l'edition user `UserEditSheet` un schema Zod local.
+  Les payloads passes a `adminService` sont serializes apres validation -- pas de
+  string brute reinjectee dans une `eval` ou un template.
+- **Defense en profondeur sur l'admin.** Triple verrou :
+  1. Middleware edge : presence du cookie acces sinon redirect.
+  2. `AuthGuard` client : revoque la session si `plan !== 'ADMIN'`.
+  3. API : tous les endpoints `/admin/*` derriere `require_admin` cote FastAPI.
+- **Audit logging systematique.** Toute action mutative (`updateUser`, `banUser`,
+  `deleteTrip`, `forceBookingStatus`, `sendNotification`, etc.) est tracee cote API
+  dans la table `audit_logs`, consommee ensuite par `/app/audit-log` pour
+  verification operateur. Aucune mutation ne contourne ce log.
+- **Pas de cles secretes cote client.** Variables d'env du panel : seules les
+  `NEXT_PUBLIC_*` (API URL, cookie prefix). Les secrets Stripe, JWT, OAuth restent
+  exclusivement cote API.
+- **Headers securite + standalone Docker.** Build `output: 'standalone'` deploye sur
+  VPS derriere reverse-proxy avec HSTS / CSP / X-Frame-Options imposes au niveau
+  reverse proxy.
 
 ## Tests
 
-### Cypress E2E
+### Vitest (tests unitaires + DOM)
 
-- **Config** : viewport 1280x720, video activee, screenshots on failure, code-coverage
-- **Tests homepage** (`cypress/e2e/homepage.cy.ts`) : 14 tests couvrant navigation, hero, stats, features (tab switch), CTA, footer, responsive (mobile/tablet), accessibilite (heading hierarchy, liens accessibles), performance (load < 8s), SEO
-- **Custom commands** : `loginAsAdmin` (POST API), `visitDashboard` (login + navigate)
-- **Support** : E2E et component testing configures
+- Config `vitest.config.ts` : `jsdom`, alias `@/`, coverage v8 (text + lcov).
+- Setup : `src/__tests__/setup.ts` (Testing Library + jest-dom matchers).
+- Couverture :
+  - Services : `services/*.test.ts` mocke `apiClient` (axios) et verifie le mapping
+    endpoint + payload.
+  - Hooks : `hooks/*.test.ts` (`useAuth`, `useUsers`, `useFeedbacks`, `useDashboard`,
+    `useDateRange`, `useAdminData`).
+  - Composants : layout (`AppShell`, `Sidebar`, `Topbar`, `AuthGuard`, `Breadcrumb`,
+    `CommandPalette`, `ThemeToggle`), `DataTable`, `DataTableToolbar`, `ConfirmDialog`,
+    `RowActions`.
+  - Middleware : `middleware.test.ts` (cookies, redirects, legacy `/dashboard`).
+  - Pages : `app/page.test.tsx`, `app/app/page.test.tsx`, `app/app/users/[id]/page.test.tsx`,
+    `app/app/trips/[id]/page.test.tsx`, `app/app/audit-log/page.test.tsx`,
+    `app/app/settings/page.test.tsx`.
+- Exclus du coverage : primitives `components/ui/*` (shadcn generes), `error.tsx`,
+  `loading.tsx`, `app/dev/**` (outil interne), types purs.
 
-### Quality scripts
+### Cypress (tests E2E)
 
-```bash
-npm run type-check     # tsc --noEmit
-npm run lint           # next lint
-npm run format:check   # prettier --check
+- Suites sous `cypress/e2e/` : `homepage.cy.ts`, `auth-flow.cy.ts`,
+  `dashboard-overview.cy.ts`, `dashboard-shell.cy.ts`, `dashboard-users-crud.cy.ts`.
+- Code coverage via `@cypress/code-coverage`.
+- Custom commands `cypress/support/commands.ts` : `loginAsAdmin`, `visitDashboard`.
+
+Scripts :
+
+```
+npm run test           # vitest run
+npm run test:coverage  # vitest run --coverage
+npm run cypress:run    # E2E headless
+npm run test:e2e       # start-server-and-test + cypress
 npm run check-all      # type-check + lint + format:check
 ```
 
----
-
-## Types TypeScript
-
-### Types auth et API
-
-- `User` (id, email, plan FREE/PREMIUM/ADMIN, created_at, updated_at)
-- `LoginCredentials`, `RegisterCredentials`, `AuthResponse`, `AuthState`
-- `ApiResponse<T>`, `PaginatedResponse<T>`, `ApiError`, `QueryParams`
-
-### Types admin (15 interfaces)
-
-Chaque entite admin dispose de son interface : `AdminTrip`, `AdminTraveler`, `AdminFlightBooking`, `AdminTravelerProfile`, `AdminBookingIntent`, `AdminFlightSearch`, `AdminAccommodation`, `AdminBaggageItem`, `AdminActivity`, `AdminBudgetItem`, `AdminTripShare`, `AdminNotification`. Response generique `AdminListResponse<T>` avec pagination.
-
-### Types booking
-
-`Trip`, `Traveler`, `FlightOfferSummary`, `FlightSearchResponse`, `FlightOfferDetail`, `BookingIntent`, `PaymentAuthorizeResponse`, `PaymentCaptureResponse` et leurs variantes request/response.
-
-### Types dashboard
-
-`DashboardMetrics`, `ChartData`, `ActivityLog`.
-
-### Types feedback
-
-`Feedback` (trip, user, rating, highlights, lowlights, would_recommend).
-
----
-
-## Configuration et deploiement
-
-### Tailwind
-
-Theme custom avec palette semantique (primary blue, success green, warning amber, danger red), font Inter, animations `fade-in` et `slide-up`, box-shadows `card` et `card-hover`.
-
-### Docker
-
-Image `node:20-alpine`, port 8000, commande `npm run dev`.
-
-### ESLint
-
-Flat config (v9) : `next/core-web-vitals` + `next/typescript`, ignores standards (node_modules, .next, out, build).
-
----
-
 ## Ce qu'il manque
 
-- **Tests unitaires** : aucun test Jest/Vitest pour les hooks, services ou composants. Seuls des tests E2E Cypress existent.
-- **Tests E2E dashboard** : les tests Cypress ne couvrent que la homepage. Il manque des tests pour le flux d'authentification, le dashboard, les onglets admin, et le booking flow.
-- **Internationalisation (i18n)** : tous les textes sont en dur en francais, pas de systeme d'internationalisation.
-- **Gestion des roles** : le middleware verifie uniquement la presence du cookie, sans verifier le role (admin vs user). Pas de RBAC cote frontend.
-- **Dark mode** : le store `useUIStore` supporte un theme light/dark, mais il n'est utilise nulle part dans l'UI.
-- **Sidebar** : le store `useUIStore` gere l'etat de la sidebar, mais aucune sidebar n'est implementee (navigation par tabs uniquement).
-- **Recherche et filtres** : le type `QueryParams` supporte `search`, `sortBy`, `sortOrder`, mais ces parametres ne sont pas exposes dans l'UI des DataTable.
-- **Export CSV** : le service `usersService.exportUsers` existe mais n'est pas accessible depuis l'UI.
-- **Pagination par taille** : la taille de page est fixee a 10 (`PAGINATION_DEFAULTS.LIMIT`), sans possibilite pour l'utilisateur de la modifier.
-- **Tests de securite** : pas de tests pour les redirections middleware, la gestion des tokens expires, ou les erreurs 403.
-- **Monitoring/observabilite** : pas de Sentry, pas de logging structure, pas de metriques de performance.
-- **Documentation API admin** : les endpoints `/admin/*` consommes par le panel ne sont pas documentes cote API (Swagger/OpenAPI).
+- **Refresh token cote panel** : l'intercepteur axios redirige hard sur `401` au lieu
+  d'appeler `/v1/auth/refresh`. Tant que l'API rotate l'access via le refresh cookie
+  sur certains endpoints, ce n'est pas critique, mais une session courte expire en
+  pleine navigation au lieu d'etre prolongee silencieusement.
+- **RBAC plus fin** : un seul role `ADMIN` est verifie. Pas de distinction
+  `SUPER_ADMIN` / `ADMIN` cote panel, alors que `utils/constants.ts` le declare.
+- **Pagination configurable** : `PAGINATION_DEFAULTS.LIMIT = 10` en dur, pas de
+  selecteur de page size dans `DataTableToolbar`.
+- **Export CSV** : seul `usersService.exportUsers` existe cote service, aucun bouton
+  expose dans l'UI.
+- **i18n** : tout est en francais en dur, pas de `next-intl` ni d'ARB.
+- **Observabilite client** : pas de Sentry, pas de RUM. Les seuls signaux runtime sont
+  les metriques Prometheus (`/api/metrics`) et les toasts Sonner.
+- **Tests E2E mutations destructives** : les flows DELETE user / cancelBooking /
+  forceBookingStatus n'ont pas encore de couverture Cypress dediee.
+- **CSP / security headers in-app** : delegue au reverse proxy VPS. Pas de
+  `headers()` configuree dans `next.config.ts` -- a rapatrier pour avoir un fallback
+  applicatif.

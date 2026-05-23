@@ -1,228 +1,167 @@
 # Dark mode
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-BagTrip supporte trois modes d'affichage : clair, sombre et systeme (par defaut). Le dark mode est implemente via le systeme `ThemeData` de Flutter avec des themes Material et Cupertino distincts. Le basculement est gere par le `SettingsBloc` qui emet un `ThemeMode` consomme par `MaterialApp.router`. Les couleurs sont centralisees dans `AppColors` et `ColorName` (genere), avec des variantes dark explicites pour les cas critiques.
+BagTrip supporte trois modes d'affichage : `light`, `dark` et `system` (defaut). Le
+basculement passe par un unique levier : `SettingsBloc.selectedTheme` (string `'system'`,
+`'light'`, `'dark'`) est lu dans `main.dart`, traduit en `ThemeMode`, et consomme par
+`MaterialApp.router` qui choisit entre `theme:` et `darkTheme:`. Les deux themes sont
+declares dans `AppTheme` (Material + Cupertino) et puisent dans la palette generee
+`ColorName` plus la couche semantique `AppColors`. Le choix est persiste via
+`SettingsStorage` et restaure au demarrage par `LoadSettings`.
 
-## Architecture du theming
+Chaine complete :
 
 ```
-SettingsBloc (selectedTheme: 'system' | 'light' | 'dark')
-       │
-       ▼
-MaterialApp.router
-  ├── theme:     AppTheme.light()  + cupertinoOverrideTheme: AppTheme.cupertinoLight()
-  ├── darkTheme: AppTheme.dark()   + cupertinoOverrideTheme: AppTheme.cupertinoDark()
-  └── themeMode: ThemeMode.system / light / dark
+SettingsStorage (shared prefs)
+    -> SettingsBloc.selectedTheme : 'system' | 'light' | 'dark'
+    -> main.dart BlocBuilder<SettingsBloc, SettingsState>
+    -> ThemeMode.system / light / dark
+    -> MaterialApp.router(theme:, darkTheme:, themeMode:)
+    -> AppTheme.light() + cupertinoLight() / AppTheme.dark() + cupertinoDark()
 ```
 
-## SettingsBloc — gestion du choix
+## ThemeData
 
-**Fichier** : `bagtrip/lib/settings/bloc/settings_bloc.dart`
+Fichier : `bagtrip/lib/design/app_theme.dart`. Classe statique `AppTheme` avec quatre
+constructeurs : `light()`, `dark()`, `cupertinoLight()`, `cupertinoDark()`.
+
+### Light
+
+Base : `ColorScheme.fromSeed(seedColor: ColorName.primary)`, `useMaterial3: true`,
+`scaffoldBackgroundColor: PersonalizationColors.gradientStart` (#F0F4FA),
+`fontFamily: FontFamily.b612`. Surcharges :
+
+- `textTheme.titleLarge.color` = `ColorName.primary` (#295F98).
+- `textTheme.titleMedium.color` / `bodyMedium.color` = `ColorName.primaryTrueDark`.
+- `elevatedButtonTheme` : fond `ColorName.secondary` (#35A8B5), texte `AppColors.surface`,
+  radius `AppRadius.large16`, hauteur `AppSize.height42`.
+- `cardTheme.color` = `ColorName.primarySoftLight`.
+- `inputDecorationTheme.hintStyle.color` = `ColorName.primary` (opaque).
+
+### Dark
+
+Base : `ColorScheme.fromSeed(seedColor: ColorName.secondary, brightness: Brightness.dark)`,
+`surface: ColorName.primaryDark` (#1F4772), `scaffoldBackgroundColor:
+ColorName.primaryTrueDark` (#0E2135). Surcharges :
+
+- `textTheme.titleLarge.color` = `ColorName.secondary` (le secondary devient l'accent
+  visuel principal en dark).
+- `textTheme.titleMedium.color` / `bodyMedium.color` / `labelLarge.color` =
+  `AppColors.surface` (blanc).
+- `elevatedButtonTheme` : meme style que light (secondary fond + blanc), garantit la
+  coherence du CTA principal entre les deux modes.
+- `cardTheme.color` = `ColorName.primaryDark`.
+- `inputDecorationTheme.hintStyle.color` = `ColorName.surface.withValues(alpha: 0.7)`.
+
+### Cupertino
+
+`cupertinoLight()` et `cupertinoDark()` sont passes via `ThemeData.copyWith(
+cupertinoOverrideTheme: ...)` dans `main.dart`. Ils alignent `primaryColor`,
+`scaffoldBackgroundColor`, `barBackgroundColor` (alpha 0.94 pour les blurs) et un
+`CupertinoTextThemeData` complet (`textStyle`, `navTitleTextStyle`,
+`navLargeTitleTextStyle`) en B612 sur la bonne couleur de texte. Indispensable pour les
+action sheets, pickers, dialogs Cupertino qui ignorent `ThemeData` Material.
+
+## Couleurs semantiques
+
+Fichier : `bagtrip/lib/design/app_colors.dart`. `AppColors` est une couche semantique
+au-dessus de `ColorName` (genere par flutter_gen depuis `assets/color/colors.xml`).
+Regles :
+
+- Surfaces : `surface`, `surfaceLight`, `surfaceDark`, `surfaceVariant`.
+- Texte : `onSurface`, `onSurfaceAlt`, `onPrimary`, `hint`, plus les tokens accessibles
+  pre-calcules `textSecondary` (5.2:1 sur blanc), `textTertiary` (6.3:1), `textDisabled`
+  (4.6:1 - minimum AA), `textSecondaryDark` (4.5:1 sur #0E2135).
+- Resolvers brightness-aware (statiques, prennent `Brightness b`) :
+  - `textSecondaryOf(b)` : `textSecondaryDark` en dark, `textSecondary` en light.
+  - Budget categories : `categoryFlightOf(b)`, `categoryAccommodationOf(b)`,
+    `categoryFoodOf(b)`, `categoryActivityOf(b)`, `categoryTransportOf(b)`,
+    `categoryOtherOf(b)` - pastels en light, shade 800 en dark.
+
+Les composants qui s'adaptent au mode lisent `Theme.of(context).brightness` puis passent
+l'enum au resolver, ou utilisent directement `Theme.of(context).colorScheme.*`. Exemple
+type :
 
 ```dart
-class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
-  SettingsBloc() : super(const SettingsState()) {
-    on<ChangeTheme>(_onChangeTheme);
-  }
-  void _onChangeTheme(ChangeTheme event, Emitter<SettingsState> emit) {
-    emit(state.copyWith(selectedTheme: event.theme));
-  }
+final brightness = Theme.of(context).brightness;
+final bg = AppColors.categoryFlightOf(brightness);
+final secondaryText = AppColors.textSecondaryOf(brightness);
+```
+
+Les constantes restantes (alert banners, review step neutrals, AI chips, budget ring
+chart) sont light-only - non couvertes par le dark mode aujourd'hui (cf. `Ce qu'il
+manque`).
+
+## ThemeMode et persistence
+
+Fichier : `bagtrip/lib/settings/bloc/settings_bloc.dart`. `SettingsBloc` gere trois
+events : `LoadSettings`, `ChangeTheme`, `ChangeLanguage`.
+
+```dart
+SettingsBloc({SettingsStorage? settingsStorage, bool autoLoad = true})
+  : _storage = settingsStorage ?? getIt<SettingsStorage>(),
+    super(const SettingsState()) {
+  on<LoadSettings>(_onLoadSettings);
+  on<ChangeTheme>(_onChangeTheme);
+  on<ChangeLanguage>(_onChangeLanguage);
+  if (autoLoad) add(LoadSettings());
 }
 ```
 
-**Etat par defaut** : `selectedTheme = 'system'` (suit le reglage OS).
+`LoadSettings` lit `SettingsStorage.getTheme()` et restitue `'system'` en fallback.
+`ChangeTheme` emet immediatement le nouvel etat puis ecrit dans le storage
+(`await _storage.setTheme(event.theme)`) - emit-then-persist pour que l'UI bascule sans
+attendre l'I/O. `autoLoad: true` lance le `LoadSettings` initial des la construction du
+bloc, ce qui restaure le choix utilisateur au demarrage.
 
-**Fichier** : `bagtrip/lib/settings/bloc/settings_state.dart`
-
-```dart
-final class SettingsState {
-  final String selectedTheme;
-  const SettingsState({this.selectedTheme = 'system'});
-}
-```
-
-## Connexion dans main.dart
-
-**Fichier** : `bagtrip/lib/main.dart`
+Cote `main.dart`, le `BlocBuilder<SettingsBloc, SettingsState>` enveloppe
+`MaterialApp.router` et mappe la string vers `ThemeMode` :
 
 ```dart
-BlocSelector<SettingsBloc, SettingsState, String>(
-  selector: (state) => state.selectedTheme,
-  builder: (context, selectedTheme) {
-    final ThemeMode themeMode = switch (selectedTheme) {
-      'dark' => ThemeMode.dark,
-      'light' => ThemeMode.light,
-      _ => ThemeMode.system,
-    };
-    return MaterialApp.router(
-      theme: AppTheme.light().copyWith(
-        cupertinoOverrideTheme: AppTheme.cupertinoLight(),
-      ),
-      darkTheme: AppTheme.dark().copyWith(
-        cupertinoOverrideTheme: AppTheme.cupertinoDark(),
-      ),
-      themeMode: themeMode,
-    );
-  },
-)
+final ThemeMode themeMode = switch (settingsState.selectedTheme) {
+  'dark' => ThemeMode.dark,
+  'light' => ThemeMode.light,
+  _ => ThemeMode.system,
+};
+return MaterialApp.router(
+  theme: AppTheme.light().copyWith(cupertinoOverrideTheme: AppTheme.cupertinoLight()),
+  darkTheme: AppTheme.dark().copyWith(cupertinoOverrideTheme: AppTheme.cupertinoDark()),
+  themeMode: themeMode,
+  ...
+);
 ```
 
-## Themes Material
+`ThemeMode.system` laisse Flutter suivre `MediaQuery.platformBrightnessOf(context)`.
 
-**Fichier** : `bagtrip/lib/design/app_theme.dart`
+## Toggle Settings
 
-### Light theme
+Fichier : `bagtrip/lib/profile/view/settings_page.dart`. La page est minimaliste : un
+`Scaffold` avec `AppBar` titre `l10n.settingsTitle` et un `SingleChildScrollView` qui
+delegue tout le contenu a `PreferencesSection`
+(`bagtrip/lib/profile/widgets/preferences_section.dart`).
 
-```dart
-static ThemeData light() {
-  final base = ThemeData(
-    useMaterial3: true,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: ColorName.primary,      // #295F98
-      primary: ColorName.primary,
-      secondary: ColorName.secondary,    // #35A8B5
-      surface: ColorName.primaryLight,   // #EAEFF5
-      error: ColorName.error,
-    ),
-    scaffoldBackgroundColor: PersonalizationColors.gradientStart,  // #F0F4FA
-    fontFamily: FontFamily.b612,
-  );
-  // + customisation textTheme, elevatedButton, card, input
-}
-```
+`PreferencesSection` affiche trois boutons radio visuels (Light / Dark / System) en
+`Row`, chacun rendu par `_buildThemeOption(context, themeValue, label, icon, ...)`.
+Chaque option dispatche `ChangeTheme(themeValue)` au `SettingsBloc` recupere par
+`context.read<SettingsBloc>()`. Le bouton actif est determine par
+`state.selectedTheme == themeValue` et utilise `ColorName.primaryDark` /
+`ColorName.primaryLight` selon la brightness courante - les options sont elles-memes
+theme-aware.
 
-### Dark theme
-
-```dart
-static ThemeData dark() {
-  final base = ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: ColorName.secondary,
-      primary: ColorName.secondary,      // #35A8B5
-      secondary: ColorName.secondary,
-      surface: ColorName.primaryDark,    // #1F4772
-      error: ColorName.error,
-      brightness: Brightness.dark,
-    ),
-    scaffoldBackgroundColor: ColorName.primaryTrueDark,  // #0E2135
-    fontFamily: FontFamily.b612,
-  );
-  // + textTheme avec couleurs claires, hintStyle avec alpha 0.7
-}
-```
-
-**Differences cles light vs dark** :
-- `scaffoldBackgroundColor` : `#F0F4FA` (light) vs `#0E2135` (dark)
-- `surface` : `#EAEFF5` vs `#1F4772`
-- `titleLarge.color` : `ColorName.primary` vs `ColorName.secondary`
-- `bodyMedium.color` : `ColorName.primaryTrueDark` vs `AppColors.surface` (blanc)
-- `cardTheme.color` : `ColorName.primarySoftLight` vs `ColorName.primaryDark`
-- `hintStyle` : opaque vs `alpha: 0.7`
-
-## Themes Cupertino
-
-**Fichier** : `bagtrip/lib/design/app_theme.dart`
-
-Themes Cupertino pour les composants iOS natifs (pickers, action sheets) :
-
-```dart
-static CupertinoThemeData cupertinoLight() {
-  return CupertinoThemeData(
-    brightness: Brightness.light,
-    primaryColor: ColorName.secondary,
-    scaffoldBackgroundColor: PersonalizationColors.gradientStart,
-    barBackgroundColor: PersonalizationColors.gradientStart.withValues(alpha: 0.94),
-    textTheme: CupertinoTextThemeData(/* B612, couleurs sombres */),
-  );
-}
-
-static CupertinoThemeData cupertinoDark() {
-  return CupertinoThemeData(
-    brightness: Brightness.dark,
-    primaryColor: ColorName.secondary,
-    scaffoldBackgroundColor: ColorName.primaryTrueDark,
-    barBackgroundColor: ColorName.primaryTrueDark.withValues(alpha: 0.94),
-    textTheme: CupertinoTextThemeData(/* B612, couleurs claires */),
-  );
-}
-```
-
-## Couleurs et palette
-
-### ColorName (genere)
-
-**Fichier** : `bagtrip/lib/gen/colors.gen.dart` — genere depuis `assets/color/colors.xml`
-
-Contient les couleurs brutes : `primary` (#295F98), `primaryDark` (#1F4772), `primaryTrueDark` (#0E2135), `secondary` (#35A8B5), `surface` (#FFFFFF), etc.
-
-### AppColors (semantique)
-
-**Fichier** : `bagtrip/lib/design/app_colors.dart`
-
-Couche semantique qui wrappe `ColorName`. Inclut des variantes dark explicites pour les categories budgetaires :
-
-```dart
-// Budget category (light)
-static const Color categoryFlight = Color(0xFFBBDEFB);
-// Budget category (dark)
-static const Color categoryFlightDark = Color(0xFF1565C0);
-```
-
-### Utilisation dans les composants
-
-Les composants qui adaptent leurs couleurs au dark mode utilisent `Theme.of(context)` :
-
-```dart
-// bagtrip/lib/profile/widgets/preferences_section.dart
-final isDark = theme.brightness == Brightness.dark;
-color: isDark ? ColorName.primaryDark : ColorName.primaryLight,
-```
-
-```dart
-// Acces au colorScheme
-final onSurface = Theme.of(context).colorScheme.onSurface;
-```
-
-## UI de selection du theme
-
-**Fichier** : `bagtrip/lib/profile/widgets/preferences_section.dart`
-
-Trois boutons radio visuels (Light / Dark / System) dans la section Preferences du profil :
-
-```dart
-Row(children: [
-  _buildThemeOption(context, 'light', l10n.themeLight, Icons.light_mode_outlined, ...),
-  _buildThemeOption(context, 'dark',  l10n.themeDark,  Icons.dark_mode_outlined, ...),
-  _buildThemeOption(context, 'system', l10n.themeSystem, Icons.desktop_windows_outlined, ...),
-])
-```
-
-Chaque option dispatche `ChangeTheme(themeValue)` au `SettingsBloc`.
-
-## Tests
-
-**Fichier** : `bagtrip/test/blocs/settings_bloc_test.dart`
-
-Couvre :
-- Etat initial (`selectedTheme = 'system'`)
-- `ChangeTheme('dark')` → emet `selectedTheme = 'dark'`
-- `ChangeTheme('light')` → emet `selectedTheme = 'light'`
-- Double changement (`dark` → `light`)
-- Changement combine theme + langue
+La page propose aussi la selection de langue (`ChangeLanguage`), partage le meme bloc et
+le meme pattern.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Persistance du theme | Le choix de theme n'est pas persiste. Au redemarrage, il revient a `'system'`. (`bagtrip/lib/settings/bloc/settings_bloc.dart`) | P0 |
-| PersonalizationColors sans variante dark | `PersonalizationColors` (`bagtrip/lib/design/personalization_colors.dart`) n'a pas de variantes dark. Le `scaffoldBackgroundColor` du theme light utilise `gradientStart` (#F0F4FA) mais les couleurs de personnalisation restent claires dans le dark mode. | P1 |
-| AppColors statiques | `AppColors` n'est pas theme-aware : toutes les couleurs sont des `static const`. Les composants qui utilisent `AppColors.textSecondary` directement (au lieu de `Theme.of(context).colorScheme`) n'adaptent pas leur couleur au dark mode. | P1 |
-| Tests widget dark mode | Aucun test widget ne verifie le rendu en dark mode. | P1 |
-| Composants avec couleurs en dur | Certains composants pourraient utiliser des couleurs hardcodees (ex: `Colors.white`, `Colors.transparent` dans les bottom sheets) au lieu de couleurs theme-aware. | P2 |
-| Transition animee | Le changement de theme est instantane (rebuild complet). Une `AnimatedTheme` ou transition progressive pourrait ameliorer l'UX. | P2 |
-| Contraste dark mode | Seule `textSecondaryDark` (4.5:1 sur `primaryTrueDark`) est verifiee par les tests de contraste. Les autres combinaisons de couleurs du dark theme ne sont pas auditee. (`bagtrip/test/accessibility/contrast_audit_test.dart`) | P1 |
+| `PersonalizationColors` sans variante dark | Les gradients de personnalisation et `scaffoldBackgroundColor` light s'appuient sur `PersonalizationColors.gradientStart`, sans equivalent dark - les ecrans qui pochent ces gradients restent clairs meme en dark mode. | P1 |
+| `AppColors` partiellement statique | Les constantes light-only (alert banners, review step neutrals, AI chips, budget ring chart) ne sont pas couvertes par des resolvers `*Of(Brightness)`. Composants concernes apparaissent identiques en dark, parfois illisibles. | P1 |
+| Audit contraste dark incomplet | Seul `textSecondaryDark` (4.5:1 sur `primaryTrueDark`) est verifie par `test/accessibility/contrast_audit_test.dart`. Les autres combinaisons du dark theme (titres, hints alpha 0.7, cards) ne sont pas auditees. | P1 |
+| Tests widget dark mode | Aucun test widget ne pump l'app avec `themeMode: ThemeMode.dark` pour valider le rendu des composants critiques (`AdaptiveButton`, `ItemStatusChip`, bottom sheets). | P1 |
+| Couleurs hardcodees dans les bottom sheets | Le pattern de sheet standard fixe `backgroundColor: Colors.transparent` + `color: Colors.white` sur le container - blanc dur en dark mode. A remplacer par `Theme.of(context).colorScheme.surface`. | P2 |
+| Transition animee de theme | Le changement est instantane (rebuild complet). Un `AnimatedTheme` ou une transition crossfade ameliorerait l'UX au toggle. | P2 |
+| Pas de preview dark dans le wizard de personnalisation | Le step de personnalisation ne propose pas de preview du rendu dark, l'utilisateur ne voit le resultat qu'apres validation. | P3 |
