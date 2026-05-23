@@ -28,6 +28,7 @@ from src.api.flights.manual.routes import router as manual_flights_router
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.orders.routes import router as flight_orders_router
 from src.api.flights.searches.routes import router as flight_searches_router
+from src.api.home.routes import router as home_router
 from src.api.hotels.routes import router as hotel_search_router
 from src.api.invites.routes import router as invites_router
 from src.api.notifications.routes import router as notifications_router
@@ -47,6 +48,7 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
     app.include_router(admin_router)  # Préfixé avec /admin
     app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
+    app.include_router(home_router)  # Déjà préfixé avec /v1/home
     app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
     app.include_router(activities_router)  # Déjà préfixé avec /v1/trips
     app.include_router(accommodations_router)  # Déjà préfixé avec /v1/trips
