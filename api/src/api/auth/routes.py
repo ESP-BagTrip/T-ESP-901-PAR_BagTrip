@@ -51,6 +51,16 @@ def _hash_reset_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
+def _hash_refresh_token(token: str) -> str:
+    """SHA-256 hash of a refresh token.
+
+    Only the hash is persisted in `refresh_tokens.token`, so a database dump
+    cannot be replayed as valid sessions. The raw token is returned to the
+    client once and never stored.
+    """
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 def _dummy_password_hash() -> str:
     """Random bcrypt hash for social-login users who will never sign in via password."""
     dummy = os.urandom(32).hex()
@@ -104,12 +114,12 @@ def create_access_token(user_id: str) -> tuple[str, int]:
 
 
 def create_refresh_token(user_id: str, db: Session) -> str:
-    """Create a refresh token, store in DB, return the raw token."""
+    """Create a refresh token, store its hash in DB, return the raw token."""
     raw_token = secrets.token_urlsafe(64)
     expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
     refresh = RefreshToken(
         user_id=user_id,
-        token=raw_token,
+        token=_hash_refresh_token(raw_token),
         expires_at=expires_at,
     )
     db.add(refresh)
@@ -521,17 +531,37 @@ async def refresh(
     response: Response,
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Refresh — rotate tokens."""
-    stored = (
-        db.query(RefreshToken)
-        .filter(
-            RefreshToken.token == request.refresh_token,
-            RefreshToken.revoked.is_(False),
-        )
-        .first()
-    )
+    """Refresh — rotate tokens, with refresh-token reuse detection."""
+    token_hash = _hash_refresh_token(request.refresh_token)
+    stored = db.query(RefreshToken).filter(RefreshToken.token == token_hash).first()
 
-    if not stored or stored.expires_at < datetime.now(UTC):
+    if not stored:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    # Reuse detection: a token that was already rotated away (revoked) is being
+    # presented again. This is the classic stolen-token signal — the legitimate
+    # client and the attacker now race on the same token. Burn the whole chain:
+    # revoke every active token for the user so both parties are forced to
+    # re-authenticate. We never silently accept a revoked token.
+    if stored.revoked:
+        db.query(RefreshToken).filter(
+            RefreshToken.user_id == stored.user_id,
+            RefreshToken.revoked.is_(False),
+        ).update({"revoked": True})
+        db.commit()
+        logger.warning(
+            "Refresh token reuse detected; revoked all active tokens",
+            data={"user_id": str(stored.user_id)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    if stored.expires_at < datetime.now(UTC):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
@@ -595,7 +625,7 @@ async def logout(
         stored = (
             db.query(RefreshToken)
             .filter(
-                RefreshToken.token == token_value,
+                RefreshToken.token == _hash_refresh_token(token_value),
                 RefreshToken.user_id == current_user.id,
                 RefreshToken.revoked.is_(False),
             )

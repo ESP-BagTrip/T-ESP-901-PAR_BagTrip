@@ -360,6 +360,82 @@ class TestRefresh:
         assert response.json()["detail"] == "Invalid or expired refresh token"
 
 
+class TestRefreshTokenHashing:
+    """Refresh tokens must be stored hashed, never in clear text."""
+
+    def test_hash_is_deterministic_sha256(self):
+        """The hash helper is a stable 64-char SHA-256 hex digest."""
+        from src.api.auth.routes import _hash_refresh_token
+
+        digest = _hash_refresh_token("some-raw-token")
+        assert digest == _hash_refresh_token("some-raw-token")
+        assert len(digest) == 64
+        assert digest != "some-raw-token"
+
+    def test_create_refresh_token_persists_hash_not_raw(self):
+        """create_refresh_token stores the hash but returns the raw token."""
+        from src.api.auth.routes import _hash_refresh_token, create_refresh_token
+
+        db = MagicMock()
+        raw = create_refresh_token(str(uuid.uuid4()), db)
+
+        added = db.add.call_args[0][0]
+        assert added.token == _hash_refresh_token(raw)
+        assert added.token != raw
+
+    def test_refresh_hashes_presented_token_before_lookup(
+        self, client, override_get_db, mock_db_session
+    ):
+        """The handler hashes the incoming raw token before querying the DB."""
+        from datetime import UTC, timedelta
+
+        from src.api.auth import routes as auth_routes
+
+        user_id = uuid.uuid4()
+        user = User(id=user_id, email="user@example.com", created_at=datetime.utcnow())
+        stored = MagicMock()
+        stored.revoked = False
+        stored.expires_at = datetime.now(UTC) + timedelta(days=30)
+        stored.user_id = user_id
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [stored, user]
+
+        with patch.object(
+            auth_routes,
+            "_hash_refresh_token",
+            wraps=auth_routes._hash_refresh_token,
+        ) as spy:
+            response = client.post("/v1/auth/refresh", json={"refresh_token": "raw-token"})
+
+        assert response.status_code == 200
+        spy.assert_any_call("raw-token")
+
+
+class TestRefreshReuseDetection:
+    """Presenting an already-revoked refresh token is a theft signal."""
+
+    def test_reused_revoked_token_revokes_all_and_401(
+        self, client, override_get_db, mock_db_session
+    ):
+        """A revoked token replayed -> revoke the whole chain + 401."""
+        from datetime import UTC, timedelta
+
+        stored = MagicMock()
+        stored.revoked = True  # already rotated away
+        stored.expires_at = datetime.now(UTC) + timedelta(days=30)
+        stored.user_id = uuid.uuid4()
+        mock_db_session.query.return_value.filter.return_value.first.return_value = stored
+
+        response = client.post("/v1/auth/refresh", json={"refresh_token": "stolen"})
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid or expired refresh token"
+        # The chain-revoke bulk update must have fired.
+        mock_db_session.query.return_value.filter.return_value.update.assert_called_with(
+            {"revoked": True}
+        )
+        assert mock_db_session.commit.called
+
+
 class TestLogout:
     """Test suite for POST /v1/auth/logout and /logout-all."""
 
