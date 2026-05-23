@@ -197,6 +197,37 @@ class TestBatchUpdate:
         assert all(a.is_booked is True for a in results)
         assert mock_db_session.commit.called
 
+    def test_rolls_back_when_an_activity_is_missing(self, mock_db_session, make_trip):
+        """A missing activity mid-batch rolls back the whole unit of work."""
+        trip = make_trip(status="PLANNED")
+        a1 = SimpleNamespace(id=uuid.uuid4(), title="old", category="FOOD", is_packed=False)
+        # First lookup found, second returns None -> get_by_id raises mid-loop.
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [a1, None]
+
+        updates = SimpleNamespace(
+            title="Batch",
+            description=None,
+            date=None,
+            startTime=None,
+            endTime=None,
+            location=None,
+            category=None,
+            estimatedCost=None,
+            isBooked=None,
+            validationStatus=None,
+        )
+
+        with pytest.raises(AppError) as exc:
+            ActivityService.batch_update(
+                db=mock_db_session,
+                trip=trip,
+                activity_ids=[a1.id, uuid.uuid4()],
+                updates=updates,
+            )
+        assert exc.value.code == "ACTIVITY_NOT_FOUND"
+        assert mock_db_session.rollback.called
+        assert not mock_db_session.commit.called
+
     def test_blocked_on_completed_trip(self, mock_db_session, make_trip):
         trip = make_trip(status="COMPLETED")
         updates = SimpleNamespace(
