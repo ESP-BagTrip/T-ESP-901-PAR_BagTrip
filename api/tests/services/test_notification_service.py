@@ -219,6 +219,67 @@ class TestDelete:
         assert not mock_db_session.commit.called
 
 
+class TestRetryUnsent:
+    def _set_pending(self, mock_db_session, notifs):
+        mock_db_session.query.return_value.filter.return_value.all.return_value = notifs
+
+    def test_no_pending_returns_zero(self, mock_db_session):
+        self._set_pending(mock_db_session, [])
+        assert NotificationService.retry_unsent(mock_db_session) == 0
+        assert not mock_db_session.commit.called
+
+    def test_retries_and_stamps_sent_at_on_success(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with (
+            patch(
+                "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+                return_value={notif.user_id: ["tok-1"]},
+            ),
+            patch(
+                "src.services.notification_service.NotificationService._send_fcm",
+                return_value=True,
+            ),
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 1
+        assert notif.sent_at is not None
+        assert mock_db_session.commit.called
+
+    def test_skips_users_without_tokens(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with patch(
+            "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+            return_value={},
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 0
+        assert notif.sent_at is None
+        assert not mock_db_session.commit.called
+
+    def test_send_failure_leaves_sent_at_none(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with (
+            patch(
+                "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+                return_value={notif.user_id: ["tok-1"]},
+            ),
+            patch(
+                "src.services.notification_service.NotificationService._send_fcm",
+                return_value=False,
+            ),
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 0
+        assert notif.sent_at is None
+        assert not mock_db_session.commit.called
+
+
 # ---------------------------------------------------------------------------
 # _get_trip_recipients
 # ---------------------------------------------------------------------------

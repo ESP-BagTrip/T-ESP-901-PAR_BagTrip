@@ -371,6 +371,7 @@ def run_notification_checks() -> dict[str, int]:
             "flight_h1": _check_flight_alerts(db, 1, NotificationType.FLIGHT_H1),
             "morning_summary": _check_morning_summary(db),
             "activity_h1": _check_activity_reminders(db),
+            "retried_unsent": NotificationService.retry_unsent(db),
         }
         return results
     finally:

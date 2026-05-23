@@ -115,6 +115,10 @@ class TestRunNotificationChecks:
             patch("src.jobs.notification_job._check_flight_alerts", side_effect=[2, 3]) as m_flight,
             patch("src.jobs.notification_job._check_morning_summary", return_value=4) as m_morn,
             patch("src.jobs.notification_job._check_activity_reminders", return_value=5) as m_act,
+            patch(
+                "src.jobs.notification_job.NotificationService.retry_unsent",
+                return_value=6,
+            ) as m_retry,
         ):
             mock_db = mock_session_local.return_value = type(
                 "S", (), {"close": lambda self: None}
@@ -129,11 +133,13 @@ class TestRunNotificationChecks:
             "flight_h1": 3,
             "morning_summary": 4,
             "activity_h1": 5,
+            "retried_unsent": 6,
         }
         m_dep.assert_called_once()
         assert m_flight.call_count == 2
         m_morn.assert_called_once()
         m_act.assert_called_once()
+        m_retry.assert_called_once()
 
     def test_session_closed_even_on_error(self):
         """The DB session is closed in `finally` even when a check raises."""
