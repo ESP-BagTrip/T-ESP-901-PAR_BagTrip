@@ -337,6 +337,10 @@ class TestSendLocalized:
     def test_resolves_locale_and_renders(self, mock_db_session):
         with (
             patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
                 "src.services.notification_service.DeviceTokenService.get_locale_for_user",
                 return_value="fr",
             ) as mock_locale,
@@ -360,6 +364,10 @@ class TestSendLocalized:
     def test_explicit_locale_skips_lookup(self, mock_db_session):
         with (
             patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
                 "src.services.notification_service.DeviceTokenService.get_locale_for_user"
             ) as mock_locale,
             patch(
@@ -378,9 +386,15 @@ class TestSendLocalized:
         assert mock_send.call_args.kwargs["title"] == "Trip complete!"
 
     def test_notif_key_overrides_type_for_catalogue_lookup(self, mock_db_session):
-        with patch(
-            "src.services.notification_service.NotificationService.create_and_send"
-        ) as mock_send:
+        with (
+            patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
             NotificationService.send_localized(
                 mock_db_session,
                 user_id=uuid.uuid4(),
@@ -393,3 +407,24 @@ class TestSendLocalized:
         body = mock_send.call_args.kwargs["body"]
         assert "Alice" in body
         assert "Coucou" in body
+
+    def test_disabled_preference_skips_dispatch(self, mock_db_session):
+        with (
+            patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=False,
+            ),
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
+            result = NotificationService.send_localized(
+                mock_db_session,
+                user_id=uuid.uuid4(),
+                trip_id=None,
+                notif_type=NotificationType.TRIP_STARTED,
+                context={"trip_title": "Rome"},
+                locale="fr",
+            )
+        assert result is None
+        mock_send.assert_not_called()

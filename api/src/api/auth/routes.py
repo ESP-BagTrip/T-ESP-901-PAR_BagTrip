@@ -746,6 +746,7 @@ async def delete_me(
     from src.models.flight_search import FlightSearch
     from src.models.manual_flight import ManualFlight
     from src.models.notification import Notification
+    from src.models.notification_preference import NotificationPreference
     from src.models.traveler import TripTraveler
     from src.models.traveler_profile import TravelerProfile
     from src.models.trip import Trip
@@ -791,6 +792,9 @@ async def delete_me(
     )
     db.query(DeviceToken).filter(DeviceToken.user_id == user_id).delete(synchronize_session=False)
     db.query(Notification).filter(Notification.user_id == user_id).delete(synchronize_session=False)
+    db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).delete(
+        synchronize_session=False
+    )
     db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete(synchronize_session=False)
     db.query(TripShare).filter(TripShare.user_id == user_id).delete(synchronize_session=False)
     db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)

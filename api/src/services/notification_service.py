@@ -12,6 +12,7 @@ from src.models.trip import Trip
 from src.services.budget_item_service import BudgetItemService
 from src.services.device_token_service import DeviceTokenService
 from src.services.notification_messages import render_notification, untitled_trip
+from src.services.notification_preference_service import NotificationPreferenceService
 from src.utils.logger import logger
 
 TAG = "[NOTIFICATION]"
@@ -105,7 +106,7 @@ class NotificationService:
         context: dict | None = None,
         data: dict | None = None,
         locale: str | None = None,
-    ) -> Notification:
+    ) -> Notification | None:
         """Render a localized notification for one user and dispatch it.
 
         Resolves the recipient's locale from their most recent device token
@@ -114,7 +115,12 @@ class NotificationService:
 
         ``notif_key`` defaults to ``notif_type`` — pass it explicitly only when
         the catalogue key differs from the persisted type (e.g. budget alerts).
+
+        Returns ``None`` (creating + sending nothing) when the recipient has
+        disabled this notification category in their preferences.
         """
+        if not NotificationPreferenceService.is_type_enabled(db, user_id, notif_type):
+            return None
         resolved = locale or DeviceTokenService.get_locale_for_user(db, user_id)
         title, body = render_notification(notif_key or notif_type, resolved, **(context or {}))
         return NotificationService.create_and_send(

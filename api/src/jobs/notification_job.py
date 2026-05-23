@@ -74,7 +74,7 @@ def _check_departure_reminders(db: Session) -> int:
             ):
                 continue
             locale = DeviceTokenService.get_locale_for_user(db, uid)
-            NotificationService.send_localized(
+            sent = NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
@@ -86,7 +86,8 @@ def _check_departure_reminders(db: Session) -> int:
                 data={"screen": "tripHome", "tripId": str(trip.id)},
                 locale=locale,
             )
-            count += 1
+            if sent is not None:
+                count += 1
     return count
 
 
@@ -167,7 +168,7 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str) -> i
             if notif_type == NotificationType.FLIGHT_H1 and flight_info.get("terminal_gate"):
                 context["gate_suffix"] = flight_gate_suffix(locale, flight_info["terminal_gate"])
 
-            NotificationService.send_localized(
+            sent = NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
@@ -176,7 +177,8 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str) -> i
                 data=data,
                 locale=locale,
             )
-            count += 1
+            if sent is not None:
+                count += 1
     return count
 
 
@@ -278,7 +280,7 @@ def _check_morning_summary(db: Session) -> int:
                 activity_names += f" (+{len(activities) - 3})"
 
             locale = DeviceTokenService.get_locale_for_user(db, uid)
-            NotificationService.send_localized(
+            sent = NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
@@ -291,7 +293,8 @@ def _check_morning_summary(db: Session) -> int:
                 data={"screen": "activities", "tripId": str(trip.id)},
                 locale=locale,
             )
-            count += 1
+            if sent is not None:
+                count += 1
     return count
 
 
@@ -337,7 +340,7 @@ def _check_activity_reminders(db: Session) -> int:
             location_suffix = (
                 activity_location_suffix(locale, activity.location) if activity.location else ""
             )
-            NotificationService.send_localized(
+            sent = NotificationService.send_localized(
                 db=db,
                 user_id=uid,
                 trip_id=trip.id,
@@ -353,7 +356,8 @@ def _check_activity_reminders(db: Session) -> int:
                 },
                 locale=locale,
             )
-            count += 1
+            if sent is not None:
+                count += 1
     return count
 
 
