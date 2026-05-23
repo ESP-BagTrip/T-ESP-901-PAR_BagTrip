@@ -23,6 +23,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
+import 'package:bagtrip/trip_detail/widgets/section_error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -335,6 +336,15 @@ class HotelPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SectionErrorBanner(section: 'accommodations'),
+        Expanded(child: _buildContent(context)),
+      ],
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (trip.accommodationsTracking == TrackingStatus.skipped) {
       return SkippedPanelState(
