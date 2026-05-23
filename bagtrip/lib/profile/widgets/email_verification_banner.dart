@@ -68,38 +68,41 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
     if (verified) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
 
     return Container(
       width: double.infinity,
       padding: AppSpacing.allEdgeInsetSpace16,
       margin: AppSpacing.onlyBottomSpace16,
       decoration: BoxDecoration(
-        color: AppColors.warningBg,
+        color: AppColors.warningBgOf(brightness),
         borderRadius: AppRadius.large16,
-        border: Border.all(color: AppColors.warningBorder),
+        border: Border.all(color: AppColors.warningBorderOf(brightness)),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.mark_email_unread_outlined,
-            color: AppColors.warningIcon,
+            color: AppColors.warningIconOf(brightness),
             size: AppSize.iconSizeHeight24,
           ),
           const SizedBox(width: AppSpacing.space12),
           Expanded(
             child: Text(
               l10n.emailVerificationBannerText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.warningText,
+                color: AppColors.warningTextOf(brightness),
               ),
             ),
           ),
           const SizedBox(width: AppSpacing.space8),
           TextButton(
             onPressed: _isSending ? null : _onResend,
-            style: TextButton.styleFrom(foregroundColor: AppColors.warningText),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.warningTextOf(brightness),
+            ),
             child: _isSending
                 ? const SizedBox(
                     width: AppSize.boxSize16,

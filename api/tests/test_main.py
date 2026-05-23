@@ -16,8 +16,12 @@ with patch("src.services.stripe_products_service.StripeProductsService") as mock
 
 @pytest.fixture(autouse=True)
 def mock_db_connection():
-    """Mock database connection check to prevent real connection attempts."""
-    with patch("src.main.check_database_connection"):
+    """Mock database connection check to prevent real connection attempts.
+
+    The DB check now lives in `src.startup` (the lifespan was extracted out of
+    `main.py` in SMP327-060), so the patch target follows it there.
+    """
+    with patch("src.startup.check_database_connection"):
         yield
 
 
@@ -154,7 +158,7 @@ class TestLifespan:
         app_mock = MagicMock()
 
         with (
-            patch("src.main.check_database_connection") as mock_check_db,
+            patch("src.startup.check_database_connection") as mock_check_db,
             patch("src.migrations.migrate_trips_table.migrate_trips_table") as mock_migrate_trips,
             patch(
                 "src.services.stripe_products_service.StripeProductsService.initialize_products"
@@ -175,7 +179,7 @@ class TestLifespan:
         app_mock = MagicMock()
 
         with (
-            patch("src.main.check_database_connection"),
+            patch("src.startup.check_database_connection"),
             patch(
                 "src.migrations.migrate_trips_table.migrate_trips_table",
                 side_effect=Exception("Trips migration failed"),

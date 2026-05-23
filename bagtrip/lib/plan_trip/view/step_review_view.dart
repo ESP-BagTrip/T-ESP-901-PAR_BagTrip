@@ -100,6 +100,7 @@ class StepReviewView extends StatelessWidget {
                     l10n,
                     plan.budgetBreakdown,
                     accommodationDeferred: plan.accommodationName.isEmpty,
+                    brightness: Theme.of(context).brightness,
                   ),
                   subtitle:
                       '${l10n.reviewBudgetEstimationPrefix} · '

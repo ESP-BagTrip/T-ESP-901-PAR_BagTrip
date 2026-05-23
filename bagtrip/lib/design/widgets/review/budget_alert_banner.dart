@@ -20,18 +20,21 @@ class BudgetAlertBanner extends StatelessWidget {
     final level = summary.alertLevel;
     if (level == null) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
     final isDanger = level == 'DANGER';
 
-    final Color bg = isDanger ? AppColors.dangerBg : AppColors.warningBg;
+    final Color bg = isDanger
+        ? AppColors.dangerBgOf(brightness)
+        : AppColors.warningBgOf(brightness);
     final Color border = isDanger
-        ? AppColors.dangerBorder
-        : AppColors.warningBorder;
+        ? AppColors.dangerBorderOf(brightness)
+        : AppColors.warningBorderOf(brightness);
     final Color iconColor = isDanger
-        ? AppColors.dangerIcon
-        : AppColors.warningIcon;
+        ? AppColors.dangerIconOf(brightness)
+        : AppColors.warningIconOf(brightness);
     final Color textColor = isDanger
-        ? AppColors.dangerText
-        : AppColors.warningText;
+        ? AppColors.dangerTextOf(brightness)
+        : AppColors.warningTextOf(brightness);
     final IconData icon = isDanger
         ? Icons.error_outline_rounded
         : Icons.warning_amber_rounded;

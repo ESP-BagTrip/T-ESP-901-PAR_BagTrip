@@ -28,6 +28,7 @@ class AiDestinationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
     final weatherLabel = destination.weatherSummary?.trim();
     final hasWeather = weatherLabel != null && weatherLabel.isNotEmpty;
     final activityLabels = destination.topActivities;
@@ -206,9 +207,15 @@ class AiDestinationCard extends StatelessWidget {
                         _InfoChip(
                           icon: Icons.wb_sunny_rounded,
                           label: weatherLabel,
-                          backgroundColor: AppColors.chipWeatherBackground,
-                          textColor: AppColors.chipWeatherForeground,
-                          iconColor: AppColors.chipWeatherForeground,
+                          backgroundColor: AppColors.chipWeatherBackgroundOf(
+                            brightness,
+                          ),
+                          textColor: AppColors.chipWeatherForegroundOf(
+                            brightness,
+                          ),
+                          iconColor: AppColors.chipWeatherForegroundOf(
+                            brightness,
+                          ),
                         ),
                       if (destination.estimatedBudgetRange != null)
                         _InfoChip(
@@ -231,9 +238,15 @@ class AiDestinationCard extends StatelessWidget {
                           (activity) => _InfoChip(
                             icon: Icons.place_rounded,
                             label: activity,
-                            backgroundColor: AppColors.chipActivityBackground,
-                            textColor: AppColors.chipActivityForeground,
-                            iconColor: AppColors.chipActivityForeground,
+                            backgroundColor: AppColors.chipActivityBackgroundOf(
+                              brightness,
+                            ),
+                            textColor: AppColors.chipActivityForegroundOf(
+                              brightness,
+                            ),
+                            iconColor: AppColors.chipActivityForegroundOf(
+                              brightness,
+                            ),
                             textStyle: const TextStyle(
                               fontFamily: FontFamily.dMSans,
                               fontSize: 12,
@@ -255,7 +268,9 @@ class AiDestinationCard extends StatelessWidget {
                           ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          foregroundColor: AppColors.chipActivityForeground,
+                          foregroundColor: AppColors.chipActivityForegroundOf(
+                            brightness,
+                          ),
                           textStyle: const TextStyle(
                             fontFamily: FontFamily.dMSans,
                             fontSize: 12,

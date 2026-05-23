@@ -66,6 +66,7 @@ class TimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final date = firstDate.add(Duration(days: event.dayOffset));
     final card = Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
@@ -101,9 +102,9 @@ class TimelineCard extends StatelessWidget {
               event.subtitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.b612,
-                color: AppColors.reviewMuted,
+                color: AppColors.reviewMutedOf(brightness),
               ),
             ),
           ],
@@ -118,9 +119,17 @@ class TimelineCard extends StatelessWidget {
           width: 28,
           child: Column(
             children: [
-              Container(height: 18, width: 1, color: AppColors.reviewDivider),
+              Container(
+                height: 18,
+                width: 1,
+                color: AppColors.reviewDividerOf(brightness),
+              ),
               TimelineDot(type: event.type),
-              Container(height: 74, width: 1, color: AppColors.reviewDivider),
+              Container(
+                height: 74,
+                width: 1,
+                color: AppColors.reviewDividerOf(brightness),
+              ),
             ],
           ),
         ),

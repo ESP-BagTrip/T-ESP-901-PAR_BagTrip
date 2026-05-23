@@ -28,6 +28,7 @@ import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/settings_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
 import 'package:bagtrip/service/cached_weather_repository.dart';
+import 'package:bagtrip/service/cached_accommodation_repository.dart';
 import 'package:bagtrip/service/cached_activity_repository.dart';
 import 'package:bagtrip/service/cached_baggage_repository.dart';
 import 'package:bagtrip/service/cached_budget_repository.dart';
@@ -115,7 +116,12 @@ void setupServiceLocator() {
     () => TripShareRepositoryImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<AccommodationRepository>(
-    () => AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedAccommodationRepository(
+      remote: AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<BaggageRepository>(
     () => CachedBaggageRepository(

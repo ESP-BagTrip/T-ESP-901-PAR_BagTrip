@@ -2,9 +2,8 @@
 
 import time
 
-import httpx
-
 from src.config.env import settings
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
 _CACHE: dict[str, dict] = {}
@@ -17,7 +16,7 @@ class AirLabsClient:
     BASE_URL = "https://airlabs.co/api/v9"
 
     @staticmethod
-    def lookup_flight(flight_iata: str) -> dict | None:
+    async def lookup_flight(flight_iata: str) -> dict | None:
         """Rechercher les infos d'un vol par code IATA.
 
         Returns None if not found or API key not configured.
@@ -33,10 +32,11 @@ class AirLabsClient:
             return cached["data"]
 
         try:
-            resp = httpx.get(
+            client = get_http_client()
+            resp = await client.get(
                 f"{AirLabsClient.BASE_URL}/flight",
                 params={"flight_iata": code, "api_key": settings.AIRLABS_API_KEY},
-                timeout=10,
+                timeout=10.0,
             )
             resp.raise_for_status()
             payload = resp.json()

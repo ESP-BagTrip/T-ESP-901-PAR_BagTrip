@@ -34,31 +34,32 @@ class SectionErrorBanner extends StatelessWidget {
     if (error == null) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: AppSpacing.space12),
       padding: const EdgeInsets.all(AppSpacing.space12),
       decoration: BoxDecoration(
-        color: AppColors.warningBg,
+        color: AppColors.warningBgOf(brightness),
         borderRadius: AppRadius.large16,
-        border: Border.all(color: AppColors.warningBorder),
+        border: Border.all(color: AppColors.warningBorderOf(brightness)),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_rounded,
-            color: AppColors.warningIcon,
+            color: AppColors.warningIconOf(brightness),
             size: 20,
           ),
           const SizedBox(width: AppSpacing.space12),
           Expanded(
             child: Text(
               toUserFriendlyMessage(error, l10n),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.dMSans,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.warningText,
+                color: AppColors.warningTextOf(brightness),
               ),
             ),
           ),
@@ -68,7 +69,7 @@ class SectionErrorBanner extends StatelessWidget {
               RetryDeferredSection(section: section),
             ),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.warningText,
+              foregroundColor: AppColors.warningTextOf(brightness),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.space12,
               ),
