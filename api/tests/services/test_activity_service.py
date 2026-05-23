@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from src.api.activities.schemas import SuggestedActivity
 from src.models.activity import Activity
 from src.services.activity_service import ActivityService
 from src.utils.errors import AppError
@@ -259,13 +260,52 @@ class TestSuggest:
             nb_travelers=2,
         )
         fake_llm = MagicMock()
-        fake_llm.acall_llm = AsyncMock(return_value={"activities": [{"title": "A"}]})
+        fake_llm.acall_llm = AsyncMock(
+            return_value={
+                "activities": [
+                    {
+                        "title": "Sagrada Familia",
+                        "category": "CULTURE",
+                        "estimated_cost": 26.0,
+                        "suggested_day": 1,
+                        "time_of_day": "morning",
+                    }
+                ]
+            }
+        )
 
         with patch("src.services.llm_service.LLMService", return_value=fake_llm):
             result = await ActivityService.suggest(mock_db_session, trip, day=1)
 
-        assert result == [{"title": "A"}]
+        assert len(result) == 1
+        suggestion = result[0]
+        assert isinstance(suggestion, SuggestedActivity)
+        # snake_case LLM keys map onto the typed camelCase fields.
+        assert suggestion.title == "Sagrada Familia"
+        assert suggestion.estimatedCost == 26.0
+        assert suggestion.suggestedDay == 1
+        assert suggestion.timeOfDay == "morning"
         fake_llm.acall_llm.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_skips_malformed_suggestions(self, mock_db_session, make_trip):
+        """Items missing required fields are dropped, not surfaced as raw dicts."""
+        trip = make_trip(destination_name="Rome")
+        fake_llm = MagicMock()
+        fake_llm.acall_llm = AsyncMock(
+            return_value={
+                "activities": [
+                    {"title": "Colosseum", "category": "CULTURE"},
+                    {"category": "FOOD"},  # no title -> invalid
+                    "not-a-dict",  # wrong type -> skipped
+                ]
+            }
+        )
+
+        with patch("src.services.llm_service.LLMService", return_value=fake_llm):
+            result = await ActivityService.suggest(mock_db_session, trip)
+
+        assert [s.title for s in result] == ["Colosseum"]
 
     @pytest.mark.asyncio
     async def test_llm_error_returns_empty(self, mock_db_session, make_trip):

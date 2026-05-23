@@ -89,5 +89,20 @@ class ActivityBatchUpdateRequest(BaseModel):
     updates: ActivityUpdateRequest
 
 
+class SuggestedActivity(BaseModel):
+    """One AI-suggested activity. Validates the raw LLM output (snake_case keys)
+    and exposes it as a typed, camelCase payload."""
+
+    title: str
+    description: str | None = None
+    category: str | None = None
+    estimatedCost: float | None = Field(default=None, alias="estimated_cost")
+    suggestedDay: int | None = Field(default=None, alias="suggested_day")
+    timeOfDay: str | None = Field(default=None, alias="time_of_day")
+    location: str | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class ActivitySuggestResponse(BaseModel):
-    activities: list[dict]
+    activities: list[SuggestedActivity]

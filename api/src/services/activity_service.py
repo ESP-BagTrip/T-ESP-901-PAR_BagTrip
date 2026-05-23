@@ -4,10 +4,11 @@ from datetime import date, time
 from math import ceil
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
-from src.api.activities.schemas import ActivityUpdateRequest
+from src.api.activities.schemas import ActivityUpdateRequest, SuggestedActivity
 from src.enums import TripStatus
 from src.models.activity import Activity
 from src.models.trip import Trip
@@ -214,7 +215,7 @@ class ActivityService:
         trip: Trip,
         day: int | None = None,
         locale: str | None = None,
-    ) -> list[dict]:
+    ) -> list[SuggestedActivity]:
         """Generate AI activity suggestions for a trip (optionally for a specific day)."""
         from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
@@ -247,4 +248,15 @@ class ActivityService:
             logger.error("Activity suggest LLM call failed", {"error": str(e)})
             activities = []
 
-        return activities
+        # Validate each raw LLM dict into a typed SuggestedActivity. Malformed
+        # items (e.g. missing title) are skipped and logged rather than crashing
+        # the whole suggestion or leaking an untyped dict to the client.
+        suggestions: list[SuggestedActivity] = []
+        for item in activities:
+            if not isinstance(item, dict):
+                continue
+            try:
+                suggestions.append(SuggestedActivity.model_validate(item))
+            except ValidationError as e:
+                logger.warn("Skipping malformed activity suggestion", {"error": str(e)})
+        return suggestions
