@@ -5,6 +5,7 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/home_highlight_activity.dart';
+import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
@@ -110,7 +111,13 @@ class _ActiveTripHeroCard extends StatelessWidget {
         '${_formatDate(trip.startDate)} - ${_formatDate(trip.endDate)}';
     final hasCover =
         trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
-    final highlight = resolveHomeHighlightActivity(state.allActivities);
+    // Resolve "now" in the destination timezone, not the device's — otherwise
+    // the home hero highlights the wrong activity when the traveler's phone is
+    // still on the origin clock.
+    final highlight = resolveHomeHighlightActivity(
+      state.allActivities,
+      now: nowInDestination(trip.destinationTimezone),
+    );
     final travelerCount = trip.nbTravelers;
 
     final innerRadius = AppRadius.cornerRadius24 - _borderWidth;
