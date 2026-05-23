@@ -24,6 +24,7 @@ import 'package:bagtrip/trips/bloc/trip_management_bloc.dart'
         TripManagementInitial;
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -241,6 +242,33 @@ void main() {
         ),
       );
       expect(find.byType(RefreshIndicator), findsOneWidget);
+    });
+
+    // SMP327-043: VoiceOver reading order — hero (1) -> chips/content (2) ->
+    // footer actions (3) pinned via OrdinalSortKey.
+    testWidgets('main blocks carry OrdinalSortKey reading order', (
+      tester,
+    ) async {
+      await pumpView(
+        tester,
+        _loaded(
+          trip: makeTrip(
+            startDate: DateTime(2026, 9),
+            endDate: DateTime(2026, 9, 5),
+          ),
+        ),
+      );
+
+      final sortKeys = tester
+          .widgetList<Semantics>(find.byType(Semantics))
+          .map((s) => s.properties.sortKey)
+          .whereType<OrdinalSortKey>()
+          .map((k) => k.order)
+          .toList();
+
+      expect(sortKeys, contains(1.0));
+      expect(sortKeys, contains(2.0));
+      expect(sortKeys, contains(3.0));
     });
   });
 }

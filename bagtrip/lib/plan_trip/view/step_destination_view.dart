@@ -161,33 +161,37 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                         : ColorName.primarySoftLight,
                   ),
                 ),
-                child: TextField(
-                  focusNode: _searchFocus,
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    color: PersonalizationColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: l10n.destinationPlaceholder,
-                    hintStyle: const TextStyle(
+                child: Semantics(
+                  textField: true,
+                  label: l10n.destinationSectionLabel,
+                  child: TextField(
+                    focusNode: _searchFocus,
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                      color: ColorName.hint,
+                      color: PersonalizationColors.textPrimary,
                     ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: focused ? ColorName.secondary : ColorName.hint,
-                      size: 22,
-                    ),
-                    suffixIcon: _buildSearchSuffix(state),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
+                    decoration: InputDecoration(
+                      hintText: l10n.destinationPlaceholder,
+                      hintStyle: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                        color: ColorName.hint,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: focused ? ColorName.secondary : ColorName.hint,
+                        size: 22,
+                      ),
+                      suffixIcon: _buildSearchSuffix(state),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
                     ),
                   ),
                 ),

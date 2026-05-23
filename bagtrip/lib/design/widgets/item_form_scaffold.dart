@@ -60,59 +60,64 @@ class ItemFormScaffold extends StatelessWidget {
     final maxHeight =
         MediaQuery.sizeOf(context).height * ItemFormSheetLayout.maxHeightFactor;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: viewInsets.bottom),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: ColorName.surface,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppRadius.cornerRadius20),
+    // SMP327-044: announce the form sheet title to screen readers on open.
+    return Semantics(
+      container: true,
+      label: title,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: viewInsets.bottom),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: ColorName.surface,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppRadius.cornerRadius20),
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: AppSpacing.space12),
-              _DragHandle(),
-              const SizedBox(height: AppSpacing.space12),
-              _Header(
-                title: title,
-                subtitle: subtitle,
-                statusKind: statusKind,
-                onClose: onClose ?? () => Navigator.of(context).pop(),
-              ),
-              const SizedBox(height: AppSpacing.space4),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space24,
-                  ),
-                  child: fields,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: AppSpacing.space12),
+                _DragHandle(),
+                const SizedBox(height: AppSpacing.space12),
+                _Header(
+                  title: title,
+                  subtitle: subtitle,
+                  statusKind: statusKind,
+                  onClose: onClose ?? () => Navigator.of(context).pop(),
                 ),
-              ),
-              if (actions.isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space8,
-                    AppSpacing.space16,
-                    AppSpacing.space16 + safeBottom,
+                const SizedBox(height: AppSpacing.space4),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.space16,
+                      AppSpacing.space16,
+                      AppSpacing.space16,
+                      AppSpacing.space24,
+                    ),
+                    child: fields,
                   ),
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < actions.length; i++) ...[
-                        if (i > 0) const SizedBox(width: AppSpacing.space12),
-                        Expanded(child: actions[i]),
+                ),
+                if (actions.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.space16,
+                      AppSpacing.space8,
+                      AppSpacing.space16,
+                      AppSpacing.space16 + safeBottom,
+                    ),
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < actions.length; i++) ...[
+                          if (i > 0) const SizedBox(width: AppSpacing.space12),
+                          Expanded(child: actions[i]),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

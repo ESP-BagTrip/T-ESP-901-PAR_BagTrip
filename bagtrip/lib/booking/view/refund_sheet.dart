@@ -206,28 +206,32 @@ class _RefundSheetState extends State<RefundSheet> {
                 ),
                 if (_mode == _RefundMode.partial) ...[
                   const SizedBox(height: AppSpacing.space16),
-                  CupertinoTextField(
-                    controller: _amountController,
-                    enabled: !loading,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+                  Semantics(
+                    textField: true,
+                    label: l10n.refundAmountLabel,
+                    child: CupertinoTextField(
+                      controller: _amountController,
+                      enabled: !loading,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      placeholder: l10n.refundAmountHint(capturedDisplay),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                        vertical: AppSpacing.space12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.brightness == Brightness.dark
+                            ? AppColors.inputBackgroundDark
+                            : AppColors.surfaceVariant,
+                        borderRadius: AppRadius.medium8,
+                      ),
+                      style: TextStyle(
+                        fontFamily: FontFamily.b612,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      onChanged: (_) => setState(() => _amountError = null),
                     ),
-                    placeholder: l10n.refundAmountHint(capturedDisplay),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space16,
-                      vertical: AppSpacing.space12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.brightness == Brightness.dark
-                          ? AppColors.inputBackgroundDark
-                          : AppColors.surfaceVariant,
-                      borderRadius: AppRadius.medium8,
-                    ),
-                    style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    onChanged: (_) => setState(() => _amountError = null),
                   ),
                   if (_amountError != null) ...[
                     const SizedBox(height: AppSpacing.space4),
