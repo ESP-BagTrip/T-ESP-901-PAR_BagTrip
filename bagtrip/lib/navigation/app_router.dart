@@ -21,8 +21,15 @@ final GoRouter appRouter = GoRouter(
     final isAuthenticated = authResult.dataOrNull ?? false;
     final isLoginPage = path == '/login';
     final isOnboardingPage = path == '/onboarding';
+    // Reset-password is reached via an email deep link by a logged-out user,
+    // so it must stay public — otherwise the redirect bounces it to /login and
+    // the token is lost.
+    final isResetPasswordPage = path == '/reset-password';
 
-    if (!isAuthenticated && !isLoginPage && !isOnboardingPage) {
+    if (!isAuthenticated &&
+        !isLoginPage &&
+        !isOnboardingPage &&
+        !isResetPasswordPage) {
       final intended = state.uri.toString();
       if (intended != '/' && intended != '/login') {
         return '/login?redirect=${Uri.encodeComponent(intended)}';

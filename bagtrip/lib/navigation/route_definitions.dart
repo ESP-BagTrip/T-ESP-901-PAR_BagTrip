@@ -17,6 +17,7 @@ import 'package:bagtrip/pages/payment/payment_success_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
+import 'package:bagtrip/pages/reset_password_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
@@ -56,6 +57,19 @@ class LoginRoute extends GoRouteData with $LoginRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: LoginPage());
+}
+
+@TypedGoRoute<ResetPasswordRoute>(path: '/reset-password')
+class ResetPasswordRoute extends GoRouteData with $ResetPasswordRoute {
+  const ResetPasswordRoute({this.token});
+
+  /// Raw reset token forwarded from the `bagtrip://reset-password?token=…`
+  /// deep link as a query parameter.
+  final String? token;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      NoTransitionPage(child: ResetPasswordPage(token: token ?? ''));
 }
 
 @TypedGoRoute<OnboardingRoute>(path: '/onboarding')

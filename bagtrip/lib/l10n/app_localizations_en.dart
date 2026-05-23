@@ -2882,6 +2882,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'If this email exists, a reset link has been sent. Check your inbox.';
 
   @override
+  String get resetPasswordTitle => 'New password';
+
+  @override
+  String get resetPasswordSubtitle => 'Choose a new password for your account.';
+
+  @override
+  String get resetPasswordNewLabel => 'New password';
+
+  @override
+  String get resetPasswordConfirmLabel => 'Confirm password';
+
+  @override
+  String get resetPasswordSubmit => 'Reset password';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Your password has been reset. You can now sign in.';
+
+  @override
+  String get resetPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get resetPasswordTooShort => 'Password must be at least 6 characters.';
+
+  @override
   String get deleteAccountButton => 'Delete my account';
 
   @override

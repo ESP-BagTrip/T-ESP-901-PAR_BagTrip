@@ -5241,6 +5241,54 @@ abstract class AppLocalizations {
   /// **'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.'**
   String get forgotPasswordSuccess;
 
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un nouveau mot de passe pour votre compte.'**
+  String get resetPasswordSubtitle;
+
+  /// No description provided for @resetPasswordNewLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get resetPasswordNewLabel;
+
+  /// No description provided for @resetPasswordConfirmLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get resetPasswordConfirmLabel;
+
+  /// No description provided for @resetPasswordSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get resetPasswordSubmit;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.'**
+  String get resetPasswordSuccess;
+
+  /// No description provided for @resetPasswordMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas.'**
+  String get resetPasswordMismatch;
+
+  /// No description provided for @resetPasswordTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe doit contenir au moins 6 caractères.'**
+  String get resetPasswordTooShort;
+
   /// No description provided for @deleteAccountButton.
   ///
   /// In fr, this message translates to:

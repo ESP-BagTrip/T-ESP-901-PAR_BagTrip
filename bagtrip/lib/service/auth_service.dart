@@ -258,6 +258,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<void>> resetPassword(String token, String newPassword) async {
+    try {
+      final response = await _apiClient.post(
+        '/auth/reset-password',
+        data: {'token': token, 'new_password': newPassword},
+      );
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(
+        UnknownError('reset password failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<void>> deleteAccount() async {
     try {
       final response = await _apiClient.delete('/auth/me');

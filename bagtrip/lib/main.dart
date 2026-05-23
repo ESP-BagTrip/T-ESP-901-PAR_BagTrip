@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:ui';
 
+import 'package:app_links/app_links.dart';
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
@@ -14,6 +15,7 @@ import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/notifications/cubit/notification_count_cubit.dart';
 import 'package:bagtrip/notifications/notification_deep_link.dart';
@@ -146,6 +148,8 @@ class _MyAppState extends State<MyApp> {
   late final StreamSubscription<RemoteMessage> _onMessageSub;
   late final StreamSubscription<RemoteMessage> _onMessageOpenedSub;
   late final StreamSubscription<String> _onTokenRefreshSub;
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _appLinkSub;
   late final HomeBloc _homeBloc;
   late final NotificationCountCubit _countCubit;
   late final AppLifecycleObserver _lifecycleObserver;
@@ -165,6 +169,19 @@ class _MyAppState extends State<MyApp> {
     );
     _lifecycleObserver.initialize();
     _setupFCMListeners();
+    _setupDeepLinks();
+  }
+
+  /// Listens for `bagtrip://` custom-scheme deep links. Only the
+  /// `reset-password` link is consumed here; every other URI (Stripe's
+  /// `bagtrip://payment/result`, etc.) is left untouched so its own handler
+  /// keeps working.
+  void _setupDeepLinks() {
+    _appLinks.getInitialLink().then(_handleDeepLink);
+    _appLinkSub = _appLinks.uriLinkStream.listen(
+      _handleDeepLink,
+      onError: (Object e) => dev.log('Deep link stream error: $e'),
+    );
   }
 
   @override
@@ -175,6 +192,7 @@ class _MyAppState extends State<MyApp> {
     _onMessageSub.cancel();
     _onMessageOpenedSub.cancel();
     _onTokenRefreshSub.cancel();
+    _appLinkSub?.cancel();
     getIt<ConnectivityService>().dispose();
     super.dispose();
   }
@@ -217,6 +235,20 @@ class _MyAppState extends State<MyApp> {
         locale: PlatformDispatcher.instance.locale.languageCode,
       );
     });
+  }
+
+  /// Routes a `bagtrip://reset-password?token=…` deep link to the reset
+  /// password screen. Custom-scheme URIs surface the segment as either the
+  /// host (empty path) or a path segment depending on the platform, so both
+  /// are checked. Non-matching URIs are ignored.
+  void _handleDeepLink(Uri? uri) {
+    if (uri == null) return;
+    final isReset =
+        uri.host == 'reset-password' ||
+        uri.pathSegments.contains('reset-password');
+    if (!isReset) return;
+    final token = uri.queryParameters['token'] ?? '';
+    appRouter.go(ResetPasswordRoute(token: token).location);
   }
 
   @override

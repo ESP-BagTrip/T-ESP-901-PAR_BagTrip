@@ -2902,6 +2902,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.';
 
   @override
+  String get resetPasswordTitle => 'Nouveau mot de passe';
+
+  @override
+  String get resetPasswordSubtitle =>
+      'Choisissez un nouveau mot de passe pour votre compte.';
+
+  @override
+  String get resetPasswordNewLabel => 'Nouveau mot de passe';
+
+  @override
+  String get resetPasswordConfirmLabel => 'Confirmer le mot de passe';
+
+  @override
+  String get resetPasswordSubmit => 'Réinitialiser le mot de passe';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.';
+
+  @override
+  String get resetPasswordMismatch => 'Les mots de passe ne correspondent pas.';
+
+  @override
+  String get resetPasswordTooShort =>
+      'Le mot de passe doit contenir au moins 6 caractères.';
+
+  @override
   String get deleteAccountButton => 'Supprimer mon compte';
 
   @override
