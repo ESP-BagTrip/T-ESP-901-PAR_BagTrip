@@ -27,6 +27,14 @@ class TestBuildResetLink:
         assert MailerService.build_reset_link("abc") == "bagtrip://reset-password?token=abc"
 
 
+class TestBuildVerificationLink:
+    def test_appends_token_to_base(self, monkeypatch):
+        monkeypatch.setattr(
+            mailer_service.settings, "EMAIL_VERIFICATION_URL_BASE", "bagtrip://verify-email"
+        )
+        assert MailerService.build_verification_link("abc") == "bagtrip://verify-email?token=abc"
+
+
 @pytest.mark.asyncio
 class TestSendPasswordReset:
     async def test_returns_false_when_disabled(self, monkeypatch):
@@ -62,4 +70,41 @@ class TestSendPasswordReset:
         ):
             result = await MailerService.send_password_reset("u@example.com", "tok")
         # A transport failure must not raise — the auth flow stays non-blocking.
+        assert result is False
+
+
+@pytest.mark.asyncio
+class TestSendEmailVerification:
+    async def test_returns_false_when_disabled(self, monkeypatch):
+        monkeypatch.setattr(mailer_service.settings, "SMTP_HOST", None)
+        with patch.object(mailer_service.aiosmtplib, "send", new=AsyncMock()) as send:
+            result = await MailerService.send_email_verification("u@example.com", "tok")
+        assert result is False
+        send.assert_not_called()
+
+    async def test_success_sends_message(self, monkeypatch):
+        monkeypatch.setattr(mailer_service.settings, "SMTP_HOST", "smtp.example.com")
+        monkeypatch.setattr(mailer_service.settings, "SMTP_FROM_EMAIL", "no-reply@bagtrip.fr")
+        with patch.object(mailer_service.aiosmtplib, "send", new=AsyncMock()) as send:
+            result = await MailerService.send_email_verification("u@example.com", "tok", "en")
+        assert result is True
+        send.assert_awaited_once()
+        message: EmailMessage = send.await_args.args[0]
+        assert message["To"] == "u@example.com"
+        assert message["Subject"] == "Verify your BagTrip email"
+        assert "tok" in message.get_content()
+
+    async def test_french_locale_uses_french_subject(self, monkeypatch):
+        monkeypatch.setattr(mailer_service.settings, "SMTP_HOST", "smtp.example.com")
+        with patch.object(mailer_service.aiosmtplib, "send", new=AsyncMock()) as send:
+            await MailerService.send_email_verification("u@example.com", "tok", "fr-FR")
+        message: EmailMessage = send.await_args.args[0]
+        assert "Verifiez" in message["Subject"]
+
+    async def test_swallows_transport_errors(self, monkeypatch):
+        monkeypatch.setattr(mailer_service.settings, "SMTP_HOST", "smtp.example.com")
+        with patch.object(
+            mailer_service.aiosmtplib, "send", new=AsyncMock(side_effect=OSError("smtp down"))
+        ):
+            result = await MailerService.send_email_verification("u@example.com", "tok")
         assert result is False

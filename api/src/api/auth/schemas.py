@@ -34,6 +34,7 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
     is_profile_completed: bool = Field(False, alias="isProfileCompleted")
+    email_verified: bool = Field(False, alias="emailVerified")
     plan: str = Field("FREE")
     ai_generations_remaining: int | None = Field(None, alias="aiGenerationsRemaining")
     plan_expires_at: datetime | None = Field(None, alias="planExpiresAt")
@@ -103,3 +104,9 @@ class ChangePasswordRequest(BagtripRequestModel):
 
     current_password: str = Field(..., alias="currentPassword")
     new_password: str = Field(..., min_length=6, alias="newPassword")
+
+
+class VerifyEmailRequest(BagtripRequestModel):
+    """Requête de vérification d'email via token (public, soft)."""
+
+    token: str

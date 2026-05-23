@@ -38,6 +38,29 @@ _RESET_BODY = {
     ),
 }
 
+_VERIFICATION_SUBJECT = {
+    "en": "Verify your BagTrip email",
+    "fr": "Verifiez votre adresse email BagTrip",
+}
+
+_VERIFICATION_BODY = {
+    "en": (
+        "Welcome to BagTrip!\n\n"
+        "Open the link below in the BagTrip app to confirm your email address:\n"
+        "{link}\n\n"
+        "This link expires in 24 hours. If you did not create a BagTrip account, "
+        "you can safely ignore this email."
+    ),
+    "fr": (
+        "Bienvenue sur BagTrip !\n\n"
+        "Ouvrez le lien ci-dessous dans l'application BagTrip pour confirmer "
+        "votre adresse email :\n"
+        "{link}\n\n"
+        "Ce lien expire dans 24 heures. Si vous n'avez pas cree de compte "
+        "BagTrip, vous pouvez ignorer cet email."
+    ),
+}
+
 
 class MailerService:
     """Send transactional emails over SMTP. All sends are best-effort."""
@@ -51,6 +74,11 @@ class MailerService:
     def build_reset_link(raw_token: str) -> str:
         """Build the deep link the mobile app opens to reset a password."""
         return f"{settings.PASSWORD_RESET_URL_BASE}?token={raw_token}"
+
+    @staticmethod
+    def build_verification_link(raw_token: str) -> str:
+        """Build the deep link the mobile app opens to verify an email."""
+        return f"{settings.EMAIL_VERIFICATION_URL_BASE}?token={raw_token}"
 
     @staticmethod
     async def send_password_reset(to_email: str, raw_token: str, locale: str | None = None) -> bool:
@@ -88,6 +116,47 @@ class MailerService:
             # the failure (without the token) for observability and move on.
             logger.error(
                 "Failed to send password-reset email",
+                data={"error": str(exc)},
+            )
+            return False
+
+    @staticmethod
+    async def send_email_verification(
+        to_email: str, raw_token: str, locale: str | None = None
+    ) -> bool:
+        """Send an email-verification email. Returns True on success, never raises.
+
+        Verification is soft: the email lets the user confirm their address, but
+        nothing in the app is gated on it. The raw token only travels by email,
+        is never logged, and transport errors are swallowed so registration and
+        the resend flow stay non-blocking.
+        """
+        if not MailerService.is_enabled():
+            return False
+
+        loc = normalize_locale(locale)
+        lang = "fr" if loc.startswith("fr") else "en"
+        link = MailerService.build_verification_link(raw_token)
+
+        message = EmailMessage()
+        message["From"] = settings.SMTP_FROM_EMAIL
+        message["To"] = to_email
+        message["Subject"] = _VERIFICATION_SUBJECT[lang]
+        message.set_content(_VERIFICATION_BODY[lang].format(link=link))
+
+        try:
+            await aiosmtplib.send(
+                message,
+                hostname=settings.SMTP_HOST,
+                port=settings.SMTP_PORT,
+                username=settings.SMTP_USERNAME,
+                password=settings.SMTP_PASSWORD,
+                start_tls=settings.SMTP_USE_TLS,
+            )
+            return True
+        except Exception as exc:
+            logger.error(
+                "Failed to send email-verification email",
                 data={"error": str(exc)},
             )
             return False

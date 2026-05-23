@@ -124,6 +124,8 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
     # Deep link the mobile app handles to open the reset-password screen.
     PASSWORD_RESET_URL_BASE: str = "bagtrip://reset-password"
+    # Deep link the mobile app handles to confirm an email verification.
+    EMAIL_VERIFICATION_URL_BASE: str = "bagtrip://verify-email"
 
     # Cookie / CORS
     ALLOWED_ORIGINS: str = "http://localhost:8000"

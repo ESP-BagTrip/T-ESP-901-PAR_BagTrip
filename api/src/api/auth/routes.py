@@ -28,6 +28,7 @@ from src.api.auth.schemas import (
     SignupRequest,
     UpdateUserRequest,
     UserResponse,
+    VerifyEmailRequest,
 )
 from src.config.database import get_db
 from src.config.env import settings
@@ -51,6 +52,11 @@ router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 def _hash_reset_token(token: str) -> str:
     """SHA-256 hash of a password reset token — only the hash is persisted."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _hash_verification_token(token: str) -> str:
+    """SHA-256 hash of an email-verification token — only the hash is persisted."""
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
@@ -100,6 +106,7 @@ async def _build_auth_response(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -187,7 +194,19 @@ async def register(
             detail="User already exists",
         ) from None
 
-    return await _build_auth_response(db, user, response)
+    # Soft email verification (SMP-327): issue a verification token and email it.
+    # Access is never gated on verification — the client just shows a banner.
+    raw_verification = secrets.token_urlsafe(32)
+    user.email_verification_token = _hash_verification_token(raw_verification)
+    user.email_verification_expires = datetime.now(UTC) + timedelta(hours=24)
+
+    auth_response = await _build_auth_response(db, user, response)
+
+    # Best-effort send (after the user is committed) — never blocks registration.
+    locale = DeviceTokenService.get_locale_for_user(db, user.id)
+    await MailerService.send_email_verification(user.email, raw_verification, locale)
+
+    return auth_response
 
 
 @router.post(
@@ -268,6 +287,7 @@ async def login(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -319,6 +339,7 @@ async def me(
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
+        email_verified=bool(current_user.email_verified),
         plan=current_user.plan or "FREE",
         ai_generations_remaining=plan_info["ai_generations_remaining"],
         plan_expires_at=current_user.plan_expires_at,
@@ -358,6 +379,7 @@ async def update_me(
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
+        email_verified=bool(current_user.email_verified),
         plan=current_user.plan or "FREE",
         ai_generations_remaining=plan_info["ai_generations_remaining"],
         plan_expires_at=current_user.plan_expires_at,
@@ -424,6 +446,12 @@ async def google_sign_in(
             user.full_name = full_name
             db.commit()
             db.refresh(user)
+
+        # The OAuth provider already verified ownership of the email address, so
+        # mark it verified (soft verification needs no further confirmation).
+        if not user.email_verified:
+            user.email_verified = True
+            db.commit()
 
         return await _build_auth_response(db, user, response)
     except AppError:
@@ -506,6 +534,12 @@ async def apple_sign_in(
                 email=email,
                 password_hash=_dummy_password_hash(),
             )
+
+        # Apple verified the account (even with a private-relay address), so the
+        # email counts as verified for our soft-verification purposes.
+        if not user.email_verified:
+            user.email_verified = True
+            db.commit()
 
         return await _build_auth_response(db, user, response)
     except AppError:
@@ -598,6 +632,7 @@ async def refresh(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -722,6 +757,69 @@ async def reset_password(
     user.password_reset_expires = None
     db.commit()
     return {"message": "Password updated successfully."}
+
+
+@router.post(
+    "/verify-email",
+    summary="Verify an email address with a token",
+    description="Confirm an email address using a valid verification token (public, soft)",
+)
+async def verify_email(
+    request: VerifyEmailRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Verify email using a valid, non-expired token.
+
+    Soft verification: confirming the email only flips ``email_verified`` and
+    clears the token. Nothing in the app is gated on this — the client uses it
+    to dismiss a "verify your email" banner.
+    """
+    token_hash = _hash_verification_token(request.token)
+    user = (
+        db.query(User)
+        .filter(
+            User.email_verification_token == token_hash,
+            User.email_verification_expires > datetime.now(UTC),
+        )
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token",
+        )
+    user.email_verified = True
+    user.email_verification_token = None
+    user.email_verification_expires = None
+    db.commit()
+    return {"message": "Email verified successfully."}
+
+
+@router.post(
+    "/resend-verification",
+    summary="Resend the email-verification email",
+    description="Re-issue a verification token and email it to the authenticated user",
+)
+async def resend_verification(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Resend the verification email for the logged-in user.
+
+    No-op (200) if the email is already verified. Otherwise a fresh token is
+    issued, persisted, and emailed best-effort.
+    """
+    if current_user.email_verified:
+        return {"message": "Email already verified."}
+
+    raw_verification = secrets.token_urlsafe(32)
+    current_user.email_verification_token = _hash_verification_token(raw_verification)
+    current_user.email_verification_expires = datetime.now(UTC) + timedelta(hours=24)
+    db.commit()
+
+    locale = DeviceTokenService.get_locale_for_user(db, current_user.id)
+    await MailerService.send_email_verification(current_user.email, raw_verification, locale)
+    return {"message": "Verification email sent."}
 
 
 @router.patch(

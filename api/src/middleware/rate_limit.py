@@ -154,6 +154,10 @@ _AUTH_RATE_LIMITED_PATHS = {
     # brute-force the reset token. Both were previously unlimited.
     "/v1/auth/forgot-password",
     "/v1/auth/reset-password",
+    # Email verification (soft): verify-email lets an attacker brute-force the
+    # verification token, resend-verification is a mail-bombing vector.
+    "/v1/auth/verify-email",
+    "/v1/auth/resend-verification",
 }
 
 

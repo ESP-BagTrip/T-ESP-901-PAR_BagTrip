@@ -30,6 +30,11 @@ def test_reset_endpoints_are_in_the_limited_set():
     assert "/v1/auth/reset-password" in _AUTH_RATE_LIMITED_PATHS
 
 
+def test_email_verification_endpoints_are_in_the_limited_set():
+    assert "/v1/auth/verify-email" in _AUTH_RATE_LIMITED_PATHS
+    assert "/v1/auth/resend-verification" in _AUTH_RATE_LIMITED_PATHS
+
+
 def test_forgot_password_returns_429_over_the_limit():
     client = TestClient(_app())
     # Distinct IP so the shared in-memory counter doesn't collide with siblings.
