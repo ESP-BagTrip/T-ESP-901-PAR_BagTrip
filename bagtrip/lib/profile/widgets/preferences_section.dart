@@ -59,12 +59,14 @@ class PreferencesSection extends StatelessWidget {
           title: AppLocalizations.of(context)!.languageLabel,
           actions: [
             AdaptiveAction(
-              label: 'Français',
+              // The stored value stays the canonical 'Français'/'English'
+              // (SettingsBloc keys off it); only the display is localized.
+              label: AppLocalizations.of(context)!.languageFrench,
               onPressed: () =>
                   context.read<SettingsBloc>().add(ChangeLanguage('Français')),
             ),
             AdaptiveAction(
-              label: 'English',
+              label: AppLocalizations.of(context)!.languageEnglish,
               onPressed: () =>
                   context.read<SettingsBloc>().add(ChangeLanguage('English')),
             ),
@@ -94,7 +96,7 @@ class PreferencesSection extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.space4),
                 Text(
-                  selectedLanguage,
+                  _languageDisplay(context, selectedLanguage),
                   style: TextStyle(fontSize: 14, color: onSurface),
                 ),
               ],
@@ -108,6 +110,19 @@ class PreferencesSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Maps the stored canonical language value to a localized display label.
+  String _languageDisplay(BuildContext context, String value) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (value) {
+      case 'Français':
+        return l10n.languageFrench;
+      case 'English':
+        return l10n.languageEnglish;
+      default:
+        return value;
+    }
   }
 
   Widget _buildThemeSelector(BuildContext context, String currentTheme) {

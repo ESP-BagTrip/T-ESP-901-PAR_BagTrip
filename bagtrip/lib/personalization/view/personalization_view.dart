@@ -221,7 +221,7 @@ class PersonalizationView extends StatelessWidget {
       case 4:
         return l10n.personalizationStepTitleFrequency;
       case 5:
-        return 'Contraintes';
+        return l10n.personalizationStepTitleConstraints;
       case 6:
         return l10n.personalizationStepTitleTravelStyle;
       default:
@@ -240,7 +240,7 @@ class PersonalizationView extends StatelessWidget {
       case 4:
         return l10n.personalizationStepSubtitleFrequency;
       case 5:
-        return 'Des restrictions ou contraintes pour votre voyage ?';
+        return l10n.personalizationStepSubtitleConstraints;
       case 6:
         return l10n.personalizationStepSubtitleTravelStyle;
       default:

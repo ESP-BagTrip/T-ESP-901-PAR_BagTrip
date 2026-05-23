@@ -554,6 +554,18 @@ abstract class AppLocalizations {
   /// **'LANGUE'**
   String get languageLabel;
 
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anglais'**
+  String get languageEnglish;
+
   /// No description provided for @themeLabel.
   ///
   /// In fr, this message translates to:
@@ -1039,6 +1051,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Par an'**
   String get personalizationStepSubtitleFrequency;
+
+  /// No description provided for @personalizationStepTitleConstraints.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contraintes'**
+  String get personalizationStepTitleConstraints;
+
+  /// No description provided for @personalizationStepSubtitleConstraints.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des restrictions ou contraintes pour votre voyage ?'**
+  String get personalizationStepSubtitleConstraints;
 
   /// No description provided for @personalizationStepTitleTravelStyle.
   ///

@@ -95,5 +95,21 @@ void main() {
       );
       expect(find.byType(PreferencesSection), findsOneWidget);
     });
+
+    testWidgets('localizes the stored language value for display', (
+      tester,
+    ) async {
+      // Stored value stays canonical 'Français'; under the EN test locale the
+      // display must be localized ("French"), not the raw stored string.
+      await pump(
+        tester,
+        const SettingsState(
+          selectedTheme: 'light',
+          selectedLanguage: 'Français',
+        ),
+      );
+      expect(find.text('French'), findsOneWidget);
+      expect(find.text('Français'), findsNothing);
+    });
   });
 }

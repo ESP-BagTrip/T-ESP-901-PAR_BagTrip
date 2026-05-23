@@ -265,6 +265,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageLabel => 'LANGUAGE';
 
   @override
+  String get languageFrench => 'French';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
   String get themeLabel => 'THEME';
 
   @override
@@ -520,6 +526,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get personalizationStepSubtitleFrequency => 'Per year';
+
+  @override
+  String get personalizationStepTitleConstraints => 'Constraints';
+
+  @override
+  String get personalizationStepSubtitleConstraints =>
+      'Any restrictions or constraints for your trip?';
 
   @override
   String get personalizationStepTitleTravelStyle => 'Your travel style';
