@@ -23,7 +23,7 @@ import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
-import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/profile/view/personal_info_page.dart';
@@ -176,13 +176,15 @@ class TripDetailShellRoute extends ShellRouteData {
 class PlanTripRoute extends GoRouteData with $PlanTripRoute {
   const PlanTripRoute({this.$extra});
 
-  final LocationResult? $extra;
+  /// Optional pre-fill bundle (destination + duration + budget) forwarded
+  /// from an external entry point such as the post-trip suggestion CTA.
+  final PlanTripPrefill? $extra;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildWizardTransitionPage<void>(
         state: state,
-        child: PlanTripFlowPage(initialDestination: $extra),
+        child: PlanTripFlowPage(initialPrefill: $extra),
       );
 }
 

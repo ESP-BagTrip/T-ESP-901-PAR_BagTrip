@@ -255,7 +255,7 @@ mixin $HomeRoute on GoRouteData {
 
 mixin $PlanTripRoute on GoRouteData {
   static PlanTripRoute _fromState(GoRouterState state) =>
-      PlanTripRoute($extra: state.extra as LocationResult?);
+      PlanTripRoute($extra: state.extra as PlanTripPrefill?);
 
   PlanTripRoute get _self => this as PlanTripRoute;
 

@@ -37,6 +37,8 @@ sealed class PlanTripEvent with _$PlanTripEvent {
       PlanTripSearchDestination;
   const factory PlanTripEvent.selectManualDestination(LocationResult location) =
       PlanTripSelectManualDestination;
+  const factory PlanTripEvent.applyPrefill(PlanTripPrefill prefill) =
+      PlanTripApplyPrefill;
   const factory PlanTripEvent.requestAiSuggestions({required String locale}) =
       PlanTripRequestAiSuggestions;
   const factory PlanTripEvent.selectAiDestination(AiDestination destination) =

@@ -2,6 +2,8 @@
 
 import 'package:bagtrip/personalization/bloc/personalization_bloc.dart';
 import 'package:bagtrip/personalization/view/personalization_view.dart';
+import 'package:bagtrip/personalization/widgets/personalization_single_select_card.dart';
+import 'package:bagtrip/personalization/widgets/travel_style_step_content.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +21,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(LoadPersonalization());
     registerFallbackValue(PersonalizationInitial());
+    registerFallbackValue(SetTravelStyle(null));
   });
 
   setUp(() {
@@ -102,6 +105,21 @@ void main() {
     testWidgets('renders constraints step (step 5)', (tester) async {
       await pump(tester, loaded(step: 5, constraints: 'no nuts'));
       expect(find.byType(PersonalizationView), findsOneWidget);
+    });
+
+    testWidgets('renders travel style step (step 6)', (tester) async {
+      await pump(tester, loaded(step: 6, travelStyle: 'flexible'));
+      expect(find.byType(TravelStyleStepContent), findsOneWidget);
+    });
+
+    testWidgets('travel style selection dispatches SetTravelStyle', (
+      tester,
+    ) async {
+      await pump(tester, loaded(step: 6));
+      // Tap the "planned" option (first card).
+      await tester.tap(find.byType(PersonalizationSingleSelectCard).first);
+      await tester.pump();
+      verify(() => mockBloc.add(any(that: isA<SetTravelStyle>()))).called(1);
     });
   });
 }

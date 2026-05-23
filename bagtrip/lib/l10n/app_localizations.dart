@@ -1040,6 +1040,18 @@ abstract class AppLocalizations {
   /// **'Par an'**
   String get personalizationStepSubtitleFrequency;
 
+  /// No description provided for @personalizationStepTitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre style de voyage'**
+  String get personalizationStepTitleTravelStyle;
+
+  /// No description provided for @personalizationStepSubtitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment aimez-vous organiser vos voyages ?'**
+  String get personalizationStepSubtitleTravelStyle;
+
   /// No description provided for @personalizationBudgetComfort.
   ///
   /// In fr, this message translates to:

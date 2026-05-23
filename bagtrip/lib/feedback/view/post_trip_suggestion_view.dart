@@ -3,6 +3,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:flutter/material.dart';
 
 class PostTripSuggestionView extends StatelessWidget {
@@ -121,7 +122,21 @@ class PostTripSuggestionView extends StatelessWidget {
                     city: destination,
                     countryName: country,
                   );
-                  PlanTripRoute($extra: location).go(context);
+                  final rawDuration = suggestion['durationDays'];
+                  final rawBudget = suggestion['budgetEur'];
+                  final durationDays = rawDuration is num
+                      ? rawDuration.toInt()
+                      : int.tryParse('$rawDuration');
+                  final budgetEur = rawBudget is num
+                      ? rawBudget.toDouble()
+                      : double.tryParse('$rawBudget');
+                  PlanTripRoute(
+                    $extra: PlanTripPrefill(
+                      destination: location,
+                      durationDays: durationDays,
+                      budgetEur: budgetEur,
+                    ),
+                  ).go(context);
                 },
                 icon: const Icon(Icons.flight_takeoff),
                 label: Text(AppLocalizations.of(context)!.postTripCreateTrip),

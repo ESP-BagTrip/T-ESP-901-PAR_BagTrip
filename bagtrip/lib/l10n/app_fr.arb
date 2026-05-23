@@ -222,6 +222,8 @@
   "personalizationStepTitleBudgetQuestion": "Quel est votre budget ?",
   "personalizationStepTitleFrequency": "À quelle fréquence voyagez-vous ?",
   "personalizationStepSubtitleFrequency": "Par an",
+  "personalizationStepTitleTravelStyle": "Votre style de voyage",
+  "personalizationStepSubtitleTravelStyle": "Comment aimez-vous organiser vos voyages ?",
   "personalizationBudgetComfort": "Confort",
   "personalizationBudgetComfortDesc": "Hôtels 4★, bon équilibre",
   "personalizationFrequency1_2": "1–2 fois",

@@ -530,6 +530,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get personalizationStepSubtitleFrequency => 'Par an';
 
   @override
+  String get personalizationStepTitleTravelStyle => 'Votre style de voyage';
+
+  @override
+  String get personalizationStepSubtitleTravelStyle =>
+      'Comment aimez-vous organiser vos voyages ?';
+
+  @override
   String get personalizationBudgetComfort => 'Confort';
 
   @override

@@ -303,20 +303,20 @@ void main() {
     );
 
     blocTest<PersonalizationBloc, PersonalizationState>(
-      'Step boundaries: NextStep at max (5) does nothing, PreviousStep at 0 does nothing',
+      'Step boundaries: NextStep at max (6) does nothing, PreviousStep at 0 does nothing',
       build: buildBloc,
       seed: () => PersonalizationLoaded(
-        step: 5,
+        step: 6,
         userId: 'user-1',
         selectedTravelTypes: {},
       ),
       act: (bloc) {
         bloc.add(PersonalizationNextStep()); // at max, no-op
-        bloc.add(PersonalizationPreviousStep()); // goes from 5 to 4
+        bloc.add(PersonalizationPreviousStep()); // goes from 6 to 5
       },
       expect: () => [
-        // Only PreviousStep emits (NextStep at 5 is a no-op)
-        isA<PersonalizationLoaded>().having((s) => s.step, 'step', 4),
+        // Only PreviousStep emits (NextStep at 6 is a no-op)
+        isA<PersonalizationLoaded>().having((s) => s.step, 'step', 5),
       ],
     );
 
