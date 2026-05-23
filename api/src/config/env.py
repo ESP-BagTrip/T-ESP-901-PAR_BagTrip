@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     # Background jobs — disable per-job in test/dev when not needed.
     ENABLE_PLAN_EXPIRATION_JOB: bool = True
     ENABLE_ZOMBIE_PI_JOB: bool = True
+    ENABLE_REFRESH_TOKEN_CLEANUP_JOB: bool = True
 
     # OpenTelemetry — distributed tracing.
     # When OTEL_EXPORTER_OTLP_ENDPOINT is set (e.g. `http://tempo:4317` in
@@ -126,6 +127,8 @@ class Settings(BaseSettings):
     PASSWORD_RESET_URL_BASE: str = "bagtrip://reset-password"
     # Deep link the mobile app handles to confirm an email verification.
     EMAIL_VERIFICATION_URL_BASE: str = "bagtrip://verify-email"
+    # Deep link the mobile app handles to accept a trip-share invitation.
+    TRIP_INVITE_URL_BASE: str = "bagtrip://invite"
 
     # Cookie / CORS
     ALLOWED_ORIGINS: str = "http://localhost:8000"

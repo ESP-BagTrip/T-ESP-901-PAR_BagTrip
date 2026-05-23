@@ -53,10 +53,10 @@ def _make_profile(**overrides):
     profile = MagicMock()
     profile.id = overrides.get("id", uuid.uuid4())
     profile.travel_types = overrides.get("travel_types", ["BEACH", "CITY"])
-    profile.travel_style = overrides.get("travel_style", "RELAXED")
-    profile.budget = overrides.get("budget", "MID")
-    profile.companions = overrides.get("companions", "FAMILY")
-    profile.travel_frequency = overrides.get("travel_frequency", "QUARTERLY")
+    profile.travel_style = overrides.get("travel_style", "flexible")
+    profile.budget = overrides.get("budget", "moderate")
+    profile.companions = overrides.get("companions", "family")
+    profile.travel_frequency = overrides.get("travel_frequency", "3-5")
     profile.medical_constraints = overrides.get("medical_constraints")
     profile.is_completed = overrides.get("is_completed", True)
     profile.created_at = overrides.get("created_at", datetime.now(UTC))
@@ -112,25 +112,72 @@ class TestUpdateProfile:
                 "/v1/profile",
                 json={
                     "travelTypes": ["BEACH", "CITY"],
-                    "travelStyle": "RELAXED",
-                    "budget": "MID",
-                    "companions": "FAMILY",
-                    "travelFrequency": "QUARTERLY",
+                    "travelStyle": "flexible",
+                    "budget": "moderate",
+                    "companions": "family",
+                    "travelFrequency": "3-5",
                 },
             )
         assert response.status_code == 200
-        assert response.json()["travelStyle"] == "RELAXED"
+        assert response.json()["travelStyle"] == "flexible"
         mocked.assert_called_once()
 
     def test_partial_update(self, client: TestClient) -> None:
-        profile = _make_profile(budget="LOW")
+        profile = _make_profile(budget="economical")
         with patch(
             "src.api.profile.routes.ProfileService.create_or_update_profile",
             return_value=profile,
         ):
-            response = client.put("/v1/profile", json={"budget": "LOW"})
+            response = client.put("/v1/profile", json={"budget": "economical"})
         assert response.status_code == 200
-        assert response.json()["budget"] == "LOW"
+        assert response.json()["budget"] == "economical"
+
+
+class TestUpdateProfileValidation:
+    """SMP327-037: preference fields are validated against the closed enum set."""
+
+    def test_accepts_all_valid_enum_values(self, client: TestClient) -> None:
+        profile = _make_profile()
+        with patch(
+            "src.api.profile.routes.ProfileService.create_or_update_profile",
+            return_value=profile,
+        ):
+            for style in ("planned", "flexible", "spontaneous"):
+                assert client.put("/v1/profile", json={"travelStyle": style}).status_code == 200
+            for budget in ("economical", "moderate", "comfort", "luxury"):
+                assert client.put("/v1/profile", json={"budget": budget}).status_code == 200
+            for comp in ("solo", "couple", "family", "friends"):
+                assert client.put("/v1/profile", json={"companions": comp}).status_code == 200
+            for freq in ("1-2", "3-5", "6+"):
+                assert client.put("/v1/profile", json={"travelFrequency": freq}).status_code == 200
+
+    def test_rejects_invalid_travel_style(self, client: TestClient) -> None:
+        response = client.put("/v1/profile", json={"travelStyle": "RELAXED"})
+        assert response.status_code == 422
+
+    def test_rejects_invalid_budget(self, client: TestClient) -> None:
+        response = client.put("/v1/profile", json={"budget": "MID"})
+        assert response.status_code == 422
+
+    def test_rejects_invalid_companions(self, client: TestClient) -> None:
+        response = client.put("/v1/profile", json={"companions": "FAMILY"})
+        assert response.status_code == 422
+
+    def test_rejects_invalid_travel_frequency(self, client: TestClient) -> None:
+        response = client.put("/v1/profile", json={"travelFrequency": "QUARTERLY"})
+        assert response.status_code == 422
+
+    def test_null_values_remain_allowed(self, client: TestClient) -> None:
+        profile = _make_profile()
+        with patch(
+            "src.api.profile.routes.ProfileService.create_or_update_profile",
+            return_value=profile,
+        ):
+            response = client.put(
+                "/v1/profile",
+                json={"travelStyle": None, "budget": None},
+            )
+        assert response.status_code == 200
 
 
 class TestCheckCompletion:

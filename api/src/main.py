@@ -118,6 +118,11 @@ async def lifespan(app: FastAPI):
 
     currency_task = asyncio.create_task(currency_refresh_scheduler())
 
+    # Lancer le job de purge des refresh tokens revoked / expirés (SMP327-062)
+    from src.jobs.refresh_token_cleanup_job import refresh_token_cleanup_scheduler
+
+    refresh_token_cleanup_task = asyncio.create_task(refresh_token_cleanup_scheduler())
+
     yield
 
     # Arrêter les schedulers
@@ -126,6 +131,7 @@ async def lifespan(app: FastAPI):
     plan_expiration_task.cancel()
     zombie_pi_task.cancel()
     currency_task.cancel()
+    refresh_token_cleanup_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await scheduler_task
     with contextlib.suppress(asyncio.CancelledError):
@@ -136,6 +142,8 @@ async def lifespan(app: FastAPI):
         await zombie_pi_task
     with contextlib.suppress(asyncio.CancelledError):
         await currency_task
+    with contextlib.suppress(asyncio.CancelledError):
+        await refresh_token_cleanup_task
 
     await close_http_client()
     logger.info("Application shutting down")

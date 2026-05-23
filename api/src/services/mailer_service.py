@@ -62,6 +62,30 @@ _VERIFICATION_BODY = {
 }
 
 
+_INVITE_SUBJECT = {
+    "en": "You have been invited to a BagTrip trip",
+    "fr": "Vous avez ete invite a un voyage BagTrip",
+}
+
+_INVITE_BODY = {
+    "en": (
+        '{inviter} invited you to join their BagTrip trip "{trip_title}".\n\n'
+        "Open the link below in the BagTrip app to accept the invitation:\n"
+        "{link}\n\n"
+        "This invitation expires in 7 days. If you did not expect this, you can "
+        "safely ignore this email."
+    ),
+    "fr": (
+        '{inviter} vous a invite a rejoindre son voyage BagTrip "{trip_title}".\n\n'
+        "Ouvrez le lien ci-dessous dans l'application BagTrip pour accepter "
+        "l'invitation :\n"
+        "{link}\n\n"
+        "Cette invitation expire dans 7 jours. Si vous ne vous attendiez pas a "
+        "ceci, vous pouvez ignorer cet email."
+    ),
+}
+
+
 class MailerService:
     """Send transactional emails over SMTP. All sends are best-effort."""
 
@@ -79,6 +103,11 @@ class MailerService:
     def build_verification_link(raw_token: str) -> str:
         """Build the deep link the mobile app opens to verify an email."""
         return f"{settings.EMAIL_VERIFICATION_URL_BASE}?token={raw_token}"
+
+    @staticmethod
+    def build_invite_link(invite_token: str) -> str:
+        """Build the deep link the mobile app opens to accept a trip invite."""
+        return f"{settings.TRIP_INVITE_URL_BASE}?token={invite_token}"
 
     @staticmethod
     async def send_password_reset(to_email: str, raw_token: str, locale: str | None = None) -> bool:
@@ -157,6 +186,57 @@ class MailerService:
         except Exception as exc:
             logger.error(
                 "Failed to send email-verification email",
+                data={"error": str(exc)},
+            )
+            return False
+
+    @staticmethod
+    async def send_trip_invite(
+        to_email: str,
+        trip_title: str,
+        inviter_name: str,
+        invite_token: str,
+        locale: str | None = None,
+    ) -> bool:
+        """Send a trip-share invitation email. Returns True on success, never raises.
+
+        Sent to an email that does not yet have a BagTrip account: the deep link
+        carries the invite token so the recipient can sign up and claim the
+        share. Best-effort — a mailer outage must never block invite creation,
+        and the token only travels by email (never logged).
+        """
+        if not MailerService.is_enabled():
+            return False
+
+        loc = normalize_locale(locale)
+        lang = "fr" if loc.startswith("fr") else "en"
+        link = MailerService.build_invite_link(invite_token)
+
+        message = EmailMessage()
+        message["From"] = settings.SMTP_FROM_EMAIL
+        message["To"] = to_email
+        message["Subject"] = _INVITE_SUBJECT[lang]
+        message.set_content(
+            _INVITE_BODY[lang].format(
+                inviter=inviter_name,
+                trip_title=trip_title,
+                link=link,
+            )
+        )
+
+        try:
+            await aiosmtplib.send(
+                message,
+                hostname=settings.SMTP_HOST,
+                port=settings.SMTP_PORT,
+                username=settings.SMTP_USERNAME,
+                password=settings.SMTP_PASSWORD,
+                start_tls=settings.SMTP_USE_TLS,
+            )
+            return True
+        except Exception as exc:
+            logger.error(
+                "Failed to send trip-invite email",
                 data={"error": str(exc)},
             )
             return False
