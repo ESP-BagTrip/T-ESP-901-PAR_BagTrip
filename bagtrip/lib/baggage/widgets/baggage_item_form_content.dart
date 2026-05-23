@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_haptics.dart';
+import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -6,17 +7,8 @@ import 'package:bagtrip/design/widgets/form/form_quantity_stepper.dart';
 import 'package:bagtrip/design/widgets/form/form_section_header.dart';
 import 'package:bagtrip/design/widgets/form/micro_label_field.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/baggage_category.dart';
 import 'package:flutter/material.dart';
-
-Map<String, String> baggageCategoryLabels(AppLocalizations l10n) => {
-  'DOCUMENTS': l10n.baggageCategoryDocuments,
-  'CLOTHING': l10n.baggageCategoryClothing,
-  'ELECTRONICS': l10n.baggageCategoryElectronics,
-  'TOILETRIES': l10n.baggageCategoryHygiene,
-  'HEALTH': l10n.baggageCategoryMedication,
-  'ACCESSORIES': l10n.baggageCategoryAccessories,
-  'OTHER': l10n.baggageCategoryOther,
-};
 
 class BaggageItemFormContent extends StatelessWidget {
   const BaggageItemFormContent({
@@ -39,7 +31,6 @@ class BaggageItemFormContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final categories = baggageCategoryLabels(l10n);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -84,12 +75,12 @@ class BaggageItemFormContent extends StatelessWidget {
         Wrap(
           spacing: AppSpacing.space8,
           runSpacing: AppSpacing.space8,
-          children: categories.entries.map((entry) {
-            final isSelected = category == entry.key;
+          children: BaggageCategory.values.map((cat) {
+            final isSelected = category == cat.apiValue;
             return GestureDetector(
               onTap: () {
                 AppHaptics.light();
-                onCategoryChanged(entry.key);
+                onCategoryChanged(cat.apiValue);
               },
               child: AnimatedContainer(
                 duration: AppAnimationDurations.quick,
@@ -108,16 +99,27 @@ class BaggageItemFormContent extends StatelessWidget {
                         : ColorName.border,
                   ),
                 ),
-                child: Text(
-                  entry.value,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? ColorName.surface
-                        : ColorName.textMutedLight,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      cat.icon,
+                      size: 14,
+                      color: isSelected ? ColorName.surface : cat.color,
+                    ),
+                    const SizedBox(width: AppSpacing.space4),
+                    Text(
+                      cat.label(l10n),
+                      style: TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? ColorName.surface
+                            : ColorName.textMutedLight,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );

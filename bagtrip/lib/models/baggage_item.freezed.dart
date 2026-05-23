@@ -216,8 +216,8 @@ return $default(_that.id,_that.tripId,_that.name,_that.quantity,_that.isPacked,_
 /// @nodoc
 @JsonSerializable()
 
-class _BaggageItem implements BaggageItem {
-  const _BaggageItem({required this.id, required this.tripId, required this.name, this.quantity, this.isPacked = false, this.category, this.notes, this.createdAt, this.updatedAt});
+class _BaggageItem extends BaggageItem {
+  const _BaggageItem({required this.id, required this.tripId, required this.name, this.quantity, this.isPacked = false, this.category, this.notes, this.createdAt, this.updatedAt}): super._();
   factory _BaggageItem.fromJson(Map<String, dynamic> json) => _$BaggageItemFromJson(json);
 
 @override final  String id;
