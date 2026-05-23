@@ -18,6 +18,7 @@ from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import (
     AppleSignInRequest,
     AuthResponse,
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     GoogleSignInRequest,
     LoginRequest,
@@ -721,6 +722,43 @@ async def reset_password(
     user.password_reset_expires = None
     db.commit()
     return {"message": "Password updated successfully."}
+
+
+@router.patch(
+    "/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Change password (authenticated user)",
+    description="Change the password for the logged-in user, given the current one",
+)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Change password — verify the current password, then rotate it.
+
+    All refresh tokens are revoked so a password change (often a response to a
+    suspected compromise) invalidates every existing session.
+    """
+    if not current_user.password_hash or not bcrypt.checkpw(
+        request.current_password.encode("utf-8"),
+        current_user.password_hash.encode("utf-8"),
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid current password",
+        )
+
+    current_user.password_hash = bcrypt.hashpw(
+        request.new_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    current_user.updated_at = datetime.now(UTC)
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == current_user.id,
+        RefreshToken.revoked.is_(False),
+    ).update({"revoked": True})
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete(

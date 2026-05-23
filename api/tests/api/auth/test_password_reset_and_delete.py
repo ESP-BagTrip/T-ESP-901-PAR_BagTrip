@@ -4,6 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import bcrypt
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -130,6 +131,44 @@ class TestForgotPassword:
 
         # Verify commit was NOT called since no user was found
         assert not mock_db_session.commit.called
+
+
+class TestChangePassword:
+    """Test suite for PATCH /v1/auth/password (logged-in user)."""
+
+    def test_change_password_success(self, client, override_get_db, mock_db_session):
+        old_hash = bcrypt.hashpw(b"oldpass123", bcrypt.gensalt()).decode("utf-8")
+        user = User(id=uuid.uuid4(), email="u@example.com", password_hash=old_hash)
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        response = client.patch(
+            "/v1/auth/password",
+            json={"currentPassword": "oldpass123", "newPassword": "newpass456"},
+        )
+
+        assert response.status_code == 204
+        # Password was rotated to the new value.
+        assert bcrypt.checkpw(b"newpass456", user.password_hash.encode("utf-8"))
+        # All refresh tokens revoked + committed.
+        mock_db_session.query.return_value.filter.return_value.update.assert_called_with(
+            {"revoked": True}
+        )
+        assert mock_db_session.commit.called
+        app.dependency_overrides = {}
+
+    def test_change_password_wrong_current(self, client, override_get_db, mock_db_session):
+        old_hash = bcrypt.hashpw(b"oldpass123", bcrypt.gensalt()).decode("utf-8")
+        user = User(id=uuid.uuid4(), email="u@example.com", password_hash=old_hash)
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        response = client.patch(
+            "/v1/auth/password",
+            json={"currentPassword": "WRONG", "newPassword": "newpass456"},
+        )
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid current password"
+        app.dependency_overrides = {}
 
 
 class TestResetPassword:

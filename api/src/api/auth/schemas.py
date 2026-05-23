@@ -96,3 +96,10 @@ class ResetPasswordRequest(BagtripRequestModel):
 
     token: str
     new_password: str = Field(..., min_length=6)
+
+
+class ChangePasswordRequest(BagtripRequestModel):
+    """Changement de mot de passe par un utilisateur authentifié."""
+
+    current_password: str = Field(..., alias="currentPassword")
+    new_password: str = Field(..., min_length=6, alias="newPassword")
