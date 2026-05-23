@@ -1,4 +1,5 @@
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,7 +18,7 @@ void main() {
       accommodations: const [],
       baggageItems: const [],
       shares: const [],
-      userRole: userRole,
+      userRole: UserRole.fromApi(userRole),
       completionResult: const CompletionResult(segments: {}, percentage: 0),
     );
   }

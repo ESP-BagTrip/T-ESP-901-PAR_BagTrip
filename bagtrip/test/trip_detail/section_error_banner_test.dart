@@ -2,6 +2,7 @@
 
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/widgets/section_error_banner.dart';
@@ -24,7 +25,7 @@ TripDetailLoaded _loaded({Map<String, AppError> sectionErrors = const {}}) {
     accommodations: const [],
     baggageItems: const [],
     shares: const [],
-    userRole: 'OWNER',
+    userRole: UserRole.owner,
     selectedDayIndex: 0,
     deferredLoaded: true,
     sectionErrors: sectionErrors,

@@ -16,7 +16,7 @@ final class TripDetailLoaded extends TripDetailState {
   final List<BudgetItem> budgetItems;
   final List<TripShare> shares;
   final int selectedDayIndex;
-  final String userRole;
+  final UserRole userRole;
   final CompletionResult completionResult;
   final Set<String> collapsedSections;
   final String? validationError;
@@ -37,7 +37,7 @@ final class TripDetailLoaded extends TripDetailState {
     this.budgetItems = const [],
     required this.shares,
     this.selectedDayIndex = 0,
-    this.userRole = 'OWNER',
+    this.userRole = UserRole.owner,
     required this.completionResult,
     this.collapsedSections = const {},
     this.validationError,
@@ -51,9 +51,9 @@ final class TripDetailLoaded extends TripDetailState {
 
   int get completionPercentage => completionResult.percentage;
 
-  bool get isViewer => userRole == 'VIEWER';
-  bool get isOwner => userRole == 'OWNER';
-  bool get isEditor => userRole == 'EDITOR';
+  bool get isViewer => userRole == UserRole.viewer;
+  bool get isOwner => userRole == UserRole.owner;
+  bool get isEditor => userRole == UserRole.editor;
   bool get canEdit => (isOwner || isEditor) && !isCompleted;
   bool get isCompleted => trip.status == TripStatus.completed;
 
@@ -118,7 +118,7 @@ final class TripDetailLoaded extends TripDetailState {
     List<BudgetItem>? budgetItems,
     List<TripShare>? shares,
     int? selectedDayIndex,
-    String? userRole,
+    UserRole? userRole,
     CompletionResult? completionResult,
     Set<String>? collapsedSections,
     String? validationError,

@@ -11,6 +11,7 @@ import 'package:bagtrip/models/baggage_item.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_share.dart';
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
@@ -62,7 +63,7 @@ TripDetailLoaded _loaded({
     accommodations: accommodations,
     baggageItems: baggageItems,
     shares: shares,
-    userRole: userRole,
+    userRole: UserRole.fromApi(userRole),
     selectedDayIndex: selectedDayIndex,
     deferredLoaded: deferredLoaded,
     sectionErrors: sectionErrors,

@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip_share.dart';
@@ -54,7 +55,7 @@ void main() {
         accommodations: const [],
         baggageItems: const [],
         shares: const [],
-        userRole: 'OWNER',
+        userRole: UserRole.owner,
         selectedDayIndex: 0,
         deferredLoaded: true,
         sectionErrors: const {},
