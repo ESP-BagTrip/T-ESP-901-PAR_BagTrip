@@ -19,14 +19,14 @@ from src.integrations.circuit_breaker import CircuitBreaker, CircuitState
 @pytest.fixture(autouse=True)
 def _fresh_breaker_and_cache():
     """Reset the module cache and install a fresh breaker per test."""
-    airlabs_client_module._CACHE.clear()
+    airlabs_client_module._cache.clear()
     original = airlabs_client_module._breaker
     airlabs_client_module._breaker = CircuitBreaker(
         "airlabs-test", failure_threshold=3, reset_timeout=30.0
     )
     yield
     airlabs_client_module._breaker = original
-    airlabs_client_module._CACHE.clear()
+    airlabs_client_module._cache.clear()
 
 
 @pytest.mark.asyncio

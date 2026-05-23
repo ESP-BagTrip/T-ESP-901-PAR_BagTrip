@@ -6,8 +6,8 @@ import httpx
 import pytest
 
 from src.integrations.unsplash.client import (
-    _CACHE,
     UnsplashClient,
+    _cache,
     _detect_continent,
 )
 
@@ -15,9 +15,9 @@ from src.integrations.unsplash.client import (
 @pytest.fixture(autouse=True)
 def _clear_cache():
     """Clear the module-level cache between tests."""
-    _CACHE.clear()
+    _cache.clear()
     yield
-    _CACHE.clear()
+    _cache.clear()
 
 
 @pytest.fixture

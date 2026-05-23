@@ -1,14 +1,14 @@
 """Client AirLabs pour les informations de vol en temps réel."""
 
-import time
-
 from src.config.env import settings
 from src.integrations.circuit_breaker import CircuitBreaker, CircuitOpenError
+from src.integrations.distributed_cache import DistributedCache
 from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
-_CACHE: dict[str, dict] = {}
 _CACHE_TTL = 300  # 5 minutes
+# Shared across workers via Redis (falls back to per-process memory).
+_cache = DistributedCache("airlabs", ttl_seconds=_CACHE_TTL)
 
 # AirLabs is a best-effort enrichment provider: when it is down we already
 # swallow-and-warn, so the breaker just lets us skip the network round-trip.
@@ -31,10 +31,9 @@ class AirLabsClient:
 
         code = flight_iata.upper().strip()
 
-        # Check cache
-        cached = _CACHE.get(code)
-        if cached and (time.time() - cached["fetched_at"]) < _CACHE_TTL:
-            return cached["data"]
+        cached = _cache.get(code)
+        if cached is not None:
+            return cached
 
         async def _fetch() -> dict | None:
             client = get_http_client()
@@ -60,8 +59,7 @@ class AirLabsClient:
             if not data:
                 return None
 
-            # Cache
-            _CACHE[code] = {"data": data, "fetched_at": time.time()}
+            _cache.set(code, data)
             return data
 
         try:

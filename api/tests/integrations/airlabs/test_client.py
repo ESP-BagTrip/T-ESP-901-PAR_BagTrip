@@ -20,9 +20,9 @@ from src.integrations.airlabs.client import AirLabsClient
 @pytest.fixture(autouse=True)
 def _clear_cache():
     """Each test starts with a clean module-level cache."""
-    airlabs_client_module._CACHE.clear()
+    airlabs_client_module._cache.clear()
     yield
-    airlabs_client_module._CACHE.clear()
+    airlabs_client_module._cache.clear()
 
 
 def _build_response(payload: dict) -> MagicMock:
