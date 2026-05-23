@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from src.config.database import SessionLocal
 from src.enums import FlightOrderStatus, NotificationType, TripStatus
+from src.integrations.aviation_data import aviation_data_service
 from src.models.activity import Activity
 from src.models.flight_offer import FlightOffer
 from src.models.flight_order import FlightOrder
@@ -180,7 +181,15 @@ def _check_flight_alerts(db: Session, hours_before: float, notif_type: str) -> i
 
 
 def _extract_departure_time(offer: FlightOffer | None) -> datetime | None:
-    """Parse departure time from a pre-loaded FlightOffer.offer_json."""
+    """Parse departure time from a pre-loaded FlightOffer.offer_json, in UTC.
+
+    Amadeus expresses ``departure.at`` in the **local time of the departure
+    airport** and frequently omits the UTC offset. Forcing ``tzinfo=UTC`` on a
+    naive local value shifts every reminder by the airport's offset (e.g. H-4
+    instead of H-1 from Paris). We therefore localize a naive value with the
+    departure airport's IANA timezone (resolved offline via airportsdata) before
+    converting to UTC. When the string already carries an offset we trust it.
+    """
     try:
         if not offer or not offer.offer_json:
             return None
@@ -190,9 +199,15 @@ def _extract_departure_time(offer: FlightOffer | None) -> datetime | None:
         segments = itineraries[0].get("segments", [])
         if not segments:
             return None
-        dep_str = segments[0].get("departure", {}).get("at")
-        if dep_str:
-            return datetime.fromisoformat(dep_str).replace(tzinfo=UTC)
+        departure = segments[0].get("departure", {})
+        dep_str = departure.get("at")
+        if not dep_str:
+            return None
+        parsed = datetime.fromisoformat(dep_str)
+        if parsed.tzinfo is None:
+            tz = _safe_zone(aviation_data_service.timezone_for_iata(departure.get("iataCode")))
+            parsed = parsed.replace(tzinfo=tz)
+        return parsed.astimezone(UTC)
     except (ValueError, TypeError, KeyError, AttributeError):
         pass
     return None
