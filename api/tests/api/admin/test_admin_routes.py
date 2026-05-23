@@ -496,6 +496,17 @@ class TestAdminRoutes:
         response = client.patch(f"/admin/trips/{uuid4()}/archive")
         assert response.status_code == 500
 
+    def test_unarchive_trip_success(self, client, mock_admin_service):
+        mock_admin_service.unarchive_trip.return_value = None
+        response = client.patch(f"/admin/trips/{uuid4()}/unarchive")
+        assert response.status_code == 200
+        assert response.json()["message"] == "Trip unarchived"
+
+    def test_unarchive_trip_error(self, client, mock_admin_service):
+        mock_admin_service.unarchive_trip.side_effect = Exception("Fail")
+        response = client.patch(f"/admin/trips/{uuid4()}/unarchive")
+        assert response.status_code == 500
+
     def test_get_booking_intent_detail_success(self, client, mock_admin_service):
         mock_admin_service.get_booking_intent_detail.return_value = {"id": "abc"}
         response = client.get(f"/admin/booking-intents/{uuid4()}/detail")

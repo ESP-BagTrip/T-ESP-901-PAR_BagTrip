@@ -56,6 +56,7 @@ class AdminService:
     update_trip = staticmethod(AdminTripsService.update_trip)
     delete_trip = staticmethod(AdminTripsService.delete_trip)
     archive_trip = staticmethod(AdminTripsService.archive_trip)
+    unarchive_trip = staticmethod(AdminTripsService.unarchive_trip)
     delete_share = staticmethod(AdminTripsService.delete_share)
 
     # ──────────────────────── Bookings ────────────────────────
