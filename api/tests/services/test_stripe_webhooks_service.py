@@ -48,6 +48,41 @@ class TestIdempotency:
         assert result.processing_error is None
 
 
+class TestHandlerFailureAlerting:
+    def test_handler_exception_persists_error_and_emits_structured_alert(
+        self, mock_db_session
+    ):
+        """A raising handler must not crash the endpoint, must persist the error,
+        and must emit a structured, alertable log marker (SMP327-174)."""
+        import src.services.stripe_webhooks.service as service_module
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        def _boom(db, event, stripe_event):
+            raise RuntimeError("downgrade logic blew up")
+
+        with (
+            patch.dict(service_module._DISPATCH, {"charge.dispute.created": _boom}),
+            patch.object(service_module, "logger") as mock_logger,
+        ):
+            result = StripeWebhooksService.process_event(
+                mock_db_session, _event("charge.dispute.created", {})
+            )
+
+        # Error captured on the row, no exception propagated.
+        assert result.processing_error is not None
+        assert result.processing_error["type"] == "RuntimeError"
+        assert result.processed_at is None
+
+        # Structured alert emitted with the stable marker + event context.
+        mock_logger.error.assert_called_once()
+        _, kwargs = mock_logger.error.call_args
+        data = kwargs["data"]
+        assert data["alert"] == service_module.WEBHOOK_HANDLER_FAILED_ALERT
+        assert data["event_type"] == "charge.dispute.created"
+        assert data["error_type"] == "RuntimeError"
+
+
 class TestPaymentEvents:
     def test_amount_capturable_updated_authorizes_intent(self, mock_db_session):
         intent = BookingIntent(status="INIT")
