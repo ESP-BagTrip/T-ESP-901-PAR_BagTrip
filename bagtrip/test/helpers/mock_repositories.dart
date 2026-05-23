@@ -11,6 +11,7 @@ import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/repositories/booking_repository.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
+import 'package:bagtrip/repositories/home_repository.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/transport_repository.dart';
@@ -48,6 +49,8 @@ class MockBookingRepository extends Mock implements BookingRepository {}
 class MockTripShareRepository extends Mock implements TripShareRepository {}
 
 class MockFeedbackRepository extends Mock implements FeedbackRepository {}
+
+class MockHomeRepository extends Mock implements HomeRepository {}
 
 class MockSubscriptionRepository extends Mock
     implements SubscriptionRepository {}

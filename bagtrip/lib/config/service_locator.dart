@@ -35,6 +35,8 @@ import 'package:bagtrip/service/cached_budget_repository.dart';
 import 'package:bagtrip/service/cached_transport_repository.dart';
 import 'package:bagtrip/service/cached_trip_share_repository.dart';
 import 'package:bagtrip/service/cached_feedback_repository.dart';
+import 'package:bagtrip/service/cached_home_repository.dart';
+import 'package:bagtrip/service/home_service.dart';
 import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/service/weather_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
@@ -173,6 +175,13 @@ void setupServiceLocator() {
   getIt.registerLazySingleton<WeatherRepository>(
     () => CachedWeatherRepository(
       remote: WeatherRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
+  );
+  getIt.registerLazySingleton<HomeRepository>(
+    () => CachedHomeRepository(
+      remote: HomeRepositoryImpl(apiClient: getIt<ApiClient>()),
       cache: getIt<CacheService>(),
       connectivity: getIt<ConnectivityService>(),
     ),

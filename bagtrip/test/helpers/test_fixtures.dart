@@ -5,6 +5,8 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_grouped.dart';
 import 'package:bagtrip/models/trip_home.dart';
 import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/models/home_summary.dart';
+import 'package:bagtrip/models/weather_summary.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/models/budget_estimation.dart';
 import 'package:bagtrip/models/accommodation.dart';
@@ -488,6 +490,43 @@ FlightInfo makeFlightInfo({
     arrivalTerminal: arrivalTerminal,
     arrivalGate: arrivalGate,
     arrivalTime: arrivalTime,
+  );
+}
+
+WeatherSummary makeWeatherSummary({
+  double avgTempC = 22.0,
+  double? minTempC = 18.0,
+  double? maxTempC = 26.0,
+  String description = 'Sunny',
+  int rainProbability = 10,
+  String source = 'amadeus',
+}) {
+  return WeatherSummary(
+    avgTempC: avgTempC,
+    minTempC: minTempC,
+    maxTempC: maxTempC,
+    description: description,
+    rainProbability: rainProbability,
+    source: source,
+  );
+}
+
+/// Aggregated `/home` payload fixture (SMP327-021).
+HomeSummary makeHomeSummary({
+  List<Trip>? ongoingTrips,
+  List<Trip>? plannedTrips,
+  List<Trip>? completedTrips,
+  User? user,
+  List<Activity>? activeTripActivities,
+  WeatherSummary? activeTripWeather,
+}) {
+  return HomeSummary(
+    ongoingTrips: ongoingTrips ?? const [],
+    plannedTrips: plannedTrips ?? const [],
+    completedTrips: completedTrips ?? const [],
+    user: user ?? makeUser(),
+    activeTripActivities: activeTripActivities ?? const [],
+    activeTripWeather: activeTripWeather,
   );
 }
 
