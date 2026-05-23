@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
@@ -10,6 +11,9 @@ import 'package:mocktail/mocktail.dart';
 import '../helpers/mock_repositories.dart';
 import '../helpers/test_fixtures.dart';
 
+class _FakePendingWriteOperation extends Fake
+    implements PendingWriteOperation {}
+
 void main() {
   late MockTripRepository mockTripRepo;
   late MockAuthRepository mockAuthRepo;
@@ -17,12 +21,15 @@ void main() {
   late MockConnectivityService mockConnectivityService;
   late MockWeatherRepository mockWeatherRepo;
   late MockPostTripDismissalStorage mockDismissalStorage;
+  late MockOfflineWriteQueue mockOfflineWriteQueue;
 
   setUpAll(() {
     registerFallbackValue(makeTrip());
     registerFallbackValue(PreferIdleHomeOverview());
     registerFallbackValue(ResumeActiveTripHome());
     registerFallbackValue(CompleteActiveTrip());
+    registerFallbackValue(_FakePendingWriteOperation());
+    registerFallbackValue((Map<String, dynamic> _) async => true);
   });
 
   setUp(() {
@@ -32,6 +39,7 @@ void main() {
     mockConnectivityService = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
     mockDismissalStorage = MockPostTripDismissalStorage();
+    mockOfflineWriteQueue = MockOfflineWriteQueue();
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
     when(
@@ -43,6 +51,10 @@ void main() {
     when(
       () => mockDismissalStorage.wasDismissedRecently(any()),
     ).thenAnswer((_) async => false);
+    when(
+      () => mockOfflineWriteQueue.registerHandler(any(), any()),
+    ).thenReturn(null);
+    when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
   });
 
   // Helper to stub all trip calls as success with given data
@@ -91,6 +103,7 @@ void main() {
     connectivityService: mockConnectivityService,
     weatherRepository: mockWeatherRepo,
     dismissalStorage: mockDismissalStorage,
+    offlineWriteQueue: mockOfflineWriteQueue,
   );
 
   group('HomeBloc', () {
@@ -483,6 +496,115 @@ void main() {
         verify(
           () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
         ).called(1);
+      },
+    );
+
+    // ── Offline persistence: registers replay handler at init ───────
+
+    test('registers trip:updateTripStatus replay handler on init', () {
+      stubUserSuccess();
+      stubTrips();
+      buildBloc();
+      verify(
+        () => mockOfflineWriteQueue.registerHandler(
+          kHomeTripStatusReplayKey,
+          any(),
+        ),
+      ).called(1);
+    });
+
+    // ── Offline persistence: enqueues PendingWriteOperation ─────────
+
+    blocTest<HomeBloc, HomeState>(
+      'offline PLANNED→ONGOING transition enqueues a PendingWriteOperation',
+      build: () {
+        when(() => mockConnectivityService.isOnline).thenReturn(false);
+        stubUserSuccess();
+        stubActivities();
+        final plannedNow = makeTrip(
+          id: 'planned-now',
+          status: TripStatus.planned,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        stubTrips(planned: makePaginatedResponse(items: [plannedNow]));
+        when(
+          () => mockActivityRepo.getActivities('planned-now'),
+        ).thenAnswer((_) async => const Success([]));
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(LoadHome()),
+      verify: (_) {
+        final captured = verify(
+          () => mockOfflineWriteQueue.enqueue(captureAny()),
+        ).captured;
+        expect(captured.length, 1);
+        final op = captured.first as PendingWriteOperation;
+        expect(op.repository, 'trip');
+        expect(op.method, 'updateTripStatus');
+        expect(op.arguments['tripId'], 'planned-now');
+        expect(op.arguments['status'], 'ongoing');
+        // The deferred PATCH must NOT run inline while offline — only the
+        // queue replay does it later. updateTripStatus is never called here.
+        verifyNever(() => mockTripRepo.updateTripStatus(any(), any()));
+      },
+    );
+
+    // ── Offline persistence: replay handler calls updateTripStatus ──
+
+    test(
+      'registered replay handler calls updateTripStatus and returns success',
+      () async {
+        ReplayHandler? capturedHandler;
+        when(
+          () => mockOfflineWriteQueue.registerHandler(
+            kHomeTripStatusReplayKey,
+            any(),
+          ),
+        ).thenAnswer((invocation) {
+          capturedHandler = invocation.positionalArguments[1] as ReplayHandler;
+        });
+        when(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).thenAnswer((_) async => Success(makeTrip(id: 'planned-now')));
+
+        buildBloc();
+
+        expect(capturedHandler, isNotNull);
+        final ok = await capturedHandler!({
+          'tripId': 'planned-now',
+          'status': 'ongoing',
+        });
+        expect(ok, isTrue);
+        verify(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).called(1);
+      },
+    );
+
+    test(
+      'replay handler returns false when updateTripStatus fails (keeps op queued)',
+      () async {
+        ReplayHandler? capturedHandler;
+        when(
+          () => mockOfflineWriteQueue.registerHandler(
+            kHomeTripStatusReplayKey,
+            any(),
+          ),
+        ).thenAnswer((invocation) {
+          capturedHandler = invocation.positionalArguments[1] as ReplayHandler;
+        });
+        when(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+
+        buildBloc();
+
+        final ok = await capturedHandler!({
+          'tripId': 'planned-now',
+          'status': 'ongoing',
+        });
+        expect(ok, isFalse);
       },
     );
   });

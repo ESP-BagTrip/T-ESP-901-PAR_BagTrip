@@ -17,9 +17,11 @@ void main() {
   late MockConnectivityService mockConnectivityService;
   late MockWeatherRepository mockWeatherRepo;
   late MockPostTripDismissalStorage mockDismissalStorage;
+  late MockOfflineWriteQueue mockOfflineWriteQueue;
 
   setUpAll(() {
     registerFallbackValue(makeTrip());
+    registerFallbackValue((Map<String, dynamic> _) async => true);
   });
 
   setUp(() {
@@ -29,6 +31,7 @@ void main() {
     mockConnectivityService = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
     mockDismissalStorage = MockPostTripDismissalStorage();
+    mockOfflineWriteQueue = MockOfflineWriteQueue();
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
     when(
@@ -40,6 +43,9 @@ void main() {
     when(
       () => mockDismissalStorage.wasDismissedRecently(any()),
     ).thenAnswer((_) async => false);
+    when(
+      () => mockOfflineWriteQueue.registerHandler(any(), any()),
+    ).thenReturn(null);
   });
 
   void stubTrips({
@@ -87,6 +93,7 @@ void main() {
     connectivityService: mockConnectivityService,
     weatherRepository: mockWeatherRepo,
     dismissalStorage: mockDismissalStorage,
+    offlineWriteQueue: mockOfflineWriteQueue,
   );
 
   group('HomeBloc parallel loading', () {

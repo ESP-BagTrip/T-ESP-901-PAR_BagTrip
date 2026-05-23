@@ -23,5 +23,3 @@ class PreferIdleHomeOverview extends HomeEvent {}
 class ResumeActiveTripHome extends HomeEvent {}
 
 class CompleteActiveTrip extends HomeEvent {}
-
-class _ConnectivityRestored extends HomeEvent {}

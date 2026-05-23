@@ -23,6 +23,7 @@ void main() {
   late MockConnectivityService mockConnectivity;
   late MockWeatherRepository mockWeatherRepo;
   late MockPostTripDismissalStorage mockDismissalStorage;
+  late MockOfflineWriteQueue mockOfflineWriteQueue;
 
   setUp(() {
     mockTripRepo = MockTripRepository();
@@ -31,13 +32,18 @@ void main() {
     mockConnectivity = MockConnectivityService();
     mockWeatherRepo = MockWeatherRepository();
     mockDismissalStorage = MockPostTripDismissalStorage();
+    mockOfflineWriteQueue = MockOfflineWriteQueue();
 
     registerFallbackValue(makeTrip());
+    registerFallbackValue((Map<String, dynamic> _) async => true);
 
     when(() => mockConnectivity.isOnline).thenReturn(true);
     when(
       () => mockConnectivity.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
+    when(
+      () => mockOfflineWriteQueue.registerHandler(any(), any()),
+    ).thenReturn(null);
   });
 
   HomeBloc buildBloc() => HomeBloc(
@@ -47,6 +53,7 @@ void main() {
     connectivityService: mockConnectivity,
     weatherRepository: mockWeatherRepo,
     dismissalStorage: mockDismissalStorage,
+    offlineWriteQueue: mockOfflineWriteQueue,
   );
 
   void stubUserAndTrips({

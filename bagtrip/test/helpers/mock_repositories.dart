@@ -19,6 +19,7 @@ import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -58,6 +59,8 @@ class MockCrashlyticsService extends Mock implements CrashlyticsService {}
 class MockCacheService extends Mock implements CacheService {}
 
 class MockConnectivityService extends Mock implements ConnectivityService {}
+
+class MockOfflineWriteQueue extends Mock implements OfflineWriteQueue {}
 
 class MockTransportRepository extends Mock implements TransportRepository {}
 

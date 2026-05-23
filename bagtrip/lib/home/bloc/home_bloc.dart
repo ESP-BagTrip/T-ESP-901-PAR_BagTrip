@@ -1,9 +1,9 @@
-import 'dart:async';
 import 'dart:developer' as dev;
 
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
@@ -24,6 +24,11 @@ import 'package:bloc/bloc.dart';
 part 'home_event.dart';
 part 'home_state.dart';
 
+/// Handler key under which the PLANNED→ONGOING offline transition is replayed
+/// by the central [OfflineWriteQueue]. Format is `<repository>:<method>`,
+/// matching how [OfflineWriteQueue.replay] looks up handlers.
+const String kHomeTripStatusReplayKey = 'trip:updateTripStatus';
+
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TripRepository _tripRepository;
   final AuthRepository _authRepository;
@@ -31,9 +36,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ConnectivityService _connectivityService;
   final WeatherRepository _weatherRepository;
   final PostTripDismissalStorage _dismissalStorage;
+  final OfflineWriteQueue _offlineWriteQueue;
 
-  List<String> _pendingOfflineTransitions = [];
-  StreamSubscription<bool>? _connectivitySub;
   bool _preferIdleDespiteOngoing = false;
 
   HomeBloc({
@@ -43,6 +47,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ConnectivityService? connectivityService,
     WeatherRepository? weatherRepository,
     PostTripDismissalStorage? dismissalStorage,
+    OfflineWriteQueue? offlineWriteQueue,
   }) : _tripRepository = tripRepository ?? getIt<TripRepository>(),
        _authRepository = authRepository ?? getIt<AuthRepository>(),
        _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
@@ -51,6 +56,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        _weatherRepository = weatherRepository ?? getIt<WeatherRepository>(),
        _dismissalStorage =
            dismissalStorage ?? getIt<PostTripDismissalStorage>(),
+       _offlineWriteQueue = offlineWriteQueue ?? getIt<OfflineWriteQueue>(),
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
@@ -60,14 +66,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<PreferIdleHomeOverview>(_onPreferIdleHomeOverview);
     on<ResumeActiveTripHome>(_onResumeActiveTripHome);
     on<CompleteActiveTrip>(_onCompleteActiveTrip);
-    on<_ConnectivityRestored>(_onConnectivityRestored);
 
-    _connectivitySub = _connectivityService.onConnectivityChanged.listen((
-      online,
-    ) {
-      if (online && _pendingOfflineTransitions.isNotEmpty) {
-        add(_ConnectivityRestored());
+    // Persist the PLANNED→ONGOING offline transition in the central
+    // OfflineWriteQueue (Hive-backed) so it survives an app kill and is
+    // replayed by the queue's own connectivity listener (wired in main.dart
+    // via startListening()). The handler is registered exactly once here.
+    //
+    // We deliberately DROP the previous in-memory `_pendingOfflineTransitions`
+    // list + `_ConnectivityRestored` replay path: the queue is now the single
+    // source of truth for replaying the status update, which avoids the trip
+    // being PATCHed twice on reconnect. The UI still flips to ongoing
+    // optimistically inside `_fetchAndEmitContextualState` (no persisted state
+    // needed for that — it is derived from the trip dates each load).
+    _offlineWriteQueue.registerHandler(kHomeTripStatusReplayKey, (
+      arguments,
+    ) async {
+      final tripId = arguments['tripId'] as String?;
+      final status = arguments['status'] as String?;
+      if (tripId == null || status == null) {
+        // Malformed payload — drop it (return true) so it never blocks the
+        // queue. This should not happen given how we enqueue below.
+        dev.log('HomeBloc replay: malformed trip:updateTripStatus payload');
+        return true;
       }
+      final result = await _tripRepository.updateTripStatus(tripId, status);
+      return result is Success;
     });
   }
 
@@ -84,7 +107,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
-    _pendingOfflineTransitions = [];
     _preferIdleDespiteOngoing = false;
     emit(HomeInitial());
   }
@@ -194,12 +216,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-    // Track offline transitions for replay on reconnect
+    // Persist offline transitions in the central OfflineWriteQueue so they
+    // survive an app kill and are replayed by the queue on reconnect. The UI
+    // already shows these trips as ongoing (optimistic, via mutableOngoing
+    // above) — enqueueing only handles the deferred server-side PATCH.
     if (!_connectivityService.isOnline &&
         detectionResult.transitionedTrips.isNotEmpty) {
-      _pendingOfflineTransitions = detectionResult.transitionedTrips
-          .map((t) => t.id)
-          .toList();
+      for (final trip in detectionResult.transitionedTrips) {
+        await _offlineWriteQueue.enqueue(
+          PendingWriteOperation(
+            id: 'trip-status-${trip.id}',
+            repository: 'trip',
+            method: 'updateTripStatus',
+            arguments: {'tripId': trip.id, 'status': 'ongoing'},
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+      if (isClosed) return;
     }
 
     // ── Auto-detect ongoing → completed (endDate < today) ──
@@ -349,34 +383,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     await _dismissalStorage.recordDismissal(event.tripId);
     add(RefreshHome());
-  }
-
-  Future<void> _onConnectivityRestored(
-    _ConnectivityRestored event,
-    Emitter<HomeState> emit,
-  ) async {
-    final pending = List<String>.from(_pendingOfflineTransitions);
-    final synced = <String>[];
-
-    for (final tripId in pending) {
-      final result = await _tripRepository.updateTripStatus(tripId, 'ongoing');
-      if (isClosed) return;
-      if (result is Success) {
-        synced.add(tripId);
-      }
-    }
-
-    _pendingOfflineTransitions.removeWhere(synced.contains);
-
-    if (synced.isNotEmpty) {
-      add(RefreshHome());
-    }
-  }
-
-  @override
-  Future<void> close() {
-    _connectivitySub?.cancel();
-    return super.close();
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {
