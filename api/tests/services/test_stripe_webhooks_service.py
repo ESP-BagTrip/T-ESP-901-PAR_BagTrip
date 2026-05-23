@@ -258,6 +258,110 @@ class TestChargeEvents:
         assert result.processing_error is None
 
 
+class TestChargeRefundEdgeCases:
+    """Uncovered refund paths (SMP327-029): over-refund, dashboard refund,
+    missing charge, and idempotent re-delivery."""
+
+    def test_charge_refunded_over_refund_marks_refunded(self, mock_db_session):
+        """amount_refunded > amount (over-refund) still counts as fully refunded.
+
+        The handler treats `amount_refunded >= amount` as "fully refunded", so a
+        value strictly greater than the charge total must not regress to CAPTURED.
+        """
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_over")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                # `refunded` flag false but amount_refunded exceeds amount.
+                {"id": "ch_over", "refunded": False, "amount": 10000, "amount_refunded": 15000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+
+    def test_charge_refunded_dashboard_initiated_no_metadata(self, mock_db_session):
+        """Refund triggered from the Stripe dashboard carries no app metadata.
+
+        charge.* events are matched purely on `stripe_charge_id`, so a
+        dashboard-initiated refund (no booking_intent_id metadata) must still
+        sync the local row to REFUNDED.
+        """
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_dash")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                # No "metadata" key at all — pure dashboard refund payload.
+                {"id": "ch_dash", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+        assert result.processing_error is None
+
+    def test_charge_refunded_unknown_charge_is_noop(self, mock_db_session):
+        """A refund for a charge we never recorded is a clean no-op (no crash)."""
+        # First query() = idempotency lookup (None), second = intent lookup (None).
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, None]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_unknown", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_refunded_missing_charge_id_is_noop(self, mock_db_session):
+        """A payload with no charge id short-circuits before any DB intent lookup."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event("charge.refunded", {"refunded": True, "amount": 5000, "amount_refunded": 5000}),
+        )
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_refunded_idempotent_when_already_refunded(self, mock_db_session):
+        """Re-delivery of a refund for an already-REFUNDED intent leaves it REFUNDED.
+
+        The handler only transitions from CAPTURED, so a second delivery (or a
+        refund on an intent that was already refunded) is a stable no-op rather
+        than a redundant commit-and-flip.
+        """
+        intent = BookingIntent(status="REFUNDED", stripe_charge_id="ch_idem")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_idem", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+
+    def test_charge_refunded_partial_on_non_captured_stays_put(self, mock_db_session):
+        """Partial refund on a non-CAPTURED intent doesn't force a status change."""
+        intent = BookingIntent(status="AUTHORIZED", stripe_charge_id="ch_auth")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_auth", "refunded": False, "amount": 10000, "amount_refunded": 2000},
+            ),
+        )
+        assert intent.status == "AUTHORIZED"
+
+
 class TestErrorHandling:
     def test_handler_exception_recorded_not_raised(self, mock_db_session):
         """A buggy handler shouldn't take down the webhook endpoint."""
