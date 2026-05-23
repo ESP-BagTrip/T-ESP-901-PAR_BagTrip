@@ -86,6 +86,9 @@ class ForgotPasswordRequest(BagtripRequestModel):
     """Requête de réinitialisation de mot de passe."""
 
     email: EmailStr
+    # Optional: the app passes its current locale so the reset email matches the
+    # UI language even on a fresh device with no registered FCM token yet.
+    locale: str | None = None
 
 
 class ResetPasswordRequest(BagtripRequestModel):

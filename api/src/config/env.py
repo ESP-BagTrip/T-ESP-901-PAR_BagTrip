@@ -112,6 +112,19 @@ class Settings(BaseSettings):
     # Firebase Admin (FCM push notifications)
     FIREBASE_SERVICE_ACCOUNT_PATH: str | None = None
 
+    # Email (SMTP) — transactional mail (password reset). Disabled gracefully
+    # when SMTP_HOST is unset: in dev the forgot-password route still exposes a
+    # debug token, in prod the request succeeds silently (no leak) but no mail
+    # is sent. Configure with any provider's SMTP credentials.
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM_EMAIL: str = "no-reply@bagtrip.fr"
+    SMTP_USE_TLS: bool = True
+    # Deep link the mobile app handles to open the reset-password screen.
+    PASSWORD_RESET_URL_BASE: str = "bagtrip://reset-password"
+
     # Cookie / CORS
     ALLOWED_ORIGINS: str = "http://localhost:8000"
     COOKIE_DOMAIN: str | None = None

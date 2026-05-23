@@ -32,6 +32,8 @@ from src.config.database import get_db
 from src.config.env import settings
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
+from src.services.device_token_service import DeviceTokenService
+from src.services.mailer_service import MailerService
 from src.services.plan_service import PlanService
 from src.services.stripe_gateway_service import StripeGatewayService
 from src.services.user_creation_service import UserCreationService
@@ -677,9 +679,13 @@ async def forgot_password(
         user.password_reset_token = _hash_reset_token(raw_token)
         user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
         db.commit()
-        # Dev-only escape hatch: no mail service yet, so expose the raw token in the
-        # response when running outside production. Never log it, never persist it raw.
-        if settings.NODE_ENV != "production":
+        # Send the reset link by email (best-effort — never blocks or leaks).
+        locale = request.locale or DeviceTokenService.get_locale_for_user(db, user.id)
+        await MailerService.send_password_reset(user.email, raw_token, locale)
+        # Dev-only escape hatch: when SMTP is not configured the token would
+        # never reach the user, so expose it in the response outside production.
+        # Never log it, never persist it raw.
+        if settings.NODE_ENV != "production" and not MailerService.is_enabled():
             response_body["debug_reset_token"] = raw_token
     return response_body
 

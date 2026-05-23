@@ -36,6 +36,7 @@ dependencies = [
   "opentelemetry-instrumentation-redis>=0.49b0",
   "opentelemetry-instrumentation-httpx>=0.49b0",
   "mako>=1.3.12",
+  "aiosmtplib>=5.1.0",
 ]
 
 [dependency-groups]
