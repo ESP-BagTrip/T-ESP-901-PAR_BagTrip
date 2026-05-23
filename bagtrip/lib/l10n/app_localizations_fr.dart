@@ -1185,6 +1185,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTitle => 'Réglages';
 
   @override
+  String get notificationPrefsTitle => 'Notifications';
+
+  @override
+  String get notificationPrefsPush => 'Notifications push';
+
+  @override
+  String get notificationPrefsFlightReminders => 'Rappels de vol';
+
+  @override
+  String get notificationPrefsActivityReminders => 'Rappels d\'activité';
+
+  @override
+  String get notificationPrefsTripUpdates => 'Mises à jour du voyage';
+
+  @override
+  String get notificationPrefsBudgetAlerts => 'Alertes budget';
+
+  @override
+  String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsLoadError =>
+      'Impossible de charger vos préférences de notification.';
+
+  @override
   String get personalInfoPageTitle => 'Informations personnelles';
 
   @override

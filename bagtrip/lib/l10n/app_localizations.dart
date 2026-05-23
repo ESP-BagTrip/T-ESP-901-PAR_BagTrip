@@ -2234,6 +2234,54 @@ abstract class AppLocalizations {
   /// **'Réglages'**
   String get settingsTitle;
 
+  /// No description provided for @notificationPrefsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get notificationPrefsTitle;
+
+  /// No description provided for @notificationPrefsPush.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications push'**
+  String get notificationPrefsPush;
+
+  /// No description provided for @notificationPrefsFlightReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de vol'**
+  String get notificationPrefsFlightReminders;
+
+  /// No description provided for @notificationPrefsActivityReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'activité'**
+  String get notificationPrefsActivityReminders;
+
+  /// No description provided for @notificationPrefsTripUpdates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mises à jour du voyage'**
+  String get notificationPrefsTripUpdates;
+
+  /// No description provided for @notificationPrefsBudgetAlerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alertes budget'**
+  String get notificationPrefsBudgetAlerts;
+
+  /// No description provided for @notificationPrefsSocial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Social'**
+  String get notificationPrefsSocial;
+
+  /// No description provided for @notificationPrefsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger vos préférences de notification.'**
+  String get notificationPrefsLoadError;
+
   /// No description provided for @personalInfoPageTitle.
   ///
   /// In fr, this message translates to:

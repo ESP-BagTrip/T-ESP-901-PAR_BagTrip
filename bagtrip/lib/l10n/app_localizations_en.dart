@@ -1175,6 +1175,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get notificationPrefsTitle => 'Notifications';
+
+  @override
+  String get notificationPrefsPush => 'Push notifications';
+
+  @override
+  String get notificationPrefsFlightReminders => 'Flight reminders';
+
+  @override
+  String get notificationPrefsActivityReminders => 'Activity reminders';
+
+  @override
+  String get notificationPrefsTripUpdates => 'Trip updates';
+
+  @override
+  String get notificationPrefsBudgetAlerts => 'Budget alerts';
+
+  @override
+  String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsLoadError =>
+      'Unable to load your notification preferences.';
+
+  @override
   String get personalInfoPageTitle => 'Personal information';
 
   @override

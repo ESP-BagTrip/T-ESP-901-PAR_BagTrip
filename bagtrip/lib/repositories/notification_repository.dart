@@ -1,6 +1,7 @@
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/models/notification_page.dart';
+import 'package:bagtrip/models/notification_preferences.dart';
 
 abstract class NotificationRepository {
   Future<Result<NotificationPage>> getNotifications({
@@ -16,4 +17,9 @@ abstract class NotificationRepository {
     String? locale,
   });
   Future<Result<void>> unregisterDeviceToken(String fcmToken);
+
+  Future<Result<NotificationPreferences>> getNotificationPreferences();
+  Future<Result<NotificationPreferences>> updateNotificationPreferences(
+    NotificationPreferences prefs,
+  );
 }

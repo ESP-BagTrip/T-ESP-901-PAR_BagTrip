@@ -1,4 +1,6 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/profile/widgets/notification_preferences_section.dart';
 import 'package:bagtrip/profile/widgets/preferences_section.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +15,13 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(24),
-        child: PreferencesSection(),
+        child: Column(
+          children: [
+            PreferencesSection(),
+            SizedBox(height: AppSpacing.space16),
+            NotificationPreferencesSection(),
+          ],
+        ),
       ),
     );
   }
