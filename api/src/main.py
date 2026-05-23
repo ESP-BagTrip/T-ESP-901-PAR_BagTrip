@@ -188,12 +188,6 @@ async def root():
     return {"message": "BagTrip API", "version": "1.0.0"}
 
 
-@app.get("/health")
-async def health():
-    """Route de santé."""
-    return {"status": "ok"}
-
-
 if __name__ == "__main__":
     import uvicorn
 

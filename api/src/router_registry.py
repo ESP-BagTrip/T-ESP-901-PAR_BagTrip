@@ -28,6 +28,7 @@ from src.api.flights.manual.routes import router as manual_flights_router
 from src.api.flights.offers.routes import router as flight_offers_router
 from src.api.flights.orders.routes import router as flight_orders_router
 from src.api.flights.searches.routes import router as flight_searches_router
+from src.api.health.routes import router as health_router
 from src.api.home.routes import router as home_router
 from src.api.hotels.routes import router as hotel_search_router
 from src.api.invites.routes import router as invites_router
@@ -44,6 +45,8 @@ from src.api.trips.routes import router as trips_router
 
 def register_routers(app: FastAPI) -> None:
     """Mount every API router on the app, all under /v1."""
+    # Liveness + readiness probes (no prefix: /health, /health/ready)
+    app.include_router(health_router)
     # Routes principales selon PLAN.md
     app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
     app.include_router(admin_router)  # Préfixé avec /admin
