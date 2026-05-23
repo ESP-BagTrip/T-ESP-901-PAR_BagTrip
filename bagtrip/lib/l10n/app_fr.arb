@@ -319,6 +319,7 @@
   "emailVerifiedSuccess": "Votre adresse e-mail a été vérifiée.",
   "notificationsTitle": "Notifications",
   "notificationsMarkAllRead": "Tout marquer lu",
+  "notificationsDelete": "Supprimer",
   "notificationsEmpty": "Aucune notification",
   "notificationsToday": "Aujourd'hui",
   "notificationsYesterday": "Hier",

@@ -751,6 +751,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notificationsMarkAllRead => 'Tout marquer lu';
 
   @override
+  String get notificationsDelete => 'Supprimer';
+
+  @override
   String get notificationsEmpty => 'Aucune notification';
 
   @override

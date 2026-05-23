@@ -177,6 +177,20 @@ class NotificationService:
         return notif
 
     @staticmethod
+    def delete(db: Session, notification_id: UUID, user_id: UUID) -> bool:
+        """Delete a single notification owned by the user. Returns True if removed."""
+        notif = (
+            db.query(Notification)
+            .filter(Notification.id == notification_id, Notification.user_id == user_id)
+            .first()
+        )
+        if not notif:
+            return False
+        db.delete(notif)
+        db.commit()
+        return True
+
+    @staticmethod
     def mark_all_as_read(db: Session, user_id: UUID) -> int:
         """Mark all notifications as read for a user. Returns count updated."""
         from sqlalchemy import update

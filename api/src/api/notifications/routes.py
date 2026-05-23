@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Response, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -69,6 +69,20 @@ async def mark_notification_read(
     if not notif:
         raise AppError("NOTIFICATION_NOT_FOUND", 404, "Notification not found")
     return NotificationResponse.model_validate(notif)
+
+
+@router.delete("/{notificationId}", status_code=status.HTTP_204_NO_CONTENT)
+@handle_app_errors
+async def delete_notification(
+    notificationId: Annotated[UUID, Path(..., description="Notification ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Supprimer une notification de l'utilisateur."""
+    deleted = NotificationService.delete(db, notificationId, current_user.id)
+    if not deleted:
+        raise AppError("NOTIFICATION_NOT_FOUND", 404, "Notification not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/read-all")

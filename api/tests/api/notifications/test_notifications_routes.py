@@ -132,6 +132,27 @@ class TestMarkAllRead:
         assert response.json() == {"updated": 12}
 
 
+class TestDeleteNotification:
+    def test_success_returns_204(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationService.delete",
+            return_value=True,
+        ) as mock_delete:
+            response = client.delete(f"/v1/notifications/{uuid.uuid4()}")
+        assert response.status_code == 204
+        assert response.content == b""
+        mock_delete.assert_called_once()
+
+    def test_not_found_returns_404(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationService.delete",
+            return_value=False,
+        ):
+            response = client.delete(f"/v1/notifications/{uuid.uuid4()}")
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "NOTIFICATION_NOT_FOUND"
+
+
 def _make_pref(**overrides) -> MagicMock:
     p = MagicMock()
     p.push_enabled = overrides.get("push_enabled", True)

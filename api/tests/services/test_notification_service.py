@@ -202,6 +202,23 @@ class TestMarkAsRead:
         assert mock_db_session.commit.called
 
 
+class TestDelete:
+    def test_delete_success(self, mock_db_session, make_notification):
+        notif = make_notification()
+        mock_db_session.query.return_value.filter.return_value.first.return_value = notif
+        result = NotificationService.delete(mock_db_session, notif.id, notif.user_id)
+        assert result is True
+        mock_db_session.delete.assert_called_once_with(notif)
+        assert mock_db_session.commit.called
+
+    def test_delete_not_found(self, mock_db_session):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        result = NotificationService.delete(mock_db_session, uuid.uuid4(), uuid.uuid4())
+        assert result is False
+        assert not mock_db_session.delete.called
+        assert not mock_db_session.commit.called
+
+
 # ---------------------------------------------------------------------------
 # _get_trip_recipients
 # ---------------------------------------------------------------------------

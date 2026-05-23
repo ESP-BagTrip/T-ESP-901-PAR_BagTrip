@@ -24,6 +24,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<LoadMoreNotifications>(_onLoadMore);
     on<MarkNotificationRead>(_onMarkNotificationRead);
     on<MarkAllRead>(_onMarkAllRead);
+    on<DeleteNotification>(_onDeleteNotification);
     on<ResetNotifications>(_onReset);
   }
 
@@ -170,6 +171,54 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         }
       case Failure(:final error):
         emit(NotificationError(error: error));
+    }
+  }
+
+  Future<void> _onDeleteNotification(
+    DeleteNotification event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final current = state;
+    if (current is! NotificationsLoaded) return;
+
+    final matches = current.notifications.where(
+      (n) => n.id == event.notificationId,
+    );
+    if (matches.isEmpty) return;
+    final target = matches.first;
+
+    // Optimistic removal — the list updates immediately; restore on failure.
+    final remaining = current.notifications
+        .where((n) => n.id != event.notificationId)
+        .toList();
+    emit(
+      NotificationsLoaded(
+        notifications: remaining,
+        unreadCount: target.isRead
+            ? current.unreadCount
+            : (current.unreadCount - 1).clamp(0, current.unreadCount),
+        totalPages: current.totalPages,
+        currentPage: current.currentPage,
+        total: (current.total - 1).clamp(0, current.total),
+      ),
+    );
+
+    final result = await _notificationRepository.deleteNotification(
+      event.notificationId,
+    );
+    if (isClosed) return;
+    if (result case Failure(:final error)) {
+      getIt<CrashlyticsService>().recordAppError(error);
+      // Roll back to the pre-delete snapshot.
+      emit(
+        NotificationsLoaded(
+          notifications: current.notifications,
+          unreadCount: current.unreadCount,
+          totalPages: current.totalPages,
+          currentPage: current.currentPage,
+          total: current.total,
+        ),
+      );
     }
   }
 }

@@ -743,6 +743,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsMarkAllRead => 'Mark all read';
 
   @override
+  String get notificationsDelete => 'Delete';
+
+  @override
   String get notificationsEmpty => 'No notifications';
 
   @override

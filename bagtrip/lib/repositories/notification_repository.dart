@@ -11,6 +11,7 @@ abstract class NotificationRepository {
   Future<Result<int>> getUnreadCount();
   Future<Result<AppNotification>> markAsRead(String notificationId);
   Future<Result<int>> markAllAsRead();
+  Future<Result<void>> deleteNotification(String notificationId);
   Future<Result<void>> registerDeviceToken(
     String fcmToken, {
     String? platform,

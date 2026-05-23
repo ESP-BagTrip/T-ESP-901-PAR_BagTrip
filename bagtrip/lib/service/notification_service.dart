@@ -95,6 +95,24 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<Result<void>> deleteNotification(String notificationId) async {
+    try {
+      final response = await _apiClient.delete(
+        '/notifications/$notificationId',
+      );
+      final code = response.statusCode ?? 0;
+      if (code == 204 || code == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(UnknownError('delete notification failed: $code'));
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<void>> registerDeviceToken(
     String fcmToken, {
     String? platform,
