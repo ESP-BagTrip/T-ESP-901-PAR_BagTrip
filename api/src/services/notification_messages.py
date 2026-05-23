@@ -89,6 +89,15 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "fr": "{inviter} vous a invité : {message}",
         "en": "{inviter} invited you: {message}",
     },
+    # ── Trip access revoked ─────────────────────────────────────────
+    "TRIP_UNSHARED.title": {
+        "fr": "Accès au voyage retiré",
+        "en": "Trip access removed",
+    },
+    "TRIP_UNSHARED.body": {
+        "fr": "Vous n'avez plus accès à « {trip_title} »",
+        "en": 'You no longer have access to "{trip_title}"',
+    },
     # ── Fragments (bouts de phrase composables) ─────────────────────
     "fragment.untitled_trip": {"fr": "sans titre", "en": "untitled"},
     "fragment.baggage_count": {

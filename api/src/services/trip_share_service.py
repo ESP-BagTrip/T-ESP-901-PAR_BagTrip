@@ -317,8 +317,33 @@ class TripShareService:
         if not share:
             raise AppError("SHARE_NOT_FOUND", 404, "Share not found")
 
+        # Capture the recipient before the row is gone — they need to know the
+        # access was revoked rather than discovering it silently on next refresh.
+        revoked_user_id = share.user_id
+
         db.delete(share)
         db.commit()
+
+        # Best-effort localized push to the ex-collaborator.
+        try:
+            from src.services.device_token_service import DeviceTokenService
+            from src.services.notification_messages import untitled_trip
+            from src.services.notification_service import NotificationService
+
+            trip = db.query(Trip).filter(Trip.id == trip_id).first()
+            locale = DeviceTokenService.get_locale_for_user(db, revoked_user_id)
+            trip_title = (trip.title if trip else None) or untitled_trip(locale)
+            NotificationService.send_localized(
+                db=db,
+                user_id=revoked_user_id,
+                trip_id=trip_id,
+                notif_type=NotificationType.TRIP_UNSHARED,
+                context={"trip_title": trip_title},
+                data={"screen": "home"},
+                locale=locale,
+            )
+        except Exception as e:
+            logger.error(f"[SHARE] Failed to send TRIP_UNSHARED notification: {e}")
 
     @staticmethod
     def delete_pending_invite(db: Session, invite_id: UUID, trip_id: UUID) -> None:

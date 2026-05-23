@@ -20,6 +20,7 @@ _TYPE_TO_CATEGORY: dict[str, str] = {
     NotificationType.TRIP_ENDED: "trip_updates",
     NotificationType.BUDGET_ALERT: "budget_alerts",
     NotificationType.TRIP_SHARED: "social",
+    NotificationType.TRIP_UNSHARED: "social",
 }
 
 # Champs booléens modifiables via update().
