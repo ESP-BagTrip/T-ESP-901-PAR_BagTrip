@@ -127,7 +127,9 @@ class OfflineWriteQueue {
   // --------------- Persistence ---------------
 
   Future<List<PendingWriteOperation>> _loadOperations() async {
-    final cached = await _cache.get(_box, _indexKey);
+    // ttl: null — pending offline writes must never expire from the cache TTL,
+    // otherwise a mutation not replayed within 15 min would be silently lost.
+    final cached = await _cache.get(_box, _indexKey, ttl: null);
     if (cached == null) return [];
     final items = cached['items'] as List?;
     if (items == null) return [];

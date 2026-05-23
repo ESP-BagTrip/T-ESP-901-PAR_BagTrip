@@ -28,6 +28,7 @@ import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/cache/connectivity_bloc.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/app_lifecycle_observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -103,6 +104,8 @@ void main() async {
   // Offline cache
   await CacheService.initialize();
   await getIt<ConnectivityService>().initialize();
+  // Replay queued offline writes automatically when connectivity returns.
+  getIt<OfflineWriteQueue>().startListening();
 
   runApp(const MyApp());
 }
