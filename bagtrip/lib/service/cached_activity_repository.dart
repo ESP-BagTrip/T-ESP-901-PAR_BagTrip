@@ -15,6 +15,11 @@ class CachedActivityRepository implements ActivityRepository {
 
   static const _box = 'activities_cache';
 
+  /// Dedicated box for paginated reads. Kept separate so the whole set of
+  /// page/limit combinations can be invalidated atomically on writes
+  /// (CacheService exposes no key enumeration).
+  static const _paginatedBox = 'activities_paginated_cache';
+
   CachedActivityRepository({
     required ActivityRepository remote,
     required CacheService cache,
@@ -87,7 +92,38 @@ class CachedActivityRepository implements ActivityRepository {
     int page = 1,
     int limit = 20,
   }) async {
-    return _remote.getActivitiesPaginated(tripId, page: page, limit: limit);
+    final key = 'activities:paginated:$tripId:p$page:l$limit';
+    if (_connectivity.isOnline) {
+      final result = await _remote.getActivitiesPaginated(
+        tripId,
+        page: page,
+        limit: limit,
+      );
+      if (result case Success(:final data)) {
+        await _cache.put(_paginatedBox, key, {
+          'items': data.items.map((a) => a.toJson()).toList(),
+          'total': data.total,
+          'page': data.page,
+          'totalPages': data.totalPages,
+        });
+      }
+      return result;
+    }
+    final cached = await _cache.get(_paginatedBox, key);
+    if (cached != null) {
+      final items = (cached['items'] as List)
+          .map((e) => Activity.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+      return Success(
+        PaginatedResponse<Activity>(
+          items: items,
+          total: cached['total'] as int,
+          page: cached['page'] as int,
+          totalPages: cached['totalPages'] as int,
+        ),
+      );
+    }
+    return const Failure(UnknownError('No cached data available'));
   }
 
   @override
@@ -195,5 +231,7 @@ class CachedActivityRepository implements ActivityRepository {
 
   Future<void> _invalidate(String tripId) async {
     await _cache.delete(_box, 'activities:$tripId');
+    // Drop every cached page/limit combination at once.
+    await _cache.clearBox(_paginatedBox);
   }
 }

@@ -15,6 +15,11 @@ class CachedTripRepository implements TripRepository {
 
   static const _box = 'trips_cache';
 
+  /// Dedicated box for paginated reads. Kept separate so the whole set of
+  /// page/limit/status combinations can be invalidated atomically on writes
+  /// (CacheService exposes no key enumeration).
+  static const _paginatedBox = 'trips_paginated_cache';
+
   CachedTripRepository({
     required TripRepository remote,
     required CacheService cache,
@@ -90,8 +95,38 @@ class CachedTripRepository implements TripRepository {
     int limit = 20,
     String? status,
   }) async {
-    // Paginated calls are not cached — always delegate to remote.
-    return _remote.getTripsPaginated(page: page, limit: limit, status: status);
+    final key = 'trips:paginated:p$page:l$limit:${status ?? 'all'}';
+    if (_connectivity.isOnline) {
+      final result = await _remote.getTripsPaginated(
+        page: page,
+        limit: limit,
+        status: status,
+      );
+      if (result case Success(:final data)) {
+        await _cache.put(_paginatedBox, key, {
+          'items': data.items.map((t) => t.toJson()).toList(),
+          'total': data.total,
+          'page': data.page,
+          'totalPages': data.totalPages,
+        });
+      }
+      return result;
+    }
+    final cached = await _cache.get(_paginatedBox, key);
+    if (cached != null) {
+      final items = (cached['items'] as List)
+          .map((e) => Trip.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+      return Success(
+        PaginatedResponse<Trip>(
+          items: items,
+          total: cached['total'] as int,
+          page: cached['page'] as int,
+          totalPages: cached['totalPages'] as int,
+        ),
+      );
+    }
+    return const Failure(UnknownError('No cached data available'));
   }
 
   // --------------- WRITE methods ---------------
@@ -192,6 +227,8 @@ class CachedTripRepository implements TripRepository {
   Future<void> _invalidateListCaches() async {
     await _cache.delete(_box, 'grouped_trips');
     await _cache.delete(_box, 'all_trips');
+    // Drop every cached page/limit/status combination at once.
+    await _cache.clearBox(_paginatedBox);
   }
 
   Future<void> _invalidateTripCaches(String tripId) async {

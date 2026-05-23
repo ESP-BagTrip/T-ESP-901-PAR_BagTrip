@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -153,12 +154,96 @@ void main() {
     });
   });
 
+  group('getTripsPaginated', () {
+    test('online + API success → caches and returns Success', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(true);
+      final page = PaginatedResponse<Trip>(
+        items: [_makeTrip()],
+        total: 1,
+        page: 1,
+        totalPages: 1,
+      );
+      when(
+        () => mockRemote.getTripsPaginated(
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) async => Success(page));
+      when(() => mockCache.put(any(), any(), any())).thenAnswer((_) async {});
+
+      final result = await repo.getTripsPaginated(page: 2, limit: 10);
+
+      expect(result, isA<Success<PaginatedResponse<Trip>>>());
+      verify(
+        () => mockCache.put(
+          'trips_paginated_cache',
+          'trips:paginated:p2:l10:all',
+          any(),
+        ),
+      ).called(1);
+    });
+
+    test('online + API failure → no cache write', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(true);
+      when(
+        () => mockRemote.getTripsPaginated(
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+          status: any(named: 'status'),
+        ),
+      ).thenAnswer((_) async => const Failure(ServerError('fail')));
+
+      final result = await repo.getTripsPaginated();
+
+      expect(result, isA<Failure<PaginatedResponse<Trip>>>());
+      verifyNever(() => mockCache.put(any(), any(), any()));
+    });
+
+    test('offline + cache hit → returns paginated from cache', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(false);
+      when(
+        () => mockCache.get(any(), any(), ttl: any(named: 'ttl')),
+      ).thenAnswer(
+        (_) async => {
+          'items': [_makeTrip().toJson()],
+          'total': 1,
+          'page': 1,
+          'totalPages': 1,
+        },
+      );
+
+      final result = await repo.getTripsPaginated();
+
+      expect(result, isA<Success<PaginatedResponse<Trip>>>());
+      verifyNever(
+        () => mockRemote.getTripsPaginated(
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+          status: any(named: 'status'),
+        ),
+      );
+    });
+
+    test('offline + cache miss → returns Failure', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(false);
+      when(
+        () => mockCache.get(any(), any(), ttl: any(named: 'ttl')),
+      ).thenAnswer((_) async => null);
+
+      final result = await repo.getTripsPaginated();
+
+      expect(result, isA<Failure<PaginatedResponse<Trip>>>());
+    });
+  });
+
   group('write operations', () {
     test('deleteTrip success → invalidates caches', () async {
       when(
         () => mockRemote.deleteTrip('1'),
       ).thenAnswer((_) async => const Success(null));
       when(() => mockCache.delete(any(), any())).thenAnswer((_) async {});
+      when(() => mockCache.clearBox(any())).thenAnswer((_) async {});
 
       final result = await repo.deleteTrip('1');
 
@@ -167,6 +252,7 @@ void main() {
       verify(() => mockCache.delete('trips_cache', 'all_trips')).called(1);
       verify(() => mockCache.delete('trips_cache', 'trip:1')).called(1);
       verify(() => mockCache.delete('trips_cache', 'trip_home:1')).called(1);
+      verify(() => mockCache.clearBox('trips_paginated_cache')).called(1);
     });
 
     test('updateTrip success → invalidates caches', () async {
@@ -175,12 +261,14 @@ void main() {
         () => mockRemote.updateTrip('1', any()),
       ).thenAnswer((_) async => Success(trip));
       when(() => mockCache.delete(any(), any())).thenAnswer((_) async {});
+      when(() => mockCache.clearBox(any())).thenAnswer((_) async {});
 
       final result = await repo.updateTrip('1', {'title': 'Updated'});
 
       expect(result, isA<Success<Trip>>());
       verify(() => mockCache.delete('trips_cache', 'grouped_trips')).called(1);
       verify(() => mockCache.delete('trips_cache', 'trip:1')).called(1);
+      verify(() => mockCache.clearBox('trips_paginated_cache')).called(1);
     });
 
     test('createTrip success → invalidates list caches', () async {
@@ -189,12 +277,14 @@ void main() {
         () => mockRemote.createTrip(title: any(named: 'title')),
       ).thenAnswer((_) async => Success(trip));
       when(() => mockCache.delete(any(), any())).thenAnswer((_) async {});
+      when(() => mockCache.clearBox(any())).thenAnswer((_) async {});
 
       final result = await repo.createTrip(title: 'New Trip');
 
       expect(result, isA<Success<Trip>>());
       verify(() => mockCache.delete('trips_cache', 'grouped_trips')).called(1);
       verify(() => mockCache.delete('trips_cache', 'all_trips')).called(1);
+      verify(() => mockCache.clearBox('trips_paginated_cache')).called(1);
     });
 
     test('deleteTrip failure → does not invalidate caches', () async {

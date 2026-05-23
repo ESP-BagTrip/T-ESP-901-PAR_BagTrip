@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/paginated_response.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
@@ -36,6 +37,7 @@ void main() {
       cache: mockCache,
       connectivity: mockConnectivity,
     );
+    when(() => mockCache.clearBox(any())).thenAnswer((_) async {});
   });
 
   group('getActivities', () {
@@ -96,17 +98,89 @@ void main() {
     });
   });
 
-  group('pass-through methods', () {
-    test('getActivitiesPaginated delegates to remote', () async {
+  group('getActivitiesPaginated', () {
+    test('online + API success → caches and returns Success', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(true);
+      final page = makePaginatedResponse<Activity>(items: [makeActivity()]);
       when(
-        () => mockRemote.getActivitiesPaginated('trip-1'),
-      ).thenAnswer((_) async => const Failure(ServerError('not tested')));
+        () => mockRemote.getActivitiesPaginated(
+          'trip-1',
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => Success(page));
+      when(() => mockCache.put(any(), any(), any())).thenAnswer((_) async {});
 
-      await repo.getActivitiesPaginated('trip-1');
+      final result = await repo.getActivitiesPaginated(
+        'trip-1',
+        page: 2,
+        limit: 10,
+      );
 
-      verify(() => mockRemote.getActivitiesPaginated('trip-1')).called(1);
+      expect(result, isA<Success<PaginatedResponse<Activity>>>());
+      verify(
+        () => mockCache.put(
+          'activities_paginated_cache',
+          'activities:paginated:trip-1:p2:l10',
+          any(),
+        ),
+      ).called(1);
     });
 
+    test('online + API failure → no cache write', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(true);
+      when(
+        () => mockRemote.getActivitiesPaginated(
+          'trip-1',
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => const Failure(ServerError('fail')));
+
+      final result = await repo.getActivitiesPaginated('trip-1');
+
+      expect(result, isA<Failure<PaginatedResponse<Activity>>>());
+      verifyNever(() => mockCache.put(any(), any(), any()));
+    });
+
+    test('offline + cache hit → returns paginated from cache', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(false);
+      when(
+        () => mockCache.get(any(), any(), ttl: any(named: 'ttl')),
+      ).thenAnswer(
+        (_) async => {
+          'items': [makeActivity().toJson()],
+          'total': 1,
+          'page': 1,
+          'totalPages': 1,
+        },
+      );
+
+      final result = await repo.getActivitiesPaginated('trip-1');
+
+      expect(result, isA<Success<PaginatedResponse<Activity>>>());
+      verifyNever(
+        () => mockRemote.getActivitiesPaginated(
+          any(),
+          page: any(named: 'page'),
+          limit: any(named: 'limit'),
+        ),
+      );
+    });
+
+    test('offline + cache miss → returns Failure', () async {
+      when(() => mockConnectivity.isOnline).thenReturn(false);
+      when(
+        () => mockCache.get(any(), any(), ttl: any(named: 'ttl')),
+      ).thenAnswer((_) async => null);
+
+      final result = await repo.getActivitiesPaginated('trip-1');
+
+      expect(result, isA<Failure<PaginatedResponse<Activity>>>());
+    });
+  });
+
+  group('pass-through methods', () {
     test('suggestActivities delegates to remote', () async {
       when(
         () => mockRemote.suggestActivities('trip-1'),
@@ -133,6 +207,7 @@ void main() {
       verify(
         () => mockCache.delete('activities_cache', 'activities:trip-1'),
       ).called(1);
+      verify(() => mockCache.clearBox('activities_paginated_cache')).called(1);
     });
 
     test('createActivity failure → does not invalidate cache', () async {
