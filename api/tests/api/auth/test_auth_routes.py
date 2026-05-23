@@ -221,6 +221,52 @@ class TestLogin:
         assert response.status_code == 401
         assert response.json()["detail"] == "Invalid credentials"
 
+    def test_login_locks_account_after_repeated_failures(
+        self, client, override_get_db, mock_db_session
+    ):
+        """After enough wrong-password attempts the account is locked (429)."""
+        from src.services.auth_lockout_service import MAX_FAILURES, AuthLockoutService
+
+        # Distinct email so the process-shared counter doesn't bleed into other tests.
+        email = f"lockme-{uuid.uuid4().hex}@example.com"
+        AuthLockoutService.reset(email)
+        hashed = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode("utf-8")
+        user = User(id=uuid.uuid4(), email=email, password_hash=hashed)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+
+        wrong = {"email": email, "password": "nope"}
+        for _ in range(MAX_FAILURES):
+            assert client.post("/v1/auth/login", json=wrong).status_code == 401
+
+        # The next attempt is locked out, even with the correct password.
+        locked = client.post("/v1/auth/login", json={"email": email, "password": "password123"})
+        assert locked.status_code == 429
+        assert "Retry-After" in locked.headers
+        AuthLockoutService.reset(email)
+
+    def test_login_success_resets_lockout_counter(
+        self, client, override_get_db, mock_db_session
+    ):
+        """A successful login clears prior failures so the user isn't locked next time."""
+        from src.services.auth_lockout_service import AuthLockoutService
+
+        email = f"reset-{uuid.uuid4().hex}@example.com"
+        password = "password123"
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            password_hash=hashed,
+            created_at=datetime.utcnow(),
+            updated_at=None,
+        )
+        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+
+        AuthLockoutService.record_failure(email)
+        AuthLockoutService.record_failure(email)
+        assert client.post("/v1/auth/login", json={"email": email, "password": password}).status_code == 200
+        assert AuthLockoutService.is_locked(email)[0] is False
+
 
 class TestMe:
     """Test suite for the me endpoint."""

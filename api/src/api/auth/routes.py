@@ -34,6 +34,7 @@ from src.config.database import get_db
 from src.config.env import settings
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
+from src.services.auth_lockout_service import AuthLockoutService
 from src.services.device_token_service import DeviceTokenService
 from src.services.mailer_service import MailerService
 from src.services.plan_service import PlanService
@@ -48,6 +49,24 @@ from src.utils.errors import AppError
 from src.utils.logger import logger
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
+
+
+def _auth_log_context(http_request: Request, email: str) -> dict[str, str]:
+    """Build a structured, PII-free log context for an auth attempt.
+
+    The email is hashed (never logged in clear) and the user-agent is truncated
+    — enough to correlate attempts and spot anomalies without leaking PII.
+    """
+    client_ip = http_request.headers.get("x-forwarded-for", "")
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    elif http_request.client:
+        client_ip = http_request.client.host
+    return {
+        "email_hash": hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()[:16],
+        "ip": client_ip or "unknown",
+        "user_agent": http_request.headers.get("user-agent", "")[:120],
+    }
 
 
 def _hash_reset_token(token: str) -> str:
@@ -237,6 +256,7 @@ async def register(
 async def login(
     request: LoginRequest,
     response: Response,
+    http_request: Request,
     db: Annotated[Session, Depends(get_db)],
 ):
     """
@@ -247,10 +267,24 @@ async def login(
 
     Retourne un token JWT valide pendant 365 jours.
     """
+    log_ctx = _auth_log_context(http_request, request.email)
+
+    # Per-account lockout (defense-in-depth on top of the per-IP rate limiter).
+    locked, retry_after = AuthLockoutService.is_locked(request.email)
+    if locked:
+        logger.warning("Login blocked: account temporarily locked", data=log_ctx)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed attempts. Try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     # Trouver l'utilisateur
     user = db.query(User).filter(User.email == request.email).first()
 
     if not user:
+        AuthLockoutService.record_failure(request.email)
+        logger.warning("Login failed: unknown email", data=log_ctx)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -263,10 +297,15 @@ async def login(
     )
 
     if not is_valid_password:
+        AuthLockoutService.record_failure(request.email)
+        logger.warning("Login failed: wrong password", data=log_ctx)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
+
+    AuthLockoutService.reset(request.email)
+    logger.info("Login succeeded", data={**log_ctx, "user_id": str(user.id)})
 
     # Generate tokens
     access_token, expires_in = create_access_token(str(user.id))
