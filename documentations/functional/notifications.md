@@ -1,278 +1,231 @@
 # Notifications
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-Le systeme de notifications de BagTrip repose sur deux mecanismes complementaires : les **notifications push server-side** (FCM via un job periodique backend) et les **notifications locales client-side** (programmees via `flutter_local_notifications` + `timezone`). Les notifications couvrent le cycle de vie complet du voyage : rappel de depart, alertes vol, resume matinal, rappels d'activite, alertes budget, rappels check-out, rappels de valise, et detection de fin de voyage. Cote utilisateur, un centre de notifications avec pagination, marquage lu/non-lu, et deep linking vers les ecrans concernes.
+Le systeme de notifications de BagTrip est **entierement pilote par le backend** (refactor SMP-326 : `localized notifications` + nettoyage FCM cote mobile). Le serveur decide *quoi* envoyer, *quand* l'envoyer et *dans quelle langue*, puis pousse le payload via Firebase Cloud Messaging. Le client Flutter se contente d'afficher, de relayer en foreground et de deep-linker vers l'ecran cible.
 
-## Architecture
+Trois canaux co-existent :
 
-### Deux canaux de notification
+- **Push FCM (backend)** — un scheduler Python (`notification_job.py`) tourne toutes les 30 minutes, protege par un lock Redis distribue, et balaie les voyages pour declencher les rappels temporels (depart demain, vol H-4/H-1, resume matinal, activite H-1). Les transitions de statut (`PLANNED -> ONGOING`, `ONGOING -> COMPLETED`) emettent `TRIP_STARTED` / `TRIP_ENDED` depuis `TripsService.auto_transition_statuses`. Les alertes budget partent en hook depuis le service budget.
+- **In-app history (backend)** — chaque push est persiste dans la table `notifications`. Le mobile expose une liste paginee + badge non-lu via `/v1/notifications`.
+- **Local notifications (mobile, periphrastique)** — `flutter_local_notifications` n'est plus utilise pour *programmer* des rappels. Il sert uniquement a **relayer en foreground** une push FCM recue alors que l'app est ouverte (Android/iOS suppriment la banniere automatique dans ce cas), et a propager le payload au tap handler. Aucun ID stable, aucun scheduling cote client.
 
-| Canal | Source | Quand | Exemples |
-|-------|--------|-------|----------|
-| **Push FCM (server)** | Job backend toutes les 30 min | App fermee ou en background | Depart demain, vol dans 4h/1h, resume matinal, activite dans 1h, alerte budget |
-| **Local (client)** | Schedule au moment de la transition ONGOING | App fermee, notifications programmees a l'avance | Resume quotidien 8h, activite dans 30 min, check-out 9h, valise J-2 18h, fin de voyage +24h |
+La localisation est resolue par le backend a partir du `locale` stocke sur le `DeviceToken` le plus recent du destinataire (`DeviceTokenService.get_locale_for_user`). Fallback vers `en` si absent. Catalogue de strings dans `src/services/notification_messages.py` (un dict `{cle.title|body: {fr, en}}`), rendu via `render_notification(key, locale, **ctx)` qui fait un simple `.format(**ctx)` sur le template choisi. Le scheduler n'assemble jamais de phrases manuellement — il ne fournit que le `ctx` (titres voyage, comptages, suffixes).
 
-La redondance est voulue : les notifications push couvrent les cas ou l'utilisateur n'ouvre pas l'app, et les notifications locales garantissent la precision temporelle meme sans connectivite.
+**Pourquoi backend-owned ?** Le timing des notifications depend de donnees serveur (statut du voyage, ordre de vol confirme, items budget) qui evoluent independamment du device. Le scheduler centralise la dedup, la resolution des destinataires (owner + viewers via `TripShare`) et la localisation. Le client n'a aucun etat a maintenir : pas de queue d'IDs locaux a invalider sur changement de trip, pas de re-scheduling apres edit, pas de risque de drift entre devices.
 
-## Notifications Push (Server-Side)
+## Cote Backend
 
-### Job de notification (`api/src/jobs/notification_job.py`)
-
-Le scheduler `notification_scheduler()` tourne en boucle async toutes les 30 minutes (`INTERVAL_SECONDS = 1800`). Il execute 5 checks sequentiels :
-
-#### 1. Rappel de depart (`DEPARTURE_REMINDER`)
-
-- **Condition** : trip PLANNED avec `start_date = demain`
-- **Contenu** : "Depart demain ! Votre voyage [...] commence demain. Bagages : X/Y prepares."
-- **Enrichissement** : comptage des items bagages packed/total via `BaggageItem`
-- **Deep link** : `screen: "tripHome"`
-- **Deduplication** : `_already_sent` avec fenetre 20h
-
-#### 2. Alerte vol H-4 (`FLIGHT_H4`)
-
-- **Condition** : `FlightOrder` confirme dont le vol decolle dans 3.5h-4.5h
-- **Contenu** : "Vol dans ~4h. Votre vol pour [...] decolle bientot !"
-- **Enrichissement** : URL du billet (`ticket_url`) si disponible
-- **Deep link** : `screen: "tripHome"`, `orderId`, `ticketUrl`
-- **Deduplication** : 5h par `orderId`
-
-#### 3. Alerte vol H-1 (`FLIGHT_H1`)
-
-- **Condition** : `FlightOrder` confirme dont le vol decolle dans 0.5h-1.5h
-- **Contenu** : "Vol dans ~1h" + info terminal/porte si disponible
-- **Enrichissement** : terminal extrait de `offer_json.itineraries[0].segments[0].departure.terminal`
-- **Deep link** : `screen: "tripHome"`, `orderId`
-
-#### 4. Resume matinal (`MORNING_SUMMARY`)
-
-- **Condition** : trip ONGOING, activites aujourd'hui, entre 7h00 et 7h30 UTC
-- **Contenu** : "Programme du jour — {destination}. X activite(s) prevue(s) : nom1, nom2, nom3 (+N)"
-- **Limite** : affiche les 3 premieres activites
-- **Deep link** : `screen: "activities"`
-- **Deduplication** : 20h
-
-#### 5. Rappel activite H-1 (`ACTIVITY_H1`)
-
-- **Condition** : activite aujourd'hui avec `start_time` dans 30min-90min
-- **Contenu** : "Activite dans ~1h. « {titre} » commence bientot ! [a {lieu}]"
-- **Deep link** : `screen: "activities"`, `activityId`
-- **Deduplication** : 2h par `activityId`
-
-### Alerte budget (`BUDGET_ALERT`)
-
-Declenchee a la demande par `NotificationService.check_and_send_budget_alert()` (pas dans le job periodique mais appelee depuis le service budget) :
-- **Niveaux** : WARNING et CRITICAL
-- **Contenu** : "Alerte budget" ou "Budget depasse !" + pourcentage consomme
-- **Deep link** : `screen: "budget"`, `alertLevel`
-- **Deduplication** : 1h par niveau
-
-### Service de notification (`api/src/services/notification_service.py`)
-
-`NotificationService` gere :
-
-| Methode | Description |
-|---------|-------------|
-| `create_and_send()` | Cree en DB + envoie FCM unicast |
-| `create_and_send_bulk()` | Cree pour plusieurs users + envoie FCM multicast |
-| `get_for_user()` | Liste paginee + comptage non-lus |
-| `get_unread_count()` | Comptage non-lus pour badge |
-| `mark_as_read()` | Marque une notification comme lue |
-| `mark_all_as_read()` | Marque toutes comme lues (update bulk) |
-| `_get_trip_recipients()` | Owner + viewers via `TripShare` |
-| `_send_fcm()` | Envoi FCM via `firebase_admin.messaging` |
-| `_already_sent()` | Deduplication temporelle par type/trip/data |
-
-**Gestion FCM** :
-- Unicast via `messaging.send(Message)` pour 1 token
-- Multicast via `messaging.send_each_for_multicast(MulticastMessage)` pour N tokens
-- Nettoyage automatique des tokens invalides (`UnregisteredError` -> suppression du `DeviceToken` en DB)
-- `sent_at` est mis a jour apres envoi reussi
-
-### Modele Notification (DB)
-
-`api/src/models/notification.py` — table `notifications` :
-
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `id` | UUID | PK |
-| `user_id` | UUID FK | Destinataire |
-| `trip_id` | UUID FK | Trip associe (optionnel) |
-| `type` | String | Type de notification (enum) |
-| `title` | String | Titre |
-| `body` | String | Corps |
-| `data` | JSON | Donnees de deep link |
-| `is_read` | Boolean | Lu/non-lu |
-| `sent_at` | DateTime | Date d'envoi FCM |
-| `created_at` | DateTime | Date de creation |
-
-### Types de notification (enum)
-
-Definis dans `api/src/enums.py` :
-
-| Type | Description |
-|------|-------------|
-| `DEPARTURE_REMINDER` | Depart demain |
-| `FLIGHT_H4` | Vol dans 4h |
-| `FLIGHT_H1` | Vol dans 1h |
-| `MORNING_SUMMARY` | Resume matinal |
-| `ACTIVITY_H1` | Activite dans 1h |
-| `TRIP_STARTED` | Voyage demarre |
-| `TRIP_ENDED` | Voyage termine |
-| `BUDGET_ALERT` | Alerte budget |
-| `TRIP_SHARED` | Trip partage |
-| `ADMIN` | Notification admin |
-
-## Notifications Locales (Client-Side)
-
-### LocalNotificationService
-
-`bagtrip/lib/service/local_notification_service.dart` — wrapper statique autour de `FlutterLocalNotificationsPlugin` :
-
-- **Initialisation** : timezone database + settings Android/iOS (permissions demandees separement)
-- **Canaux Android** : `bagtrip_notifications` (generique) et `bagtrip_trip_reminders` (rappels programmes)
-- **show()** : notification immediate
-- **zonedSchedule()** : notification programmee a une `TZDateTime` precise, avec `AndroidScheduleMode.inexactAllowWhileIdle`
-- **cancel(id)** / **cancelAll()** : annulation
-- **Tap handling** : callback `onDidReceiveNotificationResponse` avec payload JSON
-
-### TripNotificationScheduler
-
-`bagtrip/lib/service/trip_notification_scheduler.dart` — service metier qui schedule les notifications en fonction de l'etat du trip :
-
-#### scheduleOngoingNotifications(trip)
-
-Idempotent (annule puis reschedule). Programme :
-
-1. **Resumes quotidiens a 8h** : pour chaque jour restant du trip, titre "Bonjour !", corps "Jour X a {destination}", deep link `tripHome`
-2. **Rappels activite 30 min avant** : pour chaque activite avec `startTime`, titre "Bientot : {titre}", corps "Dans 30 minutes [a {lieu}]", deep link `activities`
-3. **Rappels check-out a 9h** : pour chaque hebergement avec `checkOut`, titre "Rappel check-out", corps "N'oubliez pas de quitter {nom}", deep link `tripHome`
-
-#### schedulePackingReminder(trip)
-
-Programme a J-2 18h avant le depart :
-- Compte les items bagages non-packed
-- Si count > 0 : "C'est l'heure de faire les valises ! {count} articles restants pour {destination}"
-- Deep link : `baggage`
-
-#### scheduleCompletionReminder(trip)
-
-Programme a now + 24h (apres un dismiss de la completion) :
-- "Voyage termine ? Votre voyage a {destination} semble termine. Voulez-vous le cloturer ?"
-- Deep link : `tripHome`
-
-#### cancelTripNotifications(trip)
-
-Annule toutes les notifications d'un trip en recalculant les IDs : packing, completion, daily summaries (par jour), activity reminders (par activity ID), checkout reminders (par accommodation ID).
-
-#### Algorithme d'ID stable
-
-`stableId(key)` utilise un hash djb2 sur la cle string pour generer un ID 31-bit positif deterministe. Cela evite de persister une liste d'IDs de notifications.
-
-### NotificationStrings
-
-`bagtrip/lib/service/notification_strings.dart` — textes bilingues (FR/EN) resolus via `Intl.defaultLocale` au moment du scheduling :
-
-| Notification | FR | EN |
-|-------------|----|----|
-| Daily summary | "Bonjour !" / "Jour X a Y" | "Good morning!" / "Day X in Y" |
-| Activity reminder | "Bientot : {titre}" | "Coming up: {title}" |
-| Checkout | "Rappel check-out" | "Checkout reminder" |
-| Packing | "C'est l'heure de faire les valises !" | "Time to pack!" |
-| Completion | "Voyage termine ?" | "Trip over?" |
-
-## Device Tokens FCM
-
-### API (`api/src/api/device_tokens/routes.py`)
+### Endpoints REST
 
 | Methode | Endpoint | Description |
 |---------|----------|-------------|
-| `POST` | `/v1/device-tokens` | Enregistrer un token FCM |
-| `DELETE` | `/v1/device-tokens/{token}` | Supprimer un token |
+| `GET` | `/v1/notifications` | Liste paginee (`page`, `limit`) + comptage non-lus |
+| `GET` | `/v1/notifications/unread-count` | Compteur badge |
+| `PATCH` | `/v1/notifications/{notificationId}/read` | Marquer une notif lue |
+| `POST` | `/v1/notifications/read-all` | Marquer toutes lues (retourne `{updated: N}`) |
+| `POST` | `/v1/device-tokens` | Enregistrer un token FCM (upsert sur `fcmToken`) |
+| `DELETE` | `/v1/device-tokens` | Supprimer un token (token dans le body, jamais l'URL, pour ne pas fuiter dans les logs) |
 
-### Schema
+Toutes les routes passent par `get_current_user` et `@handle_app_errors`. Pagination via la dependency standard `PaginationParams`.
 
-- `DeviceTokenRegisterRequest` : `fcmToken` (requis), `platform` (optionnel)
-- `DeviceTokenResponse` : `id`, `fcmToken`, `platform`, `createdAt`
+### NotificationService (`src/services/notification_service.py`)
 
-### Cote mobile
+| Methode | Role |
+|---------|------|
+| `create_and_send()` | Insert DB + push unicast FCM. Met a jour `sent_at` si l'envoi reussit. |
+| `create_and_send_bulk()` | Insert N rows + multicast FCM. Nettoie les tokens invalides. |
+| `send_localized()` | **Point d'entree unique pour le scheduler** — resout le `locale` du destinataire, rend `title`/`body` depuis le catalogue i18n via `render_notification(notif_key, locale, **ctx)`, delegue a `create_and_send`. Le `notif_key` (catalogue) peut differer du `notif_type` (enum DB) — utile pour les variantes budget (`BUDGET_ALERT_WARNING` / `BUDGET_ALERT_EXCEEDED` partagent le type `BUDGET_ALERT`). |
+| `get_for_user()` | Liste paginee + total + total_pages + unread_count en une passe. |
+| `get_unread_count()` | Compteur badge. |
+| `mark_as_read()` / `mark_all_as_read()` | Update simple / bulk. |
+| `check_and_send_budget_alert()` | Appele depuis `BudgetItemService` apres une mutation de depense. Dedup sur `BUDGET_ALERT` + `data.alertLevel` (un `WARNING` ne supprime pas un `EXCEEDED`). |
+| `_get_trip_recipients()` | Owner + viewers via `trip.shares` (lit la relation, eager-loaded par les callers). |
+| `_send_fcm()` | Envoi FCM (`messaging.send` ou `messaging.send_each_for_multicast`). Sur `UnregisteredError`, supprime le `DeviceToken` correspondant. Si Firebase n'est pas initialise, log un warn et skip silencieusement. |
+| `_already_sent()` | Deduplication temporelle par `(user, trip, type)` + filtre optionnel sur une cle JSON (`orderId`, `activityId`, `alertLevel`). |
 
-`NotificationRepositoryImpl` (`bagtrip/lib/service/notification_service.dart`) expose :
-- `registerDeviceToken(fcmToken, platform)` : POST best-effort (erreurs silencieuses)
-- `unregisterDeviceToken(fcmToken)` : DELETE best-effort
+### DeviceTokenService
 
-## Centre de Notifications (Mobile)
+`register()` fait un upsert : si le `fcm_token` existe deja, met a jour `user_id`, `platform`, `locale` (normalise via `normalize_locale`). Sinon insertion. `get_locale_for_user()` lit le `DeviceToken` le plus recemment mis a jour ; fallback `"en"`.
 
-### NotificationBloc
+### Scheduler (`src/jobs/notification_job.py`)
 
-`bagtrip/lib/notifications/bloc/notification_bloc.dart` — gere 6 events :
+Boucle `asyncio` lancee depuis le lifespan FastAPI, intervalle 30 min. Chaque tick :
 
-| Event | Description |
-|-------|-------------|
-| `LoadNotifications` | Charge la premiere page |
-| `LoadMoreNotifications` | Pagination |
-| `LoadUnreadCount` | Comptage badge |
-| `MarkNotificationRead` | Marquer une notif lue |
-| `MarkAllRead` | Marquer toutes lues |
-| `NotificationReceived` | Push recue -> refresh count |
+1. Acquiert `redis_lock("job:notification", ttl_seconds=2*INTERVAL)`. Si un autre worker tient deja le lock, log et skip.
+2. Lance `run_notification_checks()` dans un thread pool (`asyncio.to_thread`) — le code DB est sync.
+3. Execute 5 checks dans l'ordre : `departure_reminders` -> `flight_h4` -> `flight_h1` -> `morning_summary` -> `activity_h1`.
 
-Le `NotificationBloc` est instancie au niveau app (persistant).
+Chaque check :
+- Filtre les voyages eligibles avec un eager loading explicite (`selectinload(Trip.shares)`, `joinedload(FlightOrder.flight_offer)`, `selectinload(Activity.trip).selectinload(Trip.shares)`) pour eviter le N+1 sur les listes de destinataires.
+- Resout les destinataires via `_get_trip_recipients()` (owner + viewers).
+- Pour chaque destinataire : test `_already_sent()`, resolution `locale`, appel `send_localized()` avec le contexte rendu (titre voyage, statut bagages, suffixe terminal, etc.). Le rendu i18n est entierement deportable cote catalogue (`notification_messages.py`).
 
-### NotificationsView
+Specificite **MORNING_SUMMARY** : la fenetre 07h-10h est evaluee dans le **fuseau horaire de la destination** (`trip.destination_timezone`) et non en UTC. La dedup 20h + la largeur 3h absorbent le drift +/- 30 min du scheduler.
 
-`bagtrip/lib/notifications/view/notifications_view.dart` — ecran avec :
-- AppBar avec bouton "Tout marquer comme lu" (visible si `unreadCount > 0`)
-- `PaginatedList<AppNotification>` avec groupement par date (Aujourd'hui, Hier, Il y a X jours)
-- `ElegantEmptyState` si vide
-- Padding iOS adaptatif (100px)
+Le job **TRIP_STARTED / TRIP_ENDED** vit ailleurs : `trip_status_job.py` tourne une fois par jour a minuit UTC, sous un autre lock (`job:trip_status`, TTL 10 min). Il delegue a `TripsService.auto_transition_statuses` qui (1) bulk-update les statuts via `UPDATE trips SET status = ...`, (2) capture les voyages affectes *avant* l'update, (3) emet `TRIP_STARTED` (`screen: tripHome`) ou `TRIP_ENDED` (`screen: feedback`) via `_dispatch_trip_notification` aux owners + viewers.
 
-### NotificationCard
+### Distributed lock (`src/utils/distributed_lock.py`)
 
-`bagtrip/lib/notifications/widgets/notification_card.dart` — affiche :
-- Icone circulaire coloree par type (avion, soleil, event, wallet, check)
-- Titre en gras si non-lu, normal sinon
-- Corps (2 lignes max)
-- Temps relatif ("A l'instant", "Il y a Xmin", "Il y a Xh", "Il y a Xj")
-- Indicateur point bleu pour non-lu
+`redis_lock(name, ttl_seconds)` est un async context manager qui yield un `bool` "lock acquis". Implementation :
 
-### Deep Linking
+- `SET lock:{name} {uuid} NX EX {ttl}` — atomique, un seul worker reussit.
+- Release via script Lua CAS : `if get(KEYS[1]) == ARGV[1] then del(KEYS[1])` — empeche un worker en retard de liberer le lock d'un successeur qui le tient deja (foot-gun classique "lock TTL expire pendant que worker A boucle, worker B prend le lock, worker A le release").
+- **Fallback Redis indisponible** : yield `True` quand-meme, log un warn une seule fois par nom de lock. Mono-worker dev OK ; multi-workers sans Redis = duplications acceptees (warn explicite).
 
-Au tap sur une notification :
-1. Marque comme lue (`MarkNotificationRead`)
-2. Parse le champ `data` pour extraire `screen` et `tripId`
-3. Navigation selon `screen` :
+### Catalogue i18n (`src/services/notification_messages.py`)
 
-| Screen | Route |
-|--------|-------|
-| `tripHome` | `TripHomeRoute(tripId)` |
-| `activities` | `ActivitiesRoute(tripId)` |
-| `budget` | `BudgetRoute(tripId)` |
+Dictionnaire plat `{cle.title|body: {fr, en}}` avec helpers de rendu (`render_notification`) et de suffixe contextuel (`baggage_status`, `activity_location_suffix`, `flight_ticket_suffix`, `flight_gate_suffix`, `untitled_trip`, `normalize_locale`). Cles principales :
+
+- `DEPARTURE_REMINDER.title|body` — utilise `{trip_title}`, `{baggage_status}`
+- `FLIGHT_H4.body|FLIGHT_H1.body` — utilise `{trip_title}`, `{ticket_suffix}`, `{gate_suffix}`
+- `MORNING_SUMMARY.body` — utilise `{trip_title}`, `{count}`, `{activity_names}`
+- `ACTIVITY_H1.body` — utilise `{activity_title}`, `{location_suffix}`
+- `TRIP_STARTED.title|body` / `TRIP_ENDED.title|body`
+- `BUDGET_ALERT_WARNING.*` / `BUDGET_ALERT_EXCEEDED.*` — note le decouplage entre la cle catalogue et la valeur enum `BUDGET_ALERT` persistee en DB
+
+Toute modification d'un libelle se fait uniquement dans ce fichier — pas de string-en-dur dans les jobs ni dans `NotificationService`. Le `locale` recu est normalise (`fr-FR -> fr`, `en-US -> en`, defaut `en`).
+
+### Firebase (`src/integrations/firebase/__init__.py`)
+
+Init globale au boot via `FIREBASE_SERVICE_ACCOUNT_PATH`. `get_firebase_app()` retourne `None` si le path est absent ou si l'init a echoue — `_send_fcm` log "Firebase not initialized" et skip. Pas de crash au boot quand la cle n'est pas montee (env dev).
+
+### Modele DB (`notifications`)
+
+| Colonne | Type | Nullable | Description |
+|---------|------|----------|-------------|
+| `id` | UUID | non | PK |
+| `user_id` | UUID FK `users.id` | non | Destinataire, indexe |
+| `trip_id` | UUID FK `trips.id` | oui | Voyage associe, indexe |
+| `type` | String | non | Valeur de `NotificationType` |
+| `title` / `body` | String | non | Texte rendu (deja localise) |
+| `data` | JSONB | oui | Payload deep-link (`screen`, `tripId`, `orderId`, `activityId`, `alertLevel`, `ticketUrl`...) |
+| `is_read` | Boolean | non | Defaut `False` |
+| `sent_at` | DateTime tz | oui | Renseigne apres envoi FCM reussi |
+| `created_at` | DateTime tz | non | `server_default=func.now()` |
+
+## Cote Mobile
+
+### NotificationBloc (`bagtrip/lib/notifications/bloc/notification_bloc.dart`)
+
+Gere uniquement la **liste paginee** (events `LoadNotifications`, `LoadMoreNotifications`, `MarkNotificationRead`, `MarkAllRead`, `ResetNotifications`). Le badge non-lu vit dans `NotificationCountCubit` separe — separation explicite ajoutee en SMP-326. Pattern matching `Result<T>` partout, optimistic update sur `MarkNotificationRead` (decremente `unreadCount` localement avant la prochaine list refresh).
+
+`NotificationsPage` fire `LoadNotifications()` au build et installe un `BlocListener` qui synchronise `NotificationCountCubit` depuis chaque `NotificationsLoaded` (un load et un mark-as-read re-emettent un compteur frais — la cubic et le bloc restent ainsi en phase sans event ad-hoc).
+
+`NotificationsView` rend un `PaginatedList<AppNotification>` avec :
+- Bouton AppBar "Tout marquer comme lu" visible quand `unreadCount > 0`.
+- Groupement par date (`notificationsToday`, `notificationsYesterday`, `notificationsDaysAgo(n)`, `dd/mm/yyyy`).
+- `ElegantEmptyState` si vide.
+- Padding iOS adaptatif (100 px pour la GlassBottomBar).
+
+### FCM init (`main.dart`)
+
+Au cold start :
+- `Firebase.initializeApp()` + handler background top-level (`_firebaseMessagingBackgroundHandler`) annote `@pragma('vm:entry-point')`.
+- `LocalNotificationService.initialize(onNotificationTap: _handleLocalNotificationTap)`.
+- Aucune demande de permission a froid — elle est demandee **apres** authentification (cf. `AuthBloc`).
+
+Au `_setupFCMListeners()` dans `_MyAppState` :
+- `FirebaseMessaging.onMessage` (foreground) : appelle `LocalNotificationService.show(...)` pour relayer une banniere (FCM n'en dessine pas en foreground) avec le `message.data` comme payload, puis `_countCubit.refresh()`.
+- `FirebaseMessaging.onMessageOpenedApp` (tap depuis background) : route via `_handleRemoteMessageTap(message)`.
+- `FirebaseMessaging.instance.getInitialMessage()` (cold start depuis push terminee) : meme handler.
+- `FirebaseMessaging.instance.onTokenRefresh` : re-enregistre le nouveau token via `NotificationRepository.registerDeviceToken(token, platform, locale)`. Le `locale` provient de `PlatformDispatcher.instance.locale.languageCode` — c'est ce qui alimente la resolution `DeviceTokenService.get_locale_for_user` cote backend.
+
+### LocalNotificationService (`bagtrip/lib/service/local_notification_service.dart`)
+
+Wrapper minimaliste autour de `flutter_local_notifications`. Apres SMP-326 le scope est strictement reduit :
+- `initialize({onNotificationTap})` : settings Android `@mipmap/ic_launcher` + iOS sans demande de permission (la permission FCM la couvre).
+- `show({id, title, body, payload})` : banniere immediate, payload JSON-encode pour le tap handler. Utilise par le seul cas "FCM foreground relay".
+- **Plus de `zonedSchedule`, plus de canal `bagtrip_trip_reminders`, plus de `TripNotificationScheduler`** — le backend possede toute la logique de timing.
+
+### Deep link (`bagtrip/lib/notifications/notification_deep_link.dart`)
+
+`resolveNotificationRoute(Map<String, dynamic>? data) -> String?` est la **single source of truth** pour mapper un payload vers une route GoRouter. Utilise par les 4 entry points : tap sur notif locale (foreground), tap sur push background, cold start depuis push, tap dans la liste in-app.
+
+Vocabulaire `screen` (impose par le backend) :
+
+| `data.screen` | Route |
+|---------------|-------|
+| `tripHome` (defaut) | `TripHomeRoute(tripId)` |
 | `feedback` | `FeedbackRoute(tripId)` |
-| default | `TripHomeRoute(tripId)` |
+| `post-trip` | `PostTripRoute(tripId)` |
+| `baggage` | `BaggageRoute(tripId)` |
+| `accommodations` | `AccommodationsRoute(tripId)` |
+| `map` | `MapRoute(tripId)` |
+| `activities` / `budget` / inconnu | retombe sur `TripHomeRoute(tripId)` (la surface trip detail) |
 
-### Modele AppNotification (Flutter)
+Sans `tripId` exploitable, retourne `null` : le caller ne navigue pas plutot que de naviguer au mauvais endroit.
 
-`bagtrip/lib/models/notification.dart` (Freezed) : `id`, `type`, `title`, `body`, `data` (Map?), `isRead`, `tripId`, `sentAt`, `createdAt`.
+## Types de notifications
 
-## Fichier ActivityPage (doublon)
+| `NotificationType` | Source | Deep link `screen` | Dedup |
+|--------------------|--------|--------------------|-------|
+| `DEPARTURE_REMINDER` | `notification_job._check_departure_reminders` (J-1) | `tripHome` | 20h par trip |
+| `FLIGHT_H4` | `notification_job._check_flight_alerts(4h)` | `tripHome` (+ `ticketUrl` si dispo) | 5h par `orderId` |
+| `FLIGHT_H1` | `notification_job._check_flight_alerts(1h)` | `tripHome` (+ terminal si dispo) | 5h par `orderId` |
+| `MORNING_SUMMARY` | `notification_job._check_morning_summary` (07h-10h locale destination) | `activities` | 20h par trip |
+| `ACTIVITY_H1` | `notification_job._check_activity_reminders` (T-30min a T-1h30) | `activities` (+ `activityId`) | 2h par `activityId` |
+| `TRIP_STARTED` | `TripsService.auto_transition_statuses` (PLANNED -> ONGOING) | `tripHome` | une fois (transition unique) |
+| `TRIP_ENDED` | `TripsService.auto_transition_statuses` (ONGOING -> COMPLETED) | `feedback` | une fois (transition unique) |
+| `BUDGET_ALERT` | `NotificationService.check_and_send_budget_alert` (hook post-mutation) | `budget` (+ `alertLevel`) | 1h par `alertLevel` |
+| `TRIP_SHARED` | (defini dans l'enum, pas encore emis) | n/a | n/a |
+| `ADMIN` | broadcast manuel depuis l'admin panel | configurable | n/a |
 
-`bagtrip/lib/notifications/view/activity_page.dart` est un doublon de `NotificationsPage` qui fait exactement la meme chose (fire `LoadNotifications` et rend `NotificationsView`). Son nom est trompeur.
+## Flux
+
+### Push backend -> mobile
+
+1. Le scheduler detecte une condition (ex: vol dans ~4h pour un `FlightOrder` confirme).
+2. Pour chaque destinataire (`owner + viewers`), check `_already_sent`. Si OK, resolution `locale` via `DeviceTokenService.get_locale_for_user`.
+3. `send_localized()` rend `title`/`body` depuis le catalogue, insert un `Notification` en DB, recupere les `fcm_token` de l'utilisateur, push via FCM unicast/multicast.
+4. Sur succes : update `sent_at`. Sur `UnregisteredError` : delete du `DeviceToken` orphelin.
+5. FCM delivre le message au device.
+
+### Enregistrement du token au login
+
+1. L'utilisateur s'authentifie -> `AuthBloc` demande la permission FCM (iOS uniquement, Android la donne par defaut < 13).
+2. Recupere le token via `FirebaseMessaging.instance.getToken()`.
+3. POST `/v1/device-tokens` avec `{fcmToken, platform: 'ios'|'android', locale: <languageCode>}`. Upsert cote backend.
+4. Listener `onTokenRefresh` re-poste a chaque rotation FCM (changement d'app reinstall, restore de backup, expiration cote Firebase). Best-effort, erreurs silencieuses (logguees).
+5. Au logout : DELETE `/v1/device-tokens` avec `{fcmToken}` dans le body. Token reste exploitable par d'autres users si re-login sur le meme device.
+
+### Reception et navigation cote mobile
+
+- **App ouverte (foreground)** : `onMessage` -> `LocalNotificationService.show` avec `message.data` en payload + `NotificationCountCubit.refresh()`. Si l'utilisateur tape la banniere relayee, `onDidReceiveNotificationResponse` decode le JSON et appelle `_handleLocalNotificationTap` -> `resolveNotificationRoute` -> `appRouter.go(route)`.
+- **App en background** : la banniere systeme s'affiche directement (FCM). Tap -> `onMessageOpenedApp` -> `_handleRemoteMessageTap(message)` -> `resolveNotificationRoute(message.data)` -> navigation.
+- **App tuee** : tap depuis le centre de notifications systeme -> cold start, `getInitialMessage()` retourne le payload, meme handler que background.
+- **Liste in-app** : tap sur une `NotificationCard` -> dispatch `MarkNotificationRead(id)` + `resolveNotificationRoute(notification.data)`.
+
+### Cycle de vie d'une `NotificationCard`
+
+1. Render depuis `NotificationsLoaded.notifications` (paginated). Le style change selon `isRead` : titre gras + point bleu si non-lu.
+2. Tap -> `NotificationBloc.add(MarkNotificationRead(id))` + `resolveNotificationRoute(notification.data)` -> `appRouter.go(route)` si non-null.
+3. Optimistic update : le bloc decremente `unreadCount` localement (pas de roundtrip avant la nav).
+4. La cubic `NotificationCountCubit` recupere la nouvelle valeur via le `BlocListener` de la page.
+5. Le push backend (PATCH `/v1/notifications/{id}/read`) persiste l'etat. Echec = `NotificationError` (silencieux apres navigation).
+
+### Lock multi-worker
+
+`uvicorn --workers N` lance N copies du lifespan, donc N copies des schedulers. Sans lock, chaque tick a 30 min emet N pushes au lieu d'un. Sequence avec `redis_lock` :
+
+1. Worker A `SET lock:job:notification {tokenA} NX EX 3600` -> OK (acquired=True).
+2. Worker B `SET ... NX EX ...` -> NULL (acquired=False), log "Lock held by peer worker, skipping tick".
+3. Worker A execute `run_notification_checks`, puis Lua CAS release (`del` seulement si la valeur est encore `tokenA`).
+4. Au tick suivant, n'importe quel worker peut prendre le lock — pas d'affinite.
+
+Si Redis tombe : fallback "yield True", warn une seule fois par lock name. Acceptable en dev mono-worker, dangereux en prod multi-workers (cf. notes du module).
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Temps relatif en dur | `NotificationCard._relativeTime()` utilise des strings francais en dur ("A l'instant", "Il y a X min") au lieu de l10n (`bagtrip/lib/notifications/widgets/notification_card.dart` l.171-175) | P1 |
-| Fichier doublon activity_page.dart | `bagtrip/lib/notifications/view/activity_page.dart` est un doublon exact de `notifications_page.dart` avec un nom trompeur — devrait etre supprime | P1 |
-| Pas de suppression de notifications | L'utilisateur ne peut pas supprimer une notification individuelle — pas d'endpoint DELETE ni de swipe-to-delete | P2 |
-| Pas de preferences de notification | L'utilisateur ne peut pas desactiver certains types de notifications (ex: desactiver les alertes budget) — pas de page de settings notifications | P2 |
-| Resume matinal timezone | Le check `_check_morning_summary` utilise 7h-7h30 UTC sans ajustement au fuseau horaire de la destination — un utilisateur a Tokyo (UTC+9) recoit son resume a 16h locales (`api/src/jobs/notification_job.py` l.178) | P0 |
-| Alertes vol timezone | `_extract_departure_time` parse le `at` de l'itineraire et force UTC, mais les horaires Amadeus sont souvent en heure locale — risque de decalage des alertes H-4/H-1 (`api/src/jobs/notification_job.py` l.142) | P0 |
-| Deep link baggage/map manquants | Les notifications locales de packing et checkout deeplink vers `tripHome` ou `baggage`, mais `baggage` et `map` ne sont pas geres dans `NotificationCard._onTap()` (`bagtrip/lib/notifications/widgets/notification_card.dart` l.151-166) | P1 |
-| Pas de badge d'app | Le compteur non-lu met a jour l'UI mais ne met pas a jour le badge de l'icone de l'app (iOS badge number via `FlutterAppBadger` ou equivalent) | P2 |
-| Tests notifications | Pas de tests pour `NotificationBloc`, `TripNotificationScheduler` dans le repertoire test | P1 |
-| Notification locale tap non-routed | Le payload JSON des notifications locales contient `screen` et `tripId`, mais le callback `onNotificationTap` dans `LocalNotificationService.initialize()` n'est pas connecte au routeur GoRouter — le tap sur une notification locale ne navigue pas | P0 |
-| TRIP_STARTED non-utilise | Le type `TRIP_STARTED` est defini dans l'enum mais n'est envoye nulle part dans le code | P2 |
-| TRIP_SHARED non-implemente | Le type `TRIP_SHARED` est defini dans l'enum mais la notification n'est pas envoyee lors du partage d'un trip | P2 |
+| `TRIP_SHARED` non emis | Le type est dans l'enum + un libelle existe dans le catalogue, mais aucun appelant ne le dispatche depuis le service de partage. | P2 |
+| Pas de suppression cote utilisateur | Pas d'endpoint `DELETE /v1/notifications/{id}` ni de swipe-to-delete dans la liste. | P2 |
+| Pas de preferences par type | Aucun ecran pour desactiver une categorie (ex: couper `MORNING_SUMMARY`). Tout-ou-rien via la permission systeme. | P2 |
+| Badge applicatif (iOS) | Le `NotificationCountCubit` met l'UI a jour mais ne propage pas le compteur au badge de l'icone iOS (manque `FlutterAppBadger` ou equivalent). | P2 |
+| Flight times en UTC force | `_extract_departure_time` force `tzinfo=UTC` sur le `at` d'Amadeus alors que la valeur est souvent en heure locale aeroport. Risque de decalage des H-4 / H-1 selon le fuseau. | P0 |
+| Catalogue i18n FR incomplet | Certaines cles tombent en fallback EN. Verifier la couverture complete dans `notification_messages.py`. | P1 |
+| Tests scheduler | Pas de tests dedies au lock distribue (mode acquired / busy / fallback Redis down) ni a la boucle complete du scheduler. | P1 |
+| Limite copy FCM | Les libelles longs peuvent etre tronques par iOS (~178 chars) — pas de garde de longueur cote rendu. | P2 |

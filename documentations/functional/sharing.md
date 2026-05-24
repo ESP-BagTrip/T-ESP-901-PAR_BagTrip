@@ -1,168 +1,227 @@
-# Partage et Permissions
+# Partage et Travelers
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La feature de partage permet au proprietaire d'un voyage d'inviter d'autres utilisateurs BagTrip a consulter son trip. Le systeme repose sur un modele OWNER/VIEWER avec invitation par email, notification push a l'invite, quotas de partage lies au plan de l'utilisateur et revocation. Les viewers ont un acces en lecture seule avec masquage des informations sensibles (prix, references de reservation).
+Le module sharing couvre deux primitives distinctes mais liees au meme trip :
+
+- **Shares** — invitation d'un autre utilisateur BagTrip a voir ou editer un voyage, avec roles `OWNER` / `EDITOR` / `VIEWER`, invitation differee via token quand l'invite n'est pas encore inscrit, et quota par plan (`viewers_per_trip`).
+- **Travelers** — passagers physiques rattaches au voyage (identite, date de naissance, documents, contact). Sert au booking de vol Amadeus (payload `traveler.raw`) et a la repartition du budget. N'est pas une autorisation : un traveler n'a aucun compte BagTrip lie.
+
+Cote API, l'autorisation passe par la dependency `TripAccess` qui resout `OWNER` / `EDITOR` / `VIEWER` a chaque requete. Cote mobile, le `TripDetailState` expose `isOwner` / `isEditor` / `isViewer` / `canEdit` que toutes les UI consomment pour conditionner CTA, swipe actions, formulaires et redaction visuelle.
 
 ---
 
-## Architecture mobile (Flutter)
+## Cote Backend
 
-### BLoC
+### Modeles
 
-`TripShareBloc` (`bagtrip/lib/trips/bloc/trip_share_bloc.dart`) gere le CRUD des partages via `TripShareRepository`.
+| Modele | Fichier | Role |
+|---|---|---|
+| `TripShare` | `api/src/models/trip_share.py` | Lien `(trip_id, user_id, role)` actif. Unique `(trip_id, user_id)`. Role par defaut `VIEWER`. |
+| `PendingInvite` | `api/src/models/pending_invite.py` | Invitation par email pour un utilisateur non inscrit. Champs `token`, `role`, `message`, `invited_by`, `expires_at` (7 jours). Unique `(trip_id, email)`. |
+| `TripTraveler` | `api/src/models/traveler.py` | Passager du voyage. `amadeus_traveler_ref`, `traveler_type` (ADULT/CHILD), identite, `documents` JSON, `contacts` JSON, `raw` JSON (payload Amadeus complet). |
 
-| Event | Action |
-|-------|--------|
-| `LoadShares` | Charge la liste des partages pour un trip |
-| `CreateShare` | Invite un utilisateur par email (avec message optionnel). Gere le quota depasse via `TripShareQuotaExceeded` |
-| `DeleteShare` | Revoque un partage existant |
+Enum `ShareRole` (`api/src/enums.py`) : `VIEWER`, `EDITOR`. Le role `OWNER` n'est pas stocke dans `TripShare` — il est deduit par `Trip.user_id`.
 
-### Etats
+### Endpoints shares (`api/src/api/shares/routes.py`)
 
-| State | Description |
-|-------|-------------|
-| `TripShareInitial` | Etat initial |
-| `TripShareLoading` | Operation en cours |
-| `TripShareLoaded` | Liste de `TripShare` disponible |
-| `TripShareError` | Erreur avec `AppError` |
-| `TripShareQuotaExceeded` | Quota de partage depasse (lie au plan) |
+Prefix `/v1/trips/{tripId}/shares`. Toutes les routes sauf `GET` exigent `get_trip_owner_access`.
 
-### Modele Freezed
+| Methode | Path | Acces | Comportement |
+|---|---|---|---|
+| `POST` | `/{tripId}/shares` | OWNER | Body `{ email, role?, message? }`. Cree un `TripShare` si l'email est connu, sinon un `PendingInvite` avec token. Retourne 201 + `{ status: "active" \| "pending", inviteToken? }`. |
+| `GET` | `/{tripId}/shares` | OWNER + EDITOR + VIEWER | Liste `items` (shares actifs avec `userEmail`/`userFullName`) + `pendingInvites` (uniquement si OWNER). |
+| `DELETE` | `/{tripId}/shares/{shareId}` | OWNER | Revoque un share existant. 204. |
+| `DELETE` | `/{tripId}/pending-invites/{inviteId}` | OWNER | Annule une invitation en attente. 204. |
 
-`TripShare` (`bagtrip/lib/models/trip_share.dart`) :
-- `id` (obligatoire)
-- `tripId` (obligatoire)
-- `userId` (obligatoire)
-- `role` (defaut `'VIEWER'`)
-- `invitedAt` (DateTime?)
-- `userEmail` (obligatoire)
-- `userFullName` (optionnel)
+### Endpoint invites (`api/src/api/invites/routes.py`)
 
-### Vues et pages
+| Methode | Path | Acces | Comportement |
+|---|---|---|---|
+| `POST` | `/v1/invites/{token}/accept` | Authentifie | Resoud le `PendingInvite` par token, verifie non expiration, cree le `TripShare` correspondant et supprime l'invite. Retourne le `ShareResponse`. |
 
-| Fichier | Role |
-|---------|------|
-| `bagtrip/lib/pages/trip_shares_page.dart` | Page de gestion des partages (cree le BlocProvider) |
-| `bagtrip/lib/trips/view/trip_shares_view.dart` | UI de la liste des partages avec formulaire d'invitation |
+### Endpoints travelers (`api/src/api/travelers/routes.py`)
 
-### Flux d'invitation
+Prefix `/v1/trips/{tripId}/travelers`. Toutes les ecritures passent par `get_trip_editor_access` (OWNER ou EDITOR).
 
-1. L'owner ouvre la page de partage
-2. Il saisit l'email de l'utilisateur a inviter + un message optionnel
-3. L'event `CreateShare` est fire
-4. En cas de succes, les shares sont recharges (`LoadShares`)
-5. En cas de quota depasse, l'etat `TripShareQuotaExceeded` est emis
+| Methode | Path | Acces | Comportement |
+|---|---|---|---|
+| `POST` | `/{tripId}/travelers` | OWNER + EDITOR | Cree un traveler. 201. |
+| `GET` | `/{tripId}/travelers` | OWNER + EDITOR + VIEWER | Liste des travelers. |
+| `PATCH` | `/{tripId}/travelers/{travelerId}` | OWNER + EDITOR | Mise a jour partielle. |
+| `DELETE` | `/{tripId}/travelers/{travelerId}` | OWNER + EDITOR | Suppression. 204. |
 
-### Flux de revocation
-
-1. L'owner voit la liste des partages avec email et nom
-2. Il declenche `DeleteShare(tripId, shareId)`
-3. Les shares sont recharges apres suppression
-
----
-
-## Architecture backend (FastAPI)
-
-### Endpoints partages
-
-- `POST /v1/trips/{tripId}/shares` — Invite un utilisateur. Body : `email` (EmailStr, obligatoire), `message?` (String). Owner only. Retourne 201.
-
-- `GET /v1/trips/{tripId}/shares` — Liste tous les partages du trip. Owner only. Retourne pour chaque share : id, tripId, userId, role, invitedAt, userEmail, userFullName.
-
-- `DELETE /v1/trips/{tripId}/shares/{shareId}` — Revoque un partage. Owner only. Retourne 204.
+`TravelersService.traveler_to_amadeus_payload()` mappe vers le format Amadeus (split country calling code, documents avec `validityCountry`, payload stocke dans `traveler.raw`). Sert au booking de vol.
 
 ### Service `TripShareService` (`api/src/services/trip_share_service.py`)
 
-#### `create_share(db, trip_id, owner_user_id, email, message?)`
+Flux `create_share(db, trip_id, owner_user_id, email, message?, role)` :
 
-Flux complet de creation :
+1. `_check_trip_not_completed` — refuse si trip `COMPLETED` (403 `TRIP_COMPLETED`).
+2. Resolution user par email :
+   - **User existe** : refuse self-share (`SELF_SHARING` 400), refuse doublon (`ALREADY_SHARED` 409), verifie quota plan (`SHARE_QUOTA_EXCEEDED` 402), insere `TripShare`, envoie notification localisee `TRIP_SHARED` (clef `TRIP_SHARED_WITH_MESSAGE` si message) avec deep-link `tripHome`.
+   - **User n'existe pas** : refuse self-share par email, refuse pending duplique, verifie quota cumule (shares + pending), genere un token UUID4, insere `PendingInvite` avec `expires_at = now + 7d`.
 
-1. **Verification trip** : le trip ne doit pas etre au statut COMPLETED (`_check_trip_not_completed`)
-2. **Resolution utilisateur** : recherche par email dans la table `users`. Erreur `USER_NOT_FOUND` (404) si l'email n'est pas enregistre
-3. **Pas d'auto-partage** : erreur `SELF_SHARING` (400) si l'owner essaie de partager avec lui-meme
-4. **Pas de doublon** : erreur `ALREADY_SHARED` (409) si un share existe deja pour ce user/trip
-5. **Verification quota** : via `PlanService.get_share_limit(owner)`. Erreur `SHARE_QUOTA_EXCEEDED` (402) si la limite est atteinte
-6. **Creation** : insertion d'un `TripShare` avec role `VIEWER` (seul role disponible)
-7. **Notification push** : envoie une notification `TRIP_SHARED` a l'invite via `NotificationService.create_and_send()` avec :
-   - Titre : "Nouveau voyage partage !"
-   - Body : "{nom_owner} vous a invite a 'nom_du_trip'" ou avec le message personnalise
-   - Data : `{screen: "tripHome", tripId: ...}` pour le deep-link
+Autres methodes :
 
-#### `get_shares_by_trip(db, trip_id)`
+- `get_shares_by_trip` — join `TripShare` x `User` pour exposer `user_email`/`user_full_name`.
+- `get_pending_invites_by_trip` — filtre `expires_at > now`.
+- `delete_share` / `delete_pending_invite` — verifient trip non completed + existence.
+- `accept_invite(token, user_id)` — resoud le pending, verifie expiration (410 `INVITE_EXPIRED`), refuse doublon, cree le share et supprime l'invite.
+- `claim_pending_invites(email, user_id)` — appele par `UserCreationService` a l'inscription : transforme automatiquement tous les `PendingInvite` non expires correspondant a l'email en `TripShare`.
 
-Jointure `TripShare` + `User` pour enrichir avec `user_email` et `user_full_name`.
+### Guard `TripAccess` (`api/src/api/auth/trip_access.py`)
 
-#### `delete_share(db, share_id, trip_id)`
-
-Verification que le trip n'est pas COMPLETED + existence du share, puis suppression.
-
-### Modele SQLAlchemy
-
-`TripShare` (`api/src/models/trip_share.py`) :
-- `id` (UUID, PK, auto-genere)
-- `trip_id` (UUID, FK vers trips, index)
-- `user_id` (UUID, FK vers users, index)
-- `role` (String, defaut "VIEWER")
-- `invited_at` (DateTime with timezone, server_default now())
-- Contrainte unique : `uq_trip_shares_trip_user` (trip_id, user_id)
-- Relations : `trip` (backref `shares`), `user`
-
-### Roles et permissions
-
-Le systeme `TripAccess` (`api/src/api/auth/trip_access.py`) resout l'acces en deux etapes :
+Resolution en trois etapes :
 
 ```
-1. L'utilisateur est-il l'owner du trip ? → TripRole.OWNER
-2. Existe-t-il un TripShare pour cet user ? → TripRole(share.role) (= VIEWER)
-3. Sinon → 404 (pour ne pas reveler l'existence du trip)
+1. trip.user_id == current_user.id  -> TripRole.OWNER
+2. TripShare(trip_id, user_id) existe -> TripRole(share.role)  # VIEWER ou EDITOR
+3. Sinon -> AppError("TRIP_NOT_FOUND", 404)  # ne pas leaker l'existence
 ```
 
-Deux dependencies FastAPI :
-- `get_trip_access` : accepte OWNER + VIEWER (routes en lecture)
-- `get_trip_owner_access` : OWNER uniquement (routes en ecriture), renvoie 403 si VIEWER
+Trois dependencies exposees :
 
-### Matrice des permissions par feature
+| Dependency | Roles autorises | Usage |
+|---|---|---|
+| `get_trip_access` | OWNER + EDITOR + VIEWER | Lectures (GET) |
+| `get_trip_editor_access` | OWNER + EDITOR | Mutations partagees (activites, vols, hebergements, bagages, budget, travelers) |
+| `get_trip_owner_access` | OWNER seul | Operations sensibles (shares CRUD, delete trip) |
 
-| Feature | Owner | Viewer |
-|---------|-------|--------|
-| Vols — recherche | Acces complet | Acces complet |
-| Vols — offres/prix | Voir tout | Prix masques |
-| Vols — orders | paymentId visible | paymentId masque |
-| Vols — CRUD manuel | CRUD complet | Lecture seule |
-| Hebergements — liste | Voir tout | pricePerNight, currency, bookingReference masques |
-| Hebergements — CRUD | CRUD complet | Lecture seule |
-| Bagages — liste | Voir tout | Voir tout |
-| Bagages — CRUD | CRUD complet | Lecture seule |
-| Bagages — IA suggest | Autorise | Non autorise |
-| Budget — items | CRUD complet | Liste vide |
-| Budget — summary | Complet | totalSpent=0, remaining=0, by_category={}, percentConsumed visible |
-| Budget — detail item | Autorise | 403 Forbidden |
-| Partages — CRUD | CRUD complet | Pas d'acces aux routes |
-| Activites — CRUD | CRUD complet | Lecture seule |
+Toutes les routes mutations passent par ces dependencies, jamais de check inline `trip.user_id == user_id`.
 
-### Enum des roles
+### Plan limits (`api/src/config/plans.py`)
 
-```python
-class ShareRole(StrEnum):
-    VIEWER = "VIEWER"
+`PlanService.get_share_limit(user)` lit `PLAN_LIMITS[plan]["viewers_per_trip"]`. Le compteur inclut `TripShare` actifs + `PendingInvite` non expires (`_check_quota`). Depasse -> `SHARE_QUOTA_EXCEEDED` (402, paywall cote mobile).
+
+---
+
+## Cote Mobile
+
+### `TripDetailBloc` — source de verite des roles
+
+L'etat `TripDetailLoaded` (`bagtrip/lib/trip_detail/bloc/trip_detail_state.dart`) expose :
+
+```dart
+bool get isOwner  => userRole == 'OWNER';
+bool get isEditor => userRole == 'EDITOR';
+bool get isViewer => userRole == 'VIEWER';
+bool get canEdit  => (isOwner || isEditor) && !isCompleted;
 ```
 
-Actuellement, seul le role `VIEWER` est defini. Il n'y a pas de role EDITOR ou COLLABORATOR.
+`canEdit` est passe a chaque panneau (`activities`, `flights`, `accommodations`, `baggage`, `budget`, `shares`) pour conditionner les CTA, swipe actions, formulaires d'edition, FAB et bottom sheets. Un trip `COMPLETED` retombe en read-only meme pour l'owner.
+
+### Panneau Shares (`bagtrip/lib/trip_detail/view/panels/shares_panel.dart`)
+
+Visible uniquement pour OWNER. Couvre :
+
+- Empty state `TripPanelEmptyState` avec CTA `emptySharesAddNow`.
+- Bouton `panelInviteCollaborator` en tete de liste.
+- Liste des shares avec avatar (initiales email), nom/email, chip role en pill.
+- Swipe-to-revoke (`Dismissible` endToStart) + context menu adaptatif `shareRevokeAccess`.
+- Tap row -> `QuickPreviewSheet` avec actions `shareCopyLink` (primary) et `shareRevokeAccess` (destructive).
+
+L'invitation passe par `showItemFormSheet` + `ShareInviteSheet` (`bagtrip/lib/trips/widgets/share_invite_sheet.dart`) :
+
+- Champ email valide par regex.
+- `PillSegmentedControl` Viewer / Editor.
+- Champ message optionnel.
+- Submit -> `CreateShareFromDetail(email, role, message)` dispatche sur le `TripDetailBloc`.
+
+### `TripShareBloc` legacy (`bagtrip/lib/trips/bloc/trip_share_bloc.dart`)
+
+Reste utilise par les flows hors trip-detail (ex: ecrans dedies). Trois events :
+
+| Event | Action |
+|---|---|
+| `LoadShares` | Charge la liste via `TripShareRepository.getSharesByTrip` |
+| `CreateShare` | Invite via `createShare(email, role, message)`. Si `status == 'pending'`, emet `TripShareInvitePending(inviteToken)` -> copie automatique dans le presse-papier. Sur `QuotaExceededError`, emet `TripShareQuotaExceeded` -> ouverture `PremiumPaywall`. |
+| `DeleteShare` | Revoque + reload |
+
+### Repository (`bagtrip/lib/repositories/trip_share_repository.dart`)
+
+Interface minimale, implementee dans `lib/service/`. Retourne `Future<Result<T>>`, pattern matching obligatoire cote bloc, mapping `DioException` -> `AppError` (`NotFoundError`, `ValidationError`, `QuotaExceededError`) par l'`ApiClient`.
+
+### Mode viewer — restrictions UI
+
+Quand `state.isViewer == true` :
+
+- Aucun FAB, aucun bouton add sur les panneaux.
+- Tap sur un item n'expose que l'`QuickPreviewSheet` en mode lecture (pas de `Edit` / `Delete`).
+- Le panneau `Shares` n'est pas accessible (tab cache, l'API renvoie 403 sur les mutations).
+- Le panneau `Travelers` reste lisible (lecture autorisee) mais sans CTA add/edit/delete.
+- Le bouton de suppression du trip est masque.
+- La redaction cote API masque deja les prix vol/hebergement, references de booking, `total_spent` budget, `paymentId`. L'UI affiche un placeholder neutre.
+
+---
+
+## Roles et permissions
+
+| Role | Lecture trip | Mutation contenu (activites, vols, hotels, bagages, budget, travelers) | Delete trip | Shares mgmt (invite / revoke) |
+|---|---|---|---|---|
+| OWNER | oui | oui | oui | oui |
+| EDITOR | oui | oui | non | non |
+| VIEWER | oui (avec redaction) | non | non | non |
+
+Hors-trip : tout utilisateur authentifie peut appeler `POST /v1/invites/{token}/accept` pour reclamer une invitation. Les `PendingInvite` correspondant a son email sont aussi reclames automatiquement a l'inscription (`UserCreationService._claim_pending_invites`).
+
+---
+
+## Plan limits
+
+`viewers_per_trip` borne le nombre total `TripShare` + `PendingInvite` non expires sur un meme trip.
+
+| Plan | `viewers_per_trip` | `ai_generations_per_month` | `post_voyage_ai` |
+|---|---|---|---|
+| FREE | 2 | 3 | non |
+| PREMIUM | 10 | illimite | oui |
+| ADMIN | illimite | illimite | oui |
+
+Depassement -> `AppError("SHARE_QUOTA_EXCEEDED", 402)` -> cote mobile, le bloc emet `TripShareQuotaExceeded` et la sheet d'invitation se ferme pour ouvrir `PremiumPaywall`.
+
+---
+
+## Flux
+
+### Invite -> accept (user inscrit)
+
+1. Owner ouvre `SharesPanel`, tap `panelInviteCollaborator`, saisit email + role.
+2. `TripDetailBloc` dispatche `CreateShareFromDetail` -> `POST /v1/trips/{id}/shares`.
+3. Service trouve l'user, cree `TripShare(role)`, envoie notification push localisee `TRIP_SHARED` avec `data.tripId` pour deep-link.
+4. L'invite ouvre la notification -> deep-link `tripHome` -> `TripAccess` resoud `EDITOR` ou `VIEWER` -> trip visible dans la liste home.
+
+### Invite -> accept (user non inscrit)
+
+1. Meme POST, service ne trouve pas l'user -> cree `PendingInvite` avec token UUID4 + `expires_at = now + 7d`.
+2. Reponse `{ status: "pending", inviteToken }` -> cote mobile, le token est copie dans le presse-papier et un snackbar affiche `shareInvitePendingMessage`.
+3. **Variante A** : l'invite s'inscrit avec le meme email -> `UserCreationService._claim_pending_invites` convertit automatiquement tous les pending en `TripShare`.
+4. **Variante B** : l'invite recoit le lien manuellement et appelle `POST /v1/invites/{token}/accept` -> service verifie expiration, cree le `TripShare`, supprime l'invite.
+
+### Revoke
+
+1. Owner swipe ou tap `shareRevokeAccess` sur un row.
+2. `TripDetailBloc` dispatche `DeleteShareFromDetail(shareId)` -> `DELETE /v1/trips/{id}/shares/{shareId}`.
+3. Service verifie trip non completed + existence, supprime le `TripShare`.
+4. L'ex-invite perd l'acces : prochaine requete `TripAccess` -> 404. Aucune notification de revocation n'est envoyee.
+
+### Travelers (booking vol)
+
+1. Owner ou Editor ouvre le tab Travelers, ajoute un passager (identite + document + contact).
+2. `POST /v1/trips/{id}/travelers` cree le `TripTraveler`.
+3. Au moment du booking Amadeus, `TravelersService.traveler_to_amadeus_payload` reformate vers le schema Amadeus (split phone code, `validityCountry` fallback) et stocke le payload dans `traveler.raw`.
 
 ---
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
-|---------|-------------|----------|
-| Role EDITOR/COLLABORATOR | Seul le role VIEWER existe. Pas de role intermediaire permettant d'editer certaines parties du trip (ex: ajouter des activites mais pas modifier le budget). L'enum `ShareRole` ne contient que `VIEWER`. (`api/src/enums.py:48-49`) | P1 |
-| Invitation par lien | L'invitation ne fonctionne que par email d'un utilisateur deja enregistre. Pas de lien d'invitation generique (token + URL) pour inviter des non-inscrits. Erreur `USER_NOT_FOUND` si l'email n'est pas dans la base. (`api/src/services/trip_share_service.py:33-35`) | P1 |
-| Notification de revocation | Quand un share est supprime (`delete_share`), l'utilisateur revoque ne recoit pas de notification. Seule l'invitation envoie une notification push. (`api/src/services/trip_share_service.py:120-133`) | P2 |
-| Acceptation/refus d'invitation | Le partage est immediat — pas de flux d'acceptation/refus par l'invite. Le share est cree directement avec le role VIEWER. | P2 |
-| Badge de role dans l'UI | Le modele `TripShare` contient un champ `role` mais il n'y a pas d'affichage de badge/chip dans l'UI Flutter pour distinguer visuellement le role. | P2 |
-| Gestion des permissions granulaires | Le masquage des donnees est fait manuellement dans chaque route (ex: `if access.role == TripRole.VIEWER`). Pas de middleware centralise de filtrage par role. | P2 |
-| Tests E2E partage | Des tests unitaires existent (`trip_share_bloc_test.dart`, `trip_share_repository_test.dart`, `trip_share_model_test.dart`) mais pas de test E2E couvrant le flux invitation -> acces viewer -> masquage donnees. | P2 |
-| Listing des trips partages avec moi | Cote mobile, pas de vue dediee "Trips partages avec moi" distincte de "Mes trips". Les trips partages apparaissent dans la liste principale. | P2 |
+|---|---|---|
+| Email transactionnel | Aucun email n'est envoye lors de la creation d'un `PendingInvite`. Seul le token est renvoye dans la reponse API et copie dans le presse-papier mobile. Pas de mail avec lien magique. | P1 |
+| Notification de revocation | `delete_share` ne notifie pas l'ex-invite. La perte d'acces est silencieuse cote client (decouvert au prochain refresh). | P2 |
+| Refus explicite d'invitation | Pas de flux `POST /v1/invites/{token}/decline`. L'invite peut ignorer mais pas refuser proprement, et l'owner ne sait pas si l'invitation a ete vue. | P2 |
+| Audit log shares | Pas d'historique des invitations / revocations / changements de role. Utile pour le debug support et la conformite. | P2 |
+| Modification de role apres invite | Une fois cree, le role d'un `TripShare` n'est pas modifiable via l'API (pas de `PATCH /shares/{id}`). Il faut revoke + reinviter. | P3 |
+| Liaison traveler <-> user | Un `TripTraveler` est purement declaratif. Pas de lien optionnel vers un `User` BagTrip qui permettrait de pre-remplir les documents depuis le profil. | P3 |
+| Vue dediee "Trips partages avec moi" | Cote mobile, pas de section distincte sur le home pour separer trips owned et trips ou je suis EDITOR/VIEWER. | P3 |

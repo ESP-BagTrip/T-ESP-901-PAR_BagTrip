@@ -1,267 +1,214 @@
-# Infrastructure -- Docker, Compose, Makefile, Scripts
+# Infrastructure BagTrip
 
-> Derniere mise a jour : 2026-04-09
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-L'infrastructure BagTrip repose sur Docker Compose et un Makefile racine comme point d'entree unique. Le mobile Flutter tourne nativement sur la machine hote (pas de conteneur).
+L'infrastructure BagTrip s'organise autour de trois stacks (API FastAPI, admin Next.js, mobile Flutter) orchestres par un `Makefile` unique en local et par Docker Compose en production. Le tout tient sur un seul VPS OVH derriere un reverse-proxy edge Caddy (cf. `vps-inventory.md`).
 
-Trois environnements coexistent :
+Principes structurants :
 
-| Environnement | Branche | Stack | URLs publiques |
-|---------------|---------|-------|----------------|
-| **Dev local** | n'importe quelle branche | `compose.yml` (Dockerfile.dev, hot reload) | `http://localhost:3000` / `http://localhost:8000` |
-| **Pre-production** | `develop` (auto) | `compose.prod.yml` sur `/opt/bagtrip-preprod` | `https://dev.bagtrip.fr` / `https://api.dev.bagtrip.fr` |
-| **Production** | `main` (auto) | `compose.prod.yml` sur `/opt/bagtrip` | `https://bagtrip.fr` / `https://api.bagtrip.fr` |
+- Un seul point d'entree dev : `make <cible>`. Le Makefile racine pilote `docker compose`, `uv` (Python), `npm` (admin) et `flutter`. Aucune commande directe n'est attendue cote contributeur.
+- Iso dev / prod : le Dockerfile prod (`api/Dockerfile`, `admin-panel/Dockerfile`) construit exactement les images deployees. Les variantes `.dev` ajoutent hot-reload + bind mounts mais partagent les bases.
+- Reseau interne dockerise : seul Caddy expose des ports vers l'exterieur en prod. Les services parlent entre eux via le DNS Docker (`api`, `postgres`, `redis`, `tempo`).
+- Dynamique mobile : le Makefile detecte automatiquement le device Flutter cible (simulateur vs telephone physique) et injecte le bon `API_BASE_URL` via `--dart-define`. Un telephone physique attaque l'IP LAN du Mac, pas `localhost`.
 
-Le pipeline CD (cf. [`ci-cd.md`](../ci-cd.md)) deploie automatiquement chaque push sur `develop`/`main` apres passage du Quality Gate.
+## Setup local
 
-## Docker Compose dev (`compose.yml`)
+Un `make init` suffit pour bootstrap : copie `.env.example`, verifie Docker/Flutter/pre-commit, installe les hooks et les deps Flutter. Les deps API sont installees a la construction de l'image (`uv sync --frozen` dans le Dockerfile dev).
 
-Le fichier `compose.yml` definit 3 services (+ 1 commente) :
+### Cibles `make` principales
 
-### Services
+| Cible | Action |
+|---|---|
+| `make init` | Copie `.env.example` -> `.env`, verifie Docker, lance `flutter pub get`, installe les hooks pre-commit |
+| `make dev` | Stack complete : `docker compose up -d --build` + `stripe listen` background + `flutter run` foreground |
+| `make dev-docker` | Stack docker seule (db, redis, api, admin) + `stripe listen` background |
+| `make dev-mobile` | Flutter seul, API attendue sur `localhost:3000` (ou LAN si device physique) |
+| `make pre-prod` | Flutter pointe vers `https://api.dev.bagtrip.fr/v1` (aucun docker local) |
+| `make prod` | Flutter pointe vers `https://api.bagtrip.fr/v1` (aucun docker local) |
+| `make stop` | `docker compose down` + arret du forwarder Stripe |
+| `make logs` | `docker compose logs -f` |
+| `make dev-clean` | Down + volumes, `flutter clean`, purge `node_modules`/`.next`, `__pycache__`, `.ruff_cache` |
+| `make check` | `pre-commit run --all-files` sur l'ensemble du repo |
+| `make lint` | Lint API (ruff) + admin (`npm run check-all`) + mobile (`flutter analyze` + `dart format --set-exit-if-changed`) |
+| `make test` | `pytest` API + `flutter test` + `flutter test integration_test/` |
+| `make coverage` | Couverture Flutter, seuil plancher 30 % via `lcov --summary` |
+| `make db-reset` | DROP + CREATE database + `alembic upgrade head` (confirmation interactive) |
+| `make db-revision MSG="..."` | `alembic revision -m "..."` dans le container API |
+| `make db-shell` | `psql` dans le container `db` |
+| `make shell-api` / `make shell-admin` | Bash/sh dans le container correspondant |
+| `make stripe-listen` | `stripe listen --forward-to localhost:3000/v1/stripe/webhooks` au premier plan |
 
-| Service | Image / Build | Port | Conteneur |
-|---------|--------------|------|-----------|
-| `db` | `postgres:15` | 5432:5432 | BagTrip-db |
-| `api` | Build depuis `api/Dockerfile.dev` | 3000:3000 | BagTrip-api |
-| `admin-panel` | Build depuis `admin-panel/Dockerfile.dev` | 8000:8000 | BagTrip-admin-panel |
-| ~~`mobile-web`~~ | commente (prevu pour Flutter web) | ~~5000~~ | ~~BagTrip-mobile-web~~ |
+Les cibles de tests / lint passent toutes par `docker compose exec`, garantissant que le code tourne dans le meme runtime que la CI.
 
-### Base de donnees (`db`)
+## Docker Compose dev
 
-```yaml
-image: postgres:15
-environment:
-  POSTGRES_USER: ${POSTGRES_USER:-postgres}     # defaut: postgres
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-  POSTGRES_DB: ${POSTGRES_DB:-bagtrip}
-volumes:
-  - postgres_data:/var/lib/postgresql/data       # volume nomme persistant
+Le fichier `compose.yml` decrit la stack locale, baptisee `BagTrip`. Quatre services tournent par defaut ; trois autres (`mobile-web`, `sonarqube`, `sonar-scanner`) sont laisses commentes pour reference.
+
+| Service | Image / build | Port host | Volumes | Role |
+|---|---|---|---|---|
+| `db` | `postgres:15` | aucun (expose 5432) | `postgres_data` | Base de donnees principale. Joignable uniquement via le reseau compose (`db:5432`) |
+| `redis` | `redis:7-alpine` | aucun (expose 6379) | `redis_data` | Cache, rate-limit, locks distribues, idempotency keys |
+| `api` | build `./api/Dockerfile.dev` | `3000:3000` | bind `./api/src`, `pyproject.toml`, `uv.lock`, `alembic*` | FastAPI avec `uvicorn --reload`, hot-reload sur edition |
+| `admin-panel` | build `./admin-panel/Dockerfile.dev` | `8000:8000` | bind `./admin-panel`, volume nomme `admin_node_modules`, masque `/app/.next` | Next.js dev server avec `WATCHPACK_POLLING=true` |
+
+Le service `api` execute en startup `uv sync && uv run alembic upgrade head && uv run uvicorn ... --reload`, ce qui garantit que les migrations sont a jour a chaque `make dev`. Les variables sensibles (`AMADEUS_*`, `LLM_API_KEY`, `STRIPE_*`) sont injectees depuis `.env` ; les optionnelles utilisent la syntaxe `${VAR:-}` pour ne pas casser le boot si absentes.
+
+Aucun port `db`/`redis` n'est expose au host pour eviter les collisions avec un Postgres local et reduire la surface d'attaque. Pour debugger : `make db-shell` ou `docker compose exec redis redis-cli`.
+
+## Docker Compose prod
+
+Le fichier `compose.prod.yml` est lance sur le VPS via `docker compose -f compose.prod.yml --env-file .env.production up -d --build`. Cinq services tournent en parallele ; le meme fichier sert la prod (`/opt/bagtrip`) et la pre-prod (`/opt/bagtrip-preprod`).
+
+| Service | Image / build | Expose | Healthcheck | Restart |
+|---|---|---|---|---|
+| `postgres` | `postgres:15-alpine` | interne | `pg_isready -U $POSTGRES_USER` toutes les 10 s | `unless-stopped` |
+| `redis` | `redis:7-alpine` avec `--save 60 1 --loglevel warning` | interne | `redis-cli ping` toutes les 10 s | `unless-stopped` |
+| `api` | build `./api/Dockerfile` | `3000` interne | Healthcheck dans le Dockerfile (`curl /health`) | `unless-stopped`, depend `postgres` + `redis` healthy |
+| `admin` | build `./admin-panel/Dockerfile` avec `ARG NEXT_PUBLIC_API_URL` | `8000` interne | n/a | `unless-stopped`, depend `api` started, `read_only: true`, `cap_drop: ALL` + capabilities minimales, tmpfs `/tmp` et `/app/.next/cache` |
+| `caddy` | `caddy:2-alpine` | bind `127.0.0.1:${CADDY_HOST_PORT:-8081}:80` | n/a | `unless-stopped`, monte `./Caddyfile` en read-only, volumes `caddy_data` / `caddy_config` |
+
+Quelques specificites prod :
+
+- L'API exporte ses traces OpenTelemetry vers `tempo:4317` (stack observabilite multi-homed sur le reseau bagtrip). Override possible via `API_OTEL_EXPORTER_OTLP_ENDPOINT`.
+- L'admin est durci : `read_only`, `no-new-privileges`, capabilities ramenees au strict minimum (CHOWN, DAC_OVERRIDE, SETGID, SETUID pour le user `nextjs`). Suite directe de l'incident cryptominer 2026-04-26 (cf. memory).
+- Caddy n'ecoute que sur `127.0.0.1:8081` : le reverse-proxy edge OVH (sur le port 80/443 public) forward vers ce port en preservant le header `Host`.
+- Les volumes `postgres_data`, `redis_data`, `caddy_data`, `caddy_config` sont les seuls etats persistants ; tout le reste est ephemere.
+
+## Dockerfiles
+
+Strategie : multi-stage pour les images prod, single-stage pour les variantes dev avec bind mounts.
+
+`api/Dockerfile` (prod, 3 stages) :
+
+1. `base` : `python:3.12-slim` + variables d'env (`PYTHONDONTWRITEBYTECODE`, `UV_PROJECT_ENVIRONMENT=/app/.venv`).
+2. `build` : copie `uv` depuis `ghcr.io/astral-sh/uv:latest`, installe les deps via `uv sync --frozen --no-dev`. Le lockfile garantit la reproductibilite.
+3. `runtime` : copie le `.venv` du stage build + le code source (`src`, `alembic`, `alembic.ini`), ajoute `curl` pour le healthcheck, expose 3000. CMD : `alembic upgrade head && exec uvicorn ... --proxy-headers --forwarded-allow-ips='*'` (necessaire derriere Caddy).
+
+`api/Dockerfile.dev` : single-stage, installe `uv` puis `uv sync --frozen` sans `--no-dev`. Pas de copie de code : tout est bind-mount via compose pour le hot-reload.
+
+`admin-panel/Dockerfile` (prod, 3 stages) :
+
+1. `deps` : `node:20-alpine` + `npm ci` a partir du lockfile.
+2. `builder` : copie les deps + source, injecte les ARGs `NEXT_PUBLIC_API_URL` et `NEXT_PUBLIC_COOKIE_NAME_PREFIX` (Next.js inline les `NEXT_PUBLIC_*` au build), lance `npm run build`. `NEXT_TELEMETRY_DISABLED=1`.
+3. `runtime` : cree un user non-root `nextjs`, copie `.next/standalone` + `.next/static` + `public`, expose 8000, `node server.js`.
+
+`admin-panel/Dockerfile.dev` : single-stage, `npm ci` puis entrypoint custom (`docker-entrypoint.sh`) qui re-installe si `package.json` a change. `npm run dev` par defaut, hot-reload via Webpack polling.
+
+Aucun Dockerfile mobile : Flutter tourne sur l'hote (simulateur ou device physique). L'option `bagtrip/Dockerfile.dev` reste commentee dans le compose pour un futur build web.
+
+## Reverse proxy Caddy
+
+`Caddyfile` minimal, identique en prod et pre-prod :
+
 ```
-
-Le volume `postgres_data` est declare au niveau du compose. Les identifiants par defaut sont `postgres/postgres/bagtrip`.
-
-### API (`api`)
-
-- **Build context** : `./api` avec `Dockerfile.dev`
-- **Dockerfile.dev** : `python:3.12-slim` + copie de `uv` depuis `ghcr.io/astral-sh/uv:latest`
-- **Volumes montes** (hot reload) : `src/`, `pyproject.toml`, `uv.lock`, `alembic/`, `alembic.ini`
-- **Commande** : `uv sync && uv run uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload`
-- **PYTHONPATH** : `/app` (necessaire pour les imports `src.*` et Alembic)
-- **Variables d'environnement injectees** :
-  - `DATABASE_URL` : pointe vers le service `db` (host `db` au lieu de `localhost`)
-  - `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `LLM_API_KEY` : requis, sans defaut
-  - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `LANGCHAIN_API_KEY` : optionnels (defaut vide)
-
-### Admin Panel (`admin-panel`)
-
-- **Build context** : `./admin-panel` avec `Dockerfile.dev`
-- **Dockerfile.dev** : `node:20-alpine`, `npm ci`, `npm run dev`
-- **Volumes** : repertoire complet monte, `node_modules` exclu via anonymous volume
-- **Variables** : `NEXT_PUBLIC_API_URL=http://localhost:3000`, `WATCHPACK_POLLING=true` (hot reload Docker)
-- **Port** : 8000 (Next.js dev avec Turbopack)
-
-## Docker Compose production (`compose.prod.yml`)
-
-Le meme fichier `compose.prod.yml` est utilise pour la production et la pre-production. Les valeurs specifiques par environnement sont injectees via `.env.production` (jamais commit, owne `deploy:deploy`, mode `0600` sur le VPS).
-
-### Services
-
-| Service | Image / Build | Port loopback | Notes |
-|---------|--------------|---------------|-------|
-| `postgres` | `postgres:15-alpine` | -- | Volume `postgres_data`, `pg_isready` healthcheck |
-| `redis` | `redis:7-alpine` | -- | RDB save 60s, `redis-cli ping` healthcheck |
-| `api` | Build `api/Dockerfile` (multi-stage uv) | -- (`expose: 3000`) | `alembic upgrade head` au demarrage, healthcheck `curl /health` |
-| `admin` | Build `admin-panel/Dockerfile` (multi-stage Next.js standalone) | -- (`expose: 8000`) | `NEXT_PUBLIC_API_URL` inline au build via build-arg |
-| `caddy` | `caddy:2-alpine` | `127.0.0.1:${CADDY_HOST_PORT}:80` | Reverse proxy interne, route `bagtrip.fr` -> admin et `api.bagtrip.fr` -> api par Host header |
-
-### Variables surchargeables (env -> defaut prod)
-
-| Variable | Defaut (prod) | Pre-prod |
-|----------|---------------|----------|
-| `CADDY_HOST_PORT` | `8081` | `8082` |
-| `API_ALLOWED_ORIGINS` | `https://bagtrip.fr` | `https://dev.bagtrip.fr` |
-| `API_COOKIE_DOMAIN` | `.bagtrip.fr` | `.dev.bagtrip.fr` |
-| `ADMIN_NEXT_PUBLIC_API_URL` | `https://api.bagtrip.fr` | `https://api.dev.bagtrip.fr` |
-
-### Variables forcees (jamais surchargees, definies dans le compose)
-
-`NODE_ENV=production`, `PORT=3000`, `DATABASE_URL`, `REDIS_URL=redis://redis:6379/0`, `COOKIE_SECURE=true`. Cela evite que `.env.production` puisse les casser par erreur.
-
-### Variables sensibles (`.env.production`)
-
-| Variable | Source |
-|----------|--------|
-| `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` | https://developers.amadeus.com (test mode) |
-| `LLM_API_KEY` | OVH GPT-OSS endpoint |
-| `JWT_SECRET` | `openssl rand -base64 64` |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Generes au setup, distincts entre prod et pre-prod |
-| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe test mode |
-
-`AMADEUS_BASE_URL` n'est pas force : il garde le defaut du code (`https://test.api.amadeus.com`) puisque les cles sont en mode test.
-
-### Reverse proxy interne (`Caddyfile`)
-
-```Caddyfile
 {
     auto_https off
     admin off
 }
 
 http://bagtrip.fr, http://dev.bagtrip.fr {
+    @metrics path /metrics /metrics/* /api/metrics /api/metrics/*
+    respond @metrics 404
     reverse_proxy admin:8000
 }
 
 http://api.bagtrip.fr, http://api.dev.bagtrip.fr {
+    @metrics path /metrics /metrics/*
+    respond @metrics 404
     reverse_proxy api:3000
 }
 ```
 
-Multi-host syntax : le meme Caddyfile sert prod et pre-prod. Le proxy edge global (sur le VPS, hors de ce repo) preserve le `Host` header et route les flux vers `127.0.0.1:8081` (prod) ou `127.0.0.1:8082` (pre-prod), termine le TLS Let's Encrypt et ajoute les headers de securite (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).
+Caracteristiques :
 
-## Makefile racine
+- `auto_https off` : la terminaison TLS est faite par le Caddy edge OVH (couche au-dessus), ce Caddy ne sert que de routeur applicatif HTTP.
+- `admin off` : l'API admin Caddy (port 2019) est desactivee, on ne veut pas de control plane expose.
+- Le routage se fait sur le `Host` header preserve par l'edge : memes services derriere prod et pre-prod, c'est l'hostname qui decide. Permet de partager un seul Caddyfile pour les deux stacks `/opt/bagtrip` et `/opt/bagtrip-preprod`.
+- Les paths `/metrics` sont blackholes en 404 : Prometheus scrappe directement le container API via le reseau Docker interne, jamais via Caddy.
 
-Le Makefile (`/Makefile`) est le point d'entree principal. Variables cles :
+## Environment variables
 
-```makefile
-COMPOSE      := docker compose
-FLUTTER_DIR  := bagtrip
-ADMIN_APP_DIR := admin-panel
-API_DIR      := api
-API_PORT     := 3000
+Les `.env.example` et `.env.prod.example` documentent les variables attendues. En dev seules trois sont strictement requises, le reste a des defauts.
+
+### `.env.example` (dev)
+
+| Variable | Requis | Defaut | Role |
+|---|---|---|---|
+| `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` | oui | - | Acces API Amadeus (vols, hotels) |
+| `LLM_API_KEY` | oui | - | Cle OVH GPT-OSS pour l'agent de planification |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | non | `postgres`/`postgres`/`bagtrip` | Credentials DB locale |
+| `STRIPE_SECRET_KEY` | non | vide | `sk_test_...`, requis pour tout flow Stripe |
+| `STRIPE_PUBLISHABLE_KEY` | non | vide | `pk_test_...`, lu par le Makefile et injecte via `--dart-define` Flutter |
+| `STRIPE_WEBHOOK_SECRET` | non | vide | `whsec_...`, fourni par `make stripe-listen` au premier lancement |
+| `STRIPE_SUCCESS_URL` / `STRIPE_CANCEL_URL` / `STRIPE_PORTAL_RETURN_URL` | non | deeplinks `bagtrip://` | Retours Stripe Checkout |
+| `ENABLE_PLAN_EXPIRATION_JOB` | non | `false` | Active le downgrade horaire des Premium expires |
+| `ENABLE_ZOMBIE_PI_JOB` | non | `false` | Active le cleanup quotidien des PaymentIntents bloques |
+| `LANGCHAIN_TRACING_V2` / `LANGCHAIN_API_KEY` | non | vide | Tracing LangSmith |
+| `UNSPLASH_ACCESS_KEY` | non | vide | Images de destinations |
+
+### `.env.prod.example` (prod)
+
+Tout est requis (sauf section LangSmith). Inclut en plus : `DATABASE_URL` complet, `AMADEUS_BASE_URL=https://api.amadeus.com` (vs sandbox en dev), `LLM_MODEL` / `LLM_API_BASE`, `JWT_SECRET` (>= 64 chars via `openssl rand -base64 64`), `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`, `JWT_REFRESH_TOKEN_EXPIRE_DAYS`, `GOOGLE_FIREBASE_PROJECT_ID`, `GOOGLE_OAUTH_CLIENT_ID`, `APPLE_BUNDLE_ID`. Cles Stripe en `sk_live_` / `whsec_` live. `NODE_ENV=production`.
+
+Variables specifiques compose.prod.yml (lues a la construction ou au runtime) : `API_ALLOWED_ORIGINS`, `API_COOKIE_DOMAIN`, `API_COOKIE_NAME_PREFIX`, `API_OTEL_EXPORTER_OTLP_ENDPOINT`, `API_OTEL_SERVICE_NAME`, `API_OTEL_TRACES_SAMPLER_ARG`, `ADMIN_NEXT_PUBLIC_API_URL`, `ADMIN_NEXT_PUBLIC_COOKIE_NAME_PREFIX`, `CADDY_HOST_PORT`. Les prefixes `ADMIN_` / `API_` permettent de coexister prod et pre-prod sur le meme VPS avec deux `.env.production` distincts.
+
+## Build mobile dynamic
+
+Le Makefile encapsule toute la logique de selection du device et de resolution de l'hote API. C'est la partie la plus subtile cote infra, parce qu'un telephone physique branche en USB ne peut pas atteindre `localhost` sur le Mac.
+
+### Detection du device
+
+`detect_device` (macro Makefile) :
+
+1. Si `FLUTTER_DEVICE=<id>` est passe en parametre, on l'utilise tel quel.
+2. Sinon, `flutter devices` est parse pour recuperer le premier iPhone / iPad / Android connecte (le bullet `U+2022` est remplace par `|` pour awk).
+
+### Resolution de l'API host
+
+`resolve_api_host` :
+
+- Si pas de device detecte : `localhost`.
+- Si le device matche `simulator|emulator|macos|linux|windows|chrome` : `localhost` (le simulateur partage l'espace reseau du Mac).
+- Sinon (device physique) : on parcourt `en0` ... `en6`, puis `bridge0`, en utilisant `ipconfig getifaddr`. La premiere IP non-loopback et non-link-local (`169.254.*`) gagne. Fallback : `ifconfig | grep inet`.
+
+### Injection dans Flutter
+
+Le build final assemble l'URL `http://$(API_HOST):3000/v1` et injecte deux `--dart-define` :
+
+```bash
+flutter run -d <device> \
+  --dart-define=API_BASE_URL=http://192.168.1.42:3000/v1 \
+  --dart-define=STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
-### Commandes disponibles
+`STRIPE_PUBLISHABLE_KEY` est extrait du `.env` racine (`grep STRIPE_PUBLISHABLE_KEY`). Si absente, un warning est affiche : la PaymentSheet va alors echouer bruyamment au premier appel, jamais silencieusement.
 
-#### Setup
+Pour les cibles distantes (`make pre-prod` / `make prod`), la macro de resolution est court-circuitee : l'URL est figee (`https://api.dev.bagtrip.fr/v1` ou `https://api.bagtrip.fr/v1`) et seule la detection du device reste active.
 
-| Commande | Description |
-|----------|-------------|
-| `make init` | Copie `.env.example` -> `.env`, verifie Docker/Flutter/pre-commit, installe les deps Flutter et les hooks |
+Cote Dart, `API_BASE_URL` est lu via `const String.fromEnvironment('API_BASE_URL', defaultValue: '...')` dans la config app (`bagtrip/lib/config/`). Pas d'AndroidManifest a editer pour `usesCleartextTraffic` : la config dev Android autorise deja le HTTP local sur le LAN range.
 
-#### Developpement
+## Scripts setup
 
-| Commande | Description |
-|----------|-------------|
-| `make dev` | Lance Docker services (`compose up -d --build`) + Flutter app (full local) |
-| `make dev-docker` | Lance Docker services uniquement (db, api, admin) |
-| `make dev-mobile` | Lance Flutter uniquement (auto-detecte le device + API host) |
-| `make pre-prod` | Lance Flutter pointant vers `https://api.dev.bagtrip.fr` (admin remote sur `https://dev.bagtrip.fr`) |
-| `make prod` | Lance Flutter pointant vers `https://api.bagtrip.fr` (admin remote sur `https://bagtrip.fr`) |
-| `make stop` | `compose down` |
-| `make logs` | `compose logs -f` |
-| `make dev-clean` | Supprime volumes Docker, caches Flutter, node_modules, __pycache__ (avec confirmation) |
+Le repertoire `scripts/` regroupe les setups par stack, appeles directement ou inderectement par `make init` :
 
-#### Detection automatique du device Flutter
+- `setup-api.sh` : verifie `uv`, lance `uv sync` dans `api/`. Echoue si `uv` absent (suggere `make install-uv`, qui delegue a l'installer officiel astral).
+- `setup-admin-panel.sh` : verifie Node + npm, lance `npm install` dans `admin-panel/`.
+- `setup-bagtrip.sh` : verifie le SDK Flutter, lance `flutter pub get` dans `bagtrip/`.
+- `setup-linters.sh` : purement informatif, rappelle que ruff / ESLint / Prettier / flutter_lints sont installes par les autres setups.
+- `setup-pre-commit.sh` : installe `pre-commit` (via `uv tool install`, sinon `pipx`, sinon `pip`/`pip3` avec fallback `--break-system-packages`), puis `pre-commit install` a la racine du repo.
+- `run-sonar-analysis.sh` : charge `.env`, verifie `sonar-scanner`, declenche `./bagtrip/test_coverage.sh` puis l'analyse SonarCloud. Exclut `api/tests/**`, `bagtrip/test/**`, `admin-panel/cypress/**`. Utilise en CI sur la pipeline qualite.
 
-Le Makefile contient une logique de detection avancee :
-
-1. **`detect_device`** : parse `flutter devices` pour trouver un iPhone/iPad/Android connecte
-2. **`resolve_api_host`** : determine l'URL API en fonction du device :
-   - Simulateur/emulateur -> `localhost`
-   - Device physique -> IP LAN du Mac (scan des interfaces `en0`-`en6`, `bridge0`)
-3. L'API URL est injectee via `--dart-define=API_BASE_URL=http://<host>:3000/v1`
-
-#### Qualite
-
-| Commande | Description |
-|----------|-------------|
-| `make check` | `pre-commit run --all-files` |
-| `make lint` | Lint API + admin + mobile |
-| `make lint-api` | `ruff check . && ruff format --check .` (dans le conteneur) |
-| `make lint-admin` | `npm run check-all` dans le conteneur (tsc + eslint + prettier) |
-| `make lint-mobile` | `flutter analyze && dart format --set-exit-if-changed .` |
-| `make test` | Tous les tests : API + mobile + E2E |
-| `make test-api` | `pytest` dans le conteneur |
-| `make test-mobile` | `flutter test` |
-| `make test-e2e` | `flutter test integration_test/` |
-| `make test-e2e-<name>` | Test E2E individuel, ex: `make test-e2e-ft3_active_trip` |
-| `make coverage` | Flutter tests + couverture (seuil 60%) |
-
-#### Base de donnees
-
-| Commande | Description |
-|----------|-------------|
-| `make db-migrate` | `alembic upgrade head` dans le conteneur |
-| `make db-revision MSG="..."` | Cree une nouvelle revision Alembic |
-| `make db-shell` | `psql` dans le conteneur db |
-
-#### Utilitaires
-
-| Commande | Description |
-|----------|-------------|
-| `make shell-api` | Shell bash dans le conteneur API |
-| `make shell-admin` | Shell dans le conteneur admin |
-
-## Makefile admin-panel (`admin-panel/Makefile`)
-
-Le panel admin a son propre Makefile pour le developpement standalone (hors Docker) avec des commandes supplementaires :
-
-| Commande | Description |
-|----------|-------------|
-| `make ci-install` | `npm ci` (optimise pour CI) |
-| `make ci-test` | `check-all` + E2E Cypress |
-| `make dev-https` | Next.js en HTTPS experimental |
-| `make analyze` | Analyse du bundle (`ANALYZE=true npm run build`) |
-| `make git-hooks` | Configure un hook pre-commit local |
-
-## Scripts de setup (`scripts/`)
-
-Cinq scripts bash de setup individuel :
-
-| Script | Role |
-|--------|------|
-| `setup-api.sh` | Verifie `uv`, installe les deps Python |
-| `setup-admin-panel.sh` | Verifie node/npm, `npm install` |
-| `setup-bagtrip.sh` | Verifie Flutter, `flutter pub get` |
-| `setup-linters.sh` | Informatif (les linters sont installes par les scripts ci-dessus) |
-| `setup-pre-commit.sh` | Installe pre-commit (via uv/pipx/pip), puis `pre-commit install` |
-
-Ces scripts sont independants du Makefile et peuvent etre executes manuellement.
-
-## Variables d'environnement
-
-### Developpement (`.env.example`)
-
-Variables requises (3) :
-- `AMADEUS_CLIENT_ID` -- cle API Amadeus
-- `AMADEUS_CLIENT_SECRET` -- secret API Amadeus
-- `LLM_API_KEY` -- cle API OVH GPT-OSS
-
-Variables optionnelles : `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `LANGCHAIN_API_KEY`, `UNSPLASH_ACCESS_KEY`.
-
-### Production / pre-prod (`.env.production`)
-
-Le fichier `.env.production` n'est jamais commit (gitignore via `.env.*`). Il vit uniquement sur le VPS, owne `deploy:deploy`, mode `0600`.
-
-Source de verite des variables : [`api/src/config/env.py`](../../api/src/config/env.py) (Pydantic Settings, validateurs stricts). Le fichier `.env.prod.example` historique est obsolete -- ne pas s'y fier.
-
-Variables sensibles a fournir :
-
-- `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET` -- cles Amadeus
-- `LLM_API_KEY` -- cle OVH GPT-OSS
-- `JWT_SECRET` -- genere via `openssl rand -base64 64`
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-
-Variables d'environnement (overrides pre-prod) -- cf. section "Docker Compose production" plus haut.
-
-Variables forcees par le compose (jamais a mettre dans `.env.production`) : `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `ALLOWED_ORIGINS`, `COOKIE_DOMAIN`, `COOKIE_SECURE`.
-
-### Admin Panel (`admin-panel/.env.local.example`)
-
-- `NEXT_PUBLIC_API_URL` -- URL du backend (defaut : `http://localhost:3000`)
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` -- cle Stripe publique
+Tous les scripts sont idempotents et utilisent `set -e`. La sortie console est uniformisee avec un prefixe cyan `[info]` / `OK`.
 
 ## Ce qu'il manque
 
-| Element | Description | Priorite |
-|---------|-------------|----------|
-| Backup BDD prod | Aucun script de backup/restore PostgreSQL n'est present dans `scripts/`. La pre-prod fait un dump-and-restore depuis la prod a chaque deploy (cf. `cd.yml`), mais aucun snapshot regulier de la prod elle-meme n'est en place. | P1 |
-| Mobile web desactive | Le service `mobile-web` est commente dans `compose.yml`. Le Dockerfile Flutter web n'est pas present dans `bagtrip/`. | P2 |
-| Monitoring / alerting | Aucun systeme d'alerting (Uptime Kuma, healthchecks.io, Sentry...) sur les endpoints prod et pre-prod. Seul le smoke test `curl /health` du job CD valide le deploy. | P1 |
-| Logs centralises | Seul `docker logs` est disponible. Pas de Loki / Datadog / etc. | P2 |
-| Scaling horizontal API | Les schedulers (`trip_status_job`, `notification_job`) tournent in-process. Une seconde instance API enverrait des notifications en double. Pour scaler il faudrait extraire vers Celery/Temporal ou un lock applicatif. | P2 |
-| Rotation des secrets | Les secrets dans `.env.production` (JWT_SECRET, POSTGRES_PASSWORD) sont generes une fois au setup. Aucun mecanisme de rotation n'est en place. | P2 |
+- Aucune migration vers Kubernetes / Nomad : tout tient en `docker compose` sur un seul VPS. La scalabilite horizontale necessiterait de sortir Postgres et Redis vers un managed (cf. `cost-self-host-vs-managed.md`).
+- Pas d'IaC declarative (Terraform / Pulumi) : le VPS a ete provisionne a la main, l'infra applicative est versionnee mais pas le serveur lui-meme. Risque de derive si une recreation est necessaire.
+- Pas de pipeline de deploiement automatise sur ce repo : les images sont buildees sur le VPS via `docker compose up -d --build`. Pas de registry pousse depuis la CI, pas de blue/green, pas de rollback automatique.
+- Pas de healthcheck cote `admin` (le service Next.js n'expose pas d'endpoint `/health` dedie ; on se contente du `depends_on: service_started`).
+- Backup Postgres : non documente dans le repo. A confirmer cote VPS (cf. `vps-inventory.md`).
+- TLS : delegue au Caddy edge OVH. Aucune configuration cert/ACME dans ce repo, donc dependance forte a la couche superieure.
+- Pas de stack mobile-web buildee : le service `bagtrip` reste commente dans `compose.yml`. Le PWA n'est pas une cible officielle.
+- Le `make coverage` Flutter n'a pas d'equivalent unifie pour API (la couverture cote API est mesuree par la CI, pas par une cible make). A consolider si besoin.

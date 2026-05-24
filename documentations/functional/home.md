@@ -1,253 +1,192 @@
 # Page d'accueil (Home)
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La page d'accueil de BagTrip est une page contextuelle qui adapte entierement son contenu en fonction de l'etat de l'utilisateur et de ses voyages. Elle repose sur un `HomeBloc` persistant (monte dans le `MultiBlocProvider` app-level de `main.dart`) qui orchestre la detection automatique de mode et les transitions de statut des voyages.
+La Home de BagTrip est une page mobile contextuelle : son rendu change selon l'etat du portefeuille de voyages de l'utilisateur (aucun voyage, voyage en cours, voyages a venir uniquement). Elle alimente deux usages :
 
-Cote API, les donnees sont recuperees via l'endpoint pagine `GET /v1/trips?status=<status>&limit=5` (3 appels paralleles pour `ongoing`, `planned`, `completed`) et `GET /v1/users/me` pour l'utilisateur courant.
+- mode "compagnon" quand un voyage est en cours : hero immersif avec destination, plage de dates, anneau de completion, activite mise en avant, meteo ;
+- mode "gestionnaire" sinon : greeting time-aware, banniere de reprise (si un ongoing est mis en arriere-plan par l'utilisateur), liste des prochains voyages, CTA de creation.
 
-## Architecture BLoC
+Cote backend, la Home n'a pas d'endpoint dedie. Elle agrege trois appels paralleles a `GET /v1/trips?status=...` (un par statut), plus `GET /v1/users/me`, plus en mode compagnon `GET /v1/trips/{id}/activities` et `GET /v1/trips/{id}/weather`. Les jobs serveur effectuent les memes transitions de statut que le client (en bulk quotidien) pour garder la liste coherente.
 
-**Fichiers** : `bagtrip/lib/home/bloc/home_bloc.dart`, `home_event.dart`, `home_state.dart`
+## Cote Backend
 
-### Events
+Module : `api/src/api/trips/routes.py` + `api/src/services/trips_service.py`.
 
-| Event | Declencheur | Description |
-|-------|-------------|-------------|
-| `LoadHome` | `HomePage.build()` si `state is HomeInitial` | Chargement initial |
-| `RefreshHome` | Pull-to-refresh, retour de navigation | Rafraichissement sans shimmer |
-| `ConfirmTripCompletion` | Dialog de fin de voyage — bouton "Confirmer" | Marque le voyage comme `completed` via API, navigue vers `PostTripRoute` |
-| `DismissTripCompletion` | Dialog de fin de voyage — bouton "Plus tard" | Enregistre un dismiss local (24h cooldown), programme une notification rappel |
+### Endpoints consommes par la Home
 
-### States (sealed class)
+| Methode | Path | Role |
+|---------|------|------|
+| GET | `/v1/trips?status=<status>&page=<n>&limit=<n>` | Liste paginee filtree par statut (`ongoing` / `planned` / `completed`) |
+| GET | `/v1/trips/grouped` | Variante non paginee : dict `{ongoing, planned, completed}` (utilise par `LoadTrips` historique) |
+| GET | `/v1/users/me` | Utilisateur courant (greeting + fallback) |
+| GET | `/v1/trips/{id}/activities` | Activites du voyage actif (timeline du jour) |
+| GET | `/v1/trips/{id}/weather` | Resume meteo destination (Amadeus + meteo) |
+| PATCH | `/v1/trips/{id}/status` | Transition manuelle (DRAFT->PLANNED->ONGOING->COMPLETED) |
 
-| State | Condition | Vue affichee |
-|-------|-----------|--------------|
-| `HomeInitial` | Etat par defaut avant chargement | `LoadingView` |
-| `HomeLoading` | Pendant le fetch initial | `LoadingView` |
-| `HomeError` | Echec auth ou tous les appels trips echouent | `ErrorView` avec retry |
-| `HomeNewUser` | `totalTrips == 0` et aucun voyage ongoing | `OnboardingHomeView` |
-| `HomeActiveTrip` | Au moins 1 voyage ongoing | `ActiveTripHomeView` |
-| `HomeTripManager` | Des voyages existent mais aucun ongoing | `TripManagerHomeView` |
+Le service `TripsService.get_trips_by_user_paginated` fait union_all entre les trips possedes (`Trip.user_id`) et ceux partages via `TripShare` (role VIEWER/EDITOR), ordonnes par `created_at DESC`. Le filtre `status` accepte des alias historiques (`draft`, `planning`, `planned` pour le bucket `planned`, `active` pour `ongoing`, `archived` pour `completed`) pour rester compatible avec les anciens enregistrements.
 
-### Decision tree (dans `_fetchAndEmitContextualState`)
+### Grouping serveur
 
-1. Fetch en parallele : user, ongoing trips, planned trips, completed trips
-2. Si erreur auth → `HomeError`
-3. Si tous les appels trips echouent → `HomeError`
-4. Auto-detection `planned → ongoing` via `trip_mode_detector.dart`
-5. Auto-detection `ongoing → completed` (endDate passee) via `trip_end_detector.dart`
-6. Si `totalTrips == 0` et aucun ongoing → `HomeNewUser`
-7. Si ongoing non vide → fetch activites du jour + meteo → `HomeActiveTrip`
-8. Sinon → `HomeTripManager`
+`TripsService.get_grouped_trips` recharge toute la liste puis dispatch en trois buckets selon `Trip.status`. La Home n'utilise plus cet endpoint en runtime (couteux : pas de pagination), elle prefere trois appels pagines en parallele avec `limit=5`.
 
-## Detection automatique de mode
+### Pagination
 
-### Planned → Ongoing (`trip_mode_detector.dart`)
+`PaginationParams` (`api/src/api/common/pagination.py`) injecte `page` (>=1) et `limit` (1..100, defaut 20). La reponse `TripPaginatedResponse` ramene `items`, `total`, `page`, `limit`, `totalPages` (camelCase via alias generator). Le mobile envoie `limit=5` pour les fetchs Home et `limit=20` pour le tab manager.
 
-Le helper `detectAndTransitionTrips` identifie les voyages `planned` dont la `startDate <= today` et la `endDate >= today` (ou null). Il effectue la transition :
-- **Online** : appel API `PATCH /v1/trips/{id}/status` avec `{"status": "ONGOING"}` pour chaque candidat, en parallele
-- **Offline** : transition optimiste locale (le voyage apparait comme ongoing sans appel API)
+### Completion percentage
 
-Les voyages nouvellement transitionnes declenchent le scheduling de notifications ongoing via `TripNotificationScheduler.scheduleOngoingNotifications`.
+`_enrich_with_completion` est appele sur toutes les listes Home. Le calcul (`TripsService.compute_completion_batch`) est en quatre segments (flights / accommodations / activities / baggage), chacun 0-100, agreges en moyenne. `flights_tracking` ou `accommodations_tracking` en `SKIPPED` force le segment a 100 (utilisateur reserve hors-app). VALIDATED et MANUAL comptent comme "fait", SUGGESTED ne compte pas.
 
-### Ongoing → Completed (`trip_end_detector.dart`)
+### Transitions de statut automatiques
 
-Le helper `detectEndedTrips` identifie les voyages `ongoing` dont la `endDate < today`. Il filtre ceux qui ont ete dismisses recemment (< 24h) via `PostTripDismissalStorage` (Hive). Le premier voyage detecte est propose a l'utilisateur via un dialog adaptatif (`showAdaptiveAlertDialog`).
+`TripsService.auto_transition_statuses` (job quotidien) :
 
-### Cote API : transitions automatiques (`TripsService.auto_transition_statuses`)
+- PLANNED -> ONGOING quand `start_date <= today` ;
+- ONGOING -> COMPLETED quand `end_date < today` ;
+- envoie `TRIP_STARTED` aux participants au demarrage, `TRIP_ENDED` a la cloture.
 
-Un job quotidien cote serveur effectue les memes transitions en bulk :
-- `PLANNED → ONGOING` quand `start_date <= today`
-- `ONGOING → COMPLETED` quand `end_date < today`
-- Envoie des notifications `TRIP_ENDED` aux participants des voyages completes
-
-Les transitions valides cote API sont : `DRAFT → PLANNED`, `PLANNED → ONGOING`, `ONGOING → COMPLETED`.
-
-## Etat 1 : Onboarding (HomeNewUser)
-
-**Vue** : `bagtrip/lib/home/view/onboarding_home_view.dart`
-
-Affichee lorsque l'utilisateur n'a aucun voyage. Contenu :
-
-1. **Icone de bienvenue** : gradient primary→secondary, icone avion, ombre portee
-2. **Greeting personnalise** : `homeGreeting(name)` si nom connu, sinon `homeWelcomeTitle`
-3. **Sous-titre** : `homeWelcomeSubtitle`
-4. **CTA principal** (`_WelcomeCta`) : bouton gradient pleine largeur, navigue vers `PlanTripRoute`
-5. **Section inspiration** : titre "INSPIRATION" + carousel horizontal de 6 destinations hardcodees (`InspirationDestination.all` dans `models/inspiration_destination.dart`)
-
-Les destinations d'inspiration sont : Tokyo, Barcelona, Marrakech, Bali, New York, Santorini. Chaque carte affiche le drapeau, le nom, le pays, et un gradient de couleurs. Le tap pre-remplit le formulaire de creation de voyage via `PlanTripRoute($extra: LocationResult(...))`.
-
-## Etat 2 : Voyage actif (HomeActiveTrip)
-
-**Vue** : `bagtrip/lib/home/view/active_trip_home_view.dart`
-
-Affichee lorsqu'au moins un voyage est en cours. Le voyage le plus proche (par `startDate`) est selectionne via `_pickEarliestTrip`.
-
-### Donnees supplementaires fetchees
-
-- `ActivityRepository.getActivities(tripId)` — toutes les activites du voyage
-- `WeatherRepository.getWeather(tripId)` → `GET /v1/trips/{tripId}/weather` — meteo via Amadeus + OpenWeather
-
-### Sections affichees (CustomScrollView)
-
-1. **Greeting** : "Bonjour, {prenom}" ou fallback generique
-2. **Hero card** (`ActiveTripHero`) : image de couverture ou gradient placeholder, nom de destination, pill "Jour X/Y", meteo (temperature + description). Tap → navigation vers `TripHomeRoute`
-3. **Programme du jour** (header "AUJOURD'HUI") : timeline des activites du jour ou `ElegantEmptyState` si vide
-4. **Section demain** (conditionnelle) : si des activites existent pour demain, affichage collapsible (3 max puis "Voir tout"). Badge "Dernier jour !" si `isTomorrowLastDay`
-5. **Quick Actions** : 3 boutons contextuels resolus par `contextual_actions_helper.dart`
-6. **PlanTripCta** : toujours present en bas, permet de creer un nouveau voyage
-
-### Timeline du jour (`today_activities.dart`)
-
-Le helper `classifyTodayActivities` classe les activites :
-- **allDay** : activites sans `startTime`
-- **timed** : activites avec `startTime`, triees chronologiquement
-- **currentActivity** : activite dont `startTime <= now < endTime`
-- **nextActivity** : premiere activite dont `startTime > now`
-- **nowIndicator** : position du marqueur "maintenant" dans la timeline
-- **tomorrowActivities** : activites du lendemain
-
-Un `TodayTickCubit` emet `DateTime.now()` toutes les 60 secondes pour rafraichir l'indicateur de temps courant, les badges "En cours" (pulsation animee), et le calcul des minutes restantes.
-
-### Quick Actions contextuelles (`contextual_actions_helper.dart`)
-
-5 regles de priorite selectionnent 3 actions parmi 12 types possibles :
-
-| Priorite | Condition | Actions |
-|----------|-----------|---------|
-| 1 | Activite en cours | Navigate, Expense, Photo |
-| 2 | Matin + activite a venir | Schedule, Weather, Check-out |
-| 3 | Gap apres-midi + activite a venir | Next activity, AI Suggestion, Map |
-| 4 | Soir, plus d'activites | Today expenses, Tomorrow, Budget |
-| 5 | Fallback | Schedule, Weather, Budget |
-
-**Actions non implementees** (callback `() {}`) : Weather, Photo, AI Suggestion, Tomorrow.
-
-### Navigation GPS (`map_launcher.dart`)
-
-Le helper `launchMapNavigation` gere :
-- **iOS** : si Google Maps installe → action sheet proposant Apple Maps ou Google Maps ; sinon Apple Maps directement
-- **Android** : intent `geo:` puis fallback Google Maps web
-
-### Quick Expense Sheet
-
-Bottom sheet modale (`quick_expense_sheet.dart`) permettant l'ajout rapide d'une depense. Gere par `QuickExpenseCubit`. Champs : montant (EUR), categorie (food/transport/activity/other), note optionnelle. Appel API : `POST /v1/trips/{tripId}/budget` via `BudgetRepository.createBudgetItem`.
-
-### Dialog de fin de voyage
-
-Quand `pendingCompletionTrip` est non-null, un dialog adaptatif est affiche automatiquement au premier build :
-- **Confirmer** → `ConfirmTripCompletion` → API `PATCH /v1/trips/{id}/status` → navigation vers `PostTripRoute`
-- **Plus tard** → `DismissTripCompletion` → dismiss stocke localement (24h) + notification de rappel
-
-## Etat 3 : Gestionnaire de voyages (HomeTripManager)
-
-**Vue** : `bagtrip/lib/home/view/trip_manager_home_view.dart`
-
-Affichee lorsque l'utilisateur a des voyages mais aucun n'est en cours.
-
-### Sections affichees (CustomScrollView)
-
-1. **Greeting** : identique aux autres etats
-2. **NextTripHero** (conditionnel, `shared_home_widgets.dart → NextTripHero`) : carte gradient avec destination, countdown "Dans X jours", barre de completion du voyage, chevron. Tap → `TripHomeRoute`
-3. **PlanTripCta** : carte secondaire pour creer un nouveau voyage
-4. **Section "MES VOYAGES"** : controle segmente a 3 onglets (Ongoing / Planned / Completed) + `TabBarView`
-5. **Carousel completed** (conditionnel, `completed_trips_carousel.dart`) : `PageView` horizontal avec filtre grayscale, dots de pagination
-
-### Listes de voyages paginee
-
-Le composant `_TripListContent` utilise `PaginatedList<Trip>` avec pagination via `TripManagementBloc` (events `LoadTripsByStatus`, `LoadMoreTripsByStatus`). Chaque `TripCard` offre : tap → detail, share → partage, archive → completion.
-
-### Completion du prochain voyage (`trip_completion.dart`)
-
-Calcul simplifie (5 champs, 20% chacun) :
-- `startDate` non-null
-- `endDate` non-null
-- `destinationName` non-null et non-vide
-- `nbTravelers > 0`
-- `budgetTotal > 0`
-
-### Notifications plannifiees
-
-Pour chaque voyage `planned`, le bloc schedule un rappel de packing via `TripNotificationScheduler.schedulePackingReminder`.
-
-## Transitions entre etats
-
-Les transitions visuelles utilisent `AnimatedSwitcher` (500ms, `springCurve` en entree, `easeIn` en sortie) avec fade + slide vertical (5% offset).
-
-Un `BlocListener` detecte la transition `HomeTripManager → HomeActiveTrip` pour declencher un haptic de succes.
-
-Un second `BlocListener` detecte `completedTripId` non-null dans `HomeActiveTrip` pour naviguer vers `PostTripRoute` avec haptic.
-
-## API Backend
-
-### Endpoints utilises par la Home
-
-| Methode | Path | Description |
-|---------|------|-------------|
-| `GET` | `/v1/trips?status=ongoing&limit=5` | Voyages en cours (pagine) |
-| `GET` | `/v1/trips?status=planned&limit=5` | Voyages planifies (pagine) |
-| `GET` | `/v1/trips?status=completed&limit=5` | Voyages termines (pagine) |
-| `GET` | `/v1/users/me` | Utilisateur courant |
-| `GET` | `/v1/trips/{id}/activities` | Activites du voyage actif |
-| `GET` | `/v1/trips/{id}/weather` | Meteo de la destination |
-| `PATCH` | `/v1/trips/{id}/status` | Transition de statut (planned→ongoing, ongoing→completed) |
-
-### Schema TripPaginatedResponse
-
-```json
-{
-  "items": [TripResponse],
-  "total": int,
-  "page": int,
-  "limit": int,
-  "totalPages": int
-}
-```
-
-### Schema WeatherResponse
-
-```json
-{
-  "avg_temp_c": float,
-  "description": string,
-  "rain_probability": int,
-  "source": string
-}
-```
-
-L'endpoint meteo resout les coordonnees via Amadeus (`resolve_iata_code`), puis interroge l'API meteo pour une plage allant de `max(start_date, today)` a `min(end_date, today + 7j)`.
+Les transitions manuelles passent par `update_trip_status` avec garde sur `VALID_TRANSITIONS`. La cloture manuelle ONGOING->COMPLETED declenche aussi `TRIP_ENDED` (route trips/routes.py L323-336).
 
 ### Controle d'acces
 
-L'acces aux trips utilise le systeme `TripAccess` (`api/src/api/auth/trip_access.py`) :
-- **OWNER** : `trip.user_id == current_user.id`
-- **VIEWER** : partage existant dans `TripShare`
-- Si aucun acces → 404 (ne revele pas l'existence du trip)
+`TripAccess` (`api/src/api/auth/trip_access.py`) injecte `(trip, role)` pour toute route `/{tripId}/...`. Pas d'acces -> 404 (ne fuite pas l'existence du trip). Le champ `role` est ramene dans `TripResponse.role` (OWNER / EDITOR / VIEWER) et lu par la Home pour adapter l'affichage.
 
-## Tests existants
+## Cote Mobile
 
-| Fichier | Couverture |
-|---------|-----------|
-| `test/blocs/home_bloc_test.dart` | Events, states, decision tree |
-| `test/blocs/home_bloc_parallel_test.dart` | Appels paralleles |
-| `test/home/view/home_view_test.dart` | Routing entre vues |
-| `test/home/view/onboarding_home_view_test.dart` | Vue onboarding |
-| `test/home/view/trip_manager_home_view_test.dart` | Vue gestionnaire |
-| `test/home/view/active_trip_home_view_test.dart` | Vue voyage actif |
+Module : `bagtrip/lib/home/`.
+
+### Layering BLoC
+
+Deux BLoCs cohabitent. Le decoupage est volontaire : la Home a sa propre logique de detection contextuelle, distincte de la liste paginee multi-onglets.
+
+| BLoC | Scope | Role |
+|------|-------|------|
+| `HomeBloc` | app-level (`MultiBlocProvider` dans `main.dart`) | Detection contextuelle, mode compagnon vs gestionnaire, dialogs de fin de voyage, sync offline |
+| `TripManagementBloc` | app-level egalement | Listes paginees par status pour le tab manager et la page `trips_list_view` |
+
+`HomeBloc` est garde vivant entre navigations pour eviter le re-fetch complet a chaque retour sur Home. `HomePage.build()` ne dispatch `LoadHome` que si `state is HomeInitial` (premiere visite), et lance en parallele trois `LoadTripsByStatus(status: ...)` sur `TripManagementBloc` pour pre-remplir les onglets.
+
+### HomeBloc — events et states
+
+Fichier : `lib/home/bloc/home_bloc.dart` (+ part files `home_event.dart`, `home_state.dart`).
+
+Events publics :
+
+| Event | Source | Effet |
+|-------|--------|-------|
+| `LoadHome` | `HomePage.build` (premier appel) | Emit `HomeLoading` puis fetch contextuel |
+| `RefreshHome` | Pull-to-refresh, `HomeView._refreshData` | Refetch sans shimmer plein ecran (shimmer top 3px) |
+| `ConfirmTripCompletion` | Dialog de fin de voyage | PATCH status -> `completed`, emit intermediate avec `completedTripId` puis refresh + navigation `PostTripRoute` |
+| `DismissTripCompletion` | Dialog "Plus tard" | Stocke un dismiss 24h via `PostTripDismissalStorage` (Hive) |
+| `PreferIdleHomeOverview` | Banniere "Voyages & accueil" depuis le hero actif | Force le retour en `HomeIdle` malgre un ongoing existant |
+| `ResumeActiveTripHome` | Banniere de reprise sur `HomeIdle` | Reactive le mode compagnon |
+| `CompleteActiveTrip` | Sheet de cloture explicite | PATCH status puis refresh |
+| `ResetHome` | Logout | Repasse a `HomeInitial` |
+| `_ConnectivityRestored` | Listener interne sur `ConnectivityService` | Replay des transitions PLANNED->ONGOING faites offline |
+
+States (sealed) :
+
+- `HomeInitial` / `HomeLoading` -> `LoadingView` ;
+- `HomeError(error)` -> `ErrorView` avec retry ;
+- `HomeIdle(user, upcomingTrips, completedTrips, nextTrip, nextTripCompletion, backgroundOngoingTrip)` -> `IdleHomeView` (greeting + liste prochains voyages + CTA) ;
+- `HomeActiveTrip(activeTrip, todayActivities, weatherSummary, weatherData, allActivities, upcomingTrips, pendingCompletionTrip, completedTripId)` -> `ActiveTripHomeView` (hero immersif + highlight + prochains voyages).
+
+### Decision tree (`_fetchAndEmitContextualState`)
+
+1. Fetch parallele : `getCurrentUser`, trois `getTripsPaginated(status, limit=5)`.
+2. `userResult` AuthenticationError -> `HomeError`.
+3. Les trois listes trips en `Failure` -> `HomeError`.
+4. `detectAndTransitionTrips` : pour chaque trip `planned` dont `startDate <= now <= endDate`, PATCH status ONGOING (en parallele). Offline -> transition optimiste locale et stockage de l'id dans `_pendingOfflineTransitions` pour replay.
+5. `detectEndedTrips` : isole les ongoing dont `endDate < today` non encore dismisses (< 24h). Le premier devient `pendingCompletionTrip` (declenche le dialog).
+6. `totalTrips == 0 && ongoing vide` -> `HomeIdle` (mode "nouvel utilisateur").
+7. Sinon si ongoing non vide ET pas `_preferIdleDespiteOngoing` -> fetch activites + meteo du trip choisi (`_pickEarliestTrip`) puis `HomeActiveTrip`.
+8. Sinon -> `HomeIdle` avec `nextTrip` = premier upcoming par startDate.
+
+### Hero card
+
+Deux variantes du meme template (`HomeTripListCard` pour les list cards, `_ActiveTripHeroCard` pour le hero compagnon, plus une carte `HomeTripListCard` reutilisee par `HomeTripListSection`) :
+
+- image cover via `OptimizedImage.tripCover` (fallback `HomeTripHeroCoverFallback` gradient) ;
+- pill statut/countdown en haut a gauche (`HomeTripHeroEyebrowPill` pour ongoing, `HomeTripHeroCountdownPill` "Dans X jours" sinon) ;
+- pill voyageurs a cote si `nbTravelers > 0` ;
+- `CompletionRing` (anneau circulaire) en haut a droite ;
+- destination en `dMSerifDisplay` 30pt + date range en `dMSans` 16pt en bas a gauche ;
+- tap sur le hero compagnon -> `ActiveTripProgrammeView` (push), tap sur une card de liste -> `TripHomeRoute(tripId).push`.
+
+Sous le hero compagnon, un panneau blanc affiche l'activite mise en avant via `resolveHomeHighlightActivity` (`TimelineActivityRow` en mode `bare`), ou le fallback `l10n.homeNoActivitiesToday`.
+
+### Chips bar / filtres status
+
+La Home elle-meme n'expose pas de chips de filtre (la liste affiche uniquement les `upcomingTrips`). Le filtre par statut vit dans `trips_list_view.dart` via un `DefaultTabController` a trois onglets (Ongoing / Planned / Completed), brancher sur `TripManagementBloc` qui memorise les `TripTabData` par status (items, currentPage, totalPages, isLoadingMore). Pagination cumulative via `LoadMoreTripsByStatus` (concatene `[...tabData.trips, ...data.items]`).
+
+### Layout (`HomeTwoZoneLayout`)
+
+Deux zones :
+
+- **Top zone** : fond `ColorName.primaryDark`, status bar absorbe quand `_extendsBehindStatusBar(state)` (active trip ou idle), contient `HomeGreetingHeader` (greeting + subtitle) puis les `topChildren` (hero ou banniere de reprise).
+- **Bottom zone** : feuille blanche `ColorName.surfaceLight`, radius top 32, hauteur minimale 42% viewport, contient `bottomChildren` (liste prochains voyages, `CreateTripCard`). Padding bottom integre la `BottomTabBar` iOS via `BottomTabBar.visualHeight(context)`.
+
+`AnimatedSwitcher` 500 ms (`AppAnimations.springCurve` entree, `easeIn` sortie) + fade + slide vertical 5% pour toutes les transitions de state.
+
+### Transitions visuelles
+
+- `HomeIdle -> HomeActiveTrip` : `BlocListener` haptic `success`.
+- `HomeActiveTrip` avec `completedTripId` non null : haptic + navigation push vers `PostTripRoute(tripId)`.
+- Pull-to-refresh : flag `_topShimmer` active une barre shimmer 3px en haut pendant 750 ms minimum.
+
+### Banniere de reprise
+
+Sur `HomeIdle`, si `backgroundOngoingTrip != null`, un `_OngoingTripResumeBanner` apparait avant le greeting subtitle. Tap -> `ResumeActiveTripHome` qui repasse en mode compagnon. La banniere existe uniquement quand l'utilisateur a explicitement choisi `PreferIdleHomeOverview` depuis le hero actif.
+
+## Etats home
+
+| Etat | Condition | UI |
+|------|-----------|----|
+| Loading | `HomeInitial` ou `HomeLoading` | `LoadingView` plein ecran |
+| Error | Auth ratee ou 3 listes trips KO | `ErrorView` + retry |
+| Nouvel utilisateur | `totalTrips == 0 && ongoing.isEmpty` | `IdleHomeView` : greeting "bienvenue", subtitle vide, `CreateTripCard` centree (`isFirstTrip: true`) |
+| Compagnon (voyage actif) | `ongoing.isNotEmpty && !_preferIdleDespiteOngoing` | `ActiveTripHomeView` : hero immersif `_ActiveTripHeroCard` + section "Prochains voyages" + `CreateTripCard` |
+| Gestionnaire (idle avec voyages) | `ongoing.isEmpty && (planned ou completed non vides)` | `IdleHomeView` : greeting time-aware + liste prochains voyages + `CreateTripCard` standard |
+| Idle override | `ongoing.isNotEmpty && _preferIdleDespiteOngoing` | `IdleHomeView` + `_OngoingTripResumeBanner` en topChildren |
+| Dialog fin de voyage | `HomeActiveTrip.pendingCompletionTrip != null` | Dialog adaptatif "Confirmer" / "Plus tard" superpose au hero |
+
+## Flux
+
+### Premier chargement (cold start)
+
+1. `main.dart` instancie `HomeBloc` et `TripManagementBloc` dans le `MultiBlocProvider` app-level.
+2. `AppShell` navigue vers `/home`. `HomePage.build` voit `state is HomeInitial`, dispatch `LoadHome` + trois `LoadTripsByStatus`.
+3. `HomeBloc` emit `HomeLoading`, lance `Future.wait` sur user + 3 trips pagines.
+4. `detectAndTransitionTrips` regle les PLANNED arrives a `startDate`. Online -> PATCH bulk. Offline -> optimiste + queue.
+5. `detectEndedTrips` filtre ongoing termines, sort la dismissal storage 24h.
+6. Decision tree -> emit du state final. La vue switch via `AnimatedSwitcher`.
+
+### Pull-to-refresh
+
+`HomeView._onPullRefresh` set `_topShimmer = true`, dispatch `RefreshHome` (refetch sans `HomeLoading`) + recharge les trois tabs `TripManagementBloc`. Min 750 ms d'animation pour que la barre soit perceptible.
+
+### Confirmation cloture voyage
+
+1. `_showCompletionDialog` rend un dialog adaptatif avec `pendingCompletionTrip`.
+2. Tap "Confirmer" -> `ConfirmTripCompletion(tripId)` -> PATCH `/v1/trips/{id}/status {status: completed}`.
+3. `HomeBloc` emit intermediate `HomeActiveTrip(completedTripId: ...)` -> le listener pousse `PostTripRoute(tripId)`.
+4. `RefreshHome` redispatch, le trip passe en bucket `completed`, on retombe sur `HomeIdle` ou un autre `HomeActiveTrip`.
+
+### Reprise online
+
+`ConnectivityService.onConnectivityChanged` emit `true` -> handler `_onConnectivityRestored` iter sur `_pendingOfflineTransitions`, PATCH chaque id, retire les succes de la queue, redispatch `RefreshHome` si au moins une sync a passe.
 
 ## Ce qu'il manque
 
-| Element | Description | Priorite |
-|---------|-------------|----------|
-| Quick Action "Weather" | Le callback est `() {}` (noop) dans `quick_actions_bar.dart` L62-63. Aucune vue meteo detaillee n'est accessible depuis la home. | P1 |
-| Quick Action "Photo" | Le callback est `() {}` (noop) dans `quick_actions_bar.dart` L80. Aucune integration camera/galerie. | P1 |
-| Quick Action "AI Suggestion" | Le callback est `() {}` (noop) dans `quick_actions_bar.dart` L89. Devrait proposer des suggestions IA contextuelles. | P2 |
-| Quick Action "Tomorrow" | Le callback est `() {}` (noop) dans `quick_actions_bar.dart` L104. Devrait naviguer vers un apercu des activites du lendemain. | P2 |
-| Dark mode des destinations d'inspiration | Les gradients dans `inspiration_destination.dart` (L41, L48) utilisent des `Color()` en dur (`0xFFE67E22`, `0xFF27AE60`, etc.) au lieu de `AppColors.*`. | P2 |
-| Carousel completed : absence de `onArchive` | Dans `completed_trips_carousel.dart`, le `TripCard.large` n'a pas de callback `onArchive`, contrairement au `TripCard` standard dans `_LegacyTripList`. | P2 |
-| Offline : pas de sync queue pour les transitions ratees | `trip_mode_detector.dart` fait une transition optimiste offline mais ne stocke pas les transitions a rejouer quand la connexion revient. Les `failedTrips` sont traites comme des transitions reussies cote UI (L136-143 de `home_bloc.dart`). | P1 |
-| Test : dialog de fin de voyage | Aucun test widget pour le dialog `_showCompletionDialog` dans `active_trip_home_view.dart`. | P2 |
-| Test : quick actions contextuelles | Aucun test unitaire pour `resolveContextualActions` dans `contextual_actions_helper.dart`. | P2 |
+| Item | Description | Priorite |
+|------|-------------|----------|
+| Endpoint Home agrege | Les trois `getTripsPaginated` paralleles + user + activities + weather pourraient etre un seul `/v1/home` cote API (5 round-trips reduits a 1, gain perceptible offline-first et reseau mobile). | P1 |
+| Chips de filtre Home | La Home n'expose pas de filtre status, il faut quitter vers `trips_list_view` pour voir un bucket precis (completed notamment). Une chips bar inline aiderait. | P2 |
+| Offline write queue persistante | `_pendingOfflineTransitions` vit en memoire du `HomeBloc` ; un kill de l'app entre la transition optimiste et le `_ConnectivityRestored` perd la queue. `OfflineWriteQueue` existe dans le core mais n'est pas branchee ici. | P1 |
+| Test widget dialog fin de voyage | Le dialog adaptatif `_showCompletionDialog` n'a pas de test widget dedie (couvert indirectement via `home_bloc_test`). | P2 |
+| `daysUntilNextTrip` ignore les timezones | Calcul sur `DateTime.now()` local au lieu de `nowInDestination(trip.destinationTimezone)`, ce qui peut afficher "Dans 0 jour" un peu trop tot/tard selon le decalage. | P3 |
+| Pas de cache local Home | Aucune lecture/ecriture sur `CacheService` pour le payload Home (contrairement a trip detail). Premier launch offline = `HomeError` direct. | P2 |
+| `LoadTrips` non utilise en runtime | L'event existe et appelle `getGroupedTrips`, mais aucun ecran ne le dispatch. Dette technique a nettoyer. | P3 |

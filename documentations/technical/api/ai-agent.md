@@ -1,280 +1,400 @@
-# Agent IA — LangGraph Multi-Agent Trip Planning
+# Agent IA - LangGraph + Orchestrateurs SSE BagTrip
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-L'agent IA de BagTrip est un **pipeline multi-noeud** orchestre par **LangGraph** qui planifie un voyage complet a partir des preferences utilisateur. Il utilise un pattern **ReAct** (Reason + Act) pour appeler des outils reels (Amadeus, Open-Meteo) et un modele LLM (`gpt-oss-120b` heberge chez OVH) pour le raisonnement.
+L'agent IA de BagTrip planifie un voyage complet (destinations, vols/trains, hotels, activites,
+bagages, budget) a partir des preferences declarees dans le wizard "Plan trip". L'API expose un
+unique endpoint SSE `POST /v1/ai/plan-trip/stream` qui dispatche entre deux orchestrateurs :
 
-Le pipeline s'execute en streaming via **Server-Sent Events (SSE)** pour permettre au client mobile d'afficher les resultats progressivement.
+- `InspireOrchestrator` (mode `destinations_only`) : etape "inspire-me" du wizard. Amadeus
+  Flight Inspiration + enrichissement (meteo, Unsplash) + un seul appel LLM pour ranker.
+- `FullPlanOrchestrator` (mode `full`) : pipeline complet origine -> destination ->
+  meteo -> (activites, hebergements, transport, bagages, cover image) en parallele -> budget
+  deterministe -> persistance `TripDraftCommand` via `PlanDraftService`.
 
-## Architecture du graph
+Les deux orchestrateurs partagent les **memes briques agent** dans `api/src/agent/` :
 
-Fichier principal : `api/src/agent/graph.py`
+- `state.py` - `TripPlanState` (TypedDict heritage LangGraph encore utilise par tests + futurs nodes).
+- `tools/` - 4 outils decoupes par domaine (flights, hotels, locations, weather) + registry ReAct.
+- `prompts/` - templates Jinja2 EN/FR resolus par `render(name, locale, **ctx)`.
+- `runtime_budget.py` - budget cumulatif `guard` / `track` / `BudgetExceededError`.
+- `react_executor.py` - boucle ReAct manuelle + JSON repair (`_repair_json_once`).
+- `nodes/budget.py` - estimateur deterministe legacy reutilise par les tests + path de fallback.
 
-### Graph complet (`graph`)
+Cote modele : `LLMRouter.get().chat_completion(...)` (chemin principal Full Plan / Inspire,
+JSON schema strict OpenAI-compatible) ou `LLMService.acall_llm_messages(...)` (chemin ReAct).
+Tous les prompts passent par `render(name, locale="en"|"fr", **ctx)` - **plus aucune constante
+pre-rendered**, c'est l'invariant Sprint 4.
 
-```
-START
-  |
-  v
-destination_research          (ReAct: resolve_iata_code + get_weather)
-  |
-  +---------+---------+
-  |         |         |
-  v         v         v
-activity  accommo-  baggage   (PARALLEL — fan-out/fan-in)
-planner   dation    advisor
-  |         |         |
-  +---------+---------+
-  |
-  v
-budget                        (ReAct: search_real_flights + resolve_iata_code)
-  |
-  v
-assemble                      (Combine all outputs)
-  |
-  v
-END
-```
+## Graph LangGraph
 
-Les trois noeuds du milieu (`activity_planner`, `accommodation`, `baggage`) s'executent **en parallele** grace au fan-out/fan-in de LangGraph. Chaque noeud ecrit dans son propre champ de l'etat et les champs `events`/`errors` utilisent un **reducer** (`operator.add`) pour accumuler sans conflit.
-
-### Graph leger (`destinations_only_graph`)
+L'architecture actuelle n'execute plus un `StateGraph` LangGraph en production : le
+`FullPlanOrchestrator` (Sprint 5) ordonne les sous-taches via `asyncio.gather`. Le pipeline
+logique reste identique au graph historique et les tests reutilisent les nodes :
 
 ```
-START → destination_research → assemble_destinations → END
+                    POST /v1/ai/plan-trip/stream
+                                |
+                                v
+                    TripPlannerService.stream_plan
+                                |
+                +---------------+----------------+
+                |                                |
+       mode=destinations_only            mode=full (defaut)
+                |                                |
+                v                                v
+       InspireOrchestrator              FullPlanOrchestrator
+        .stream(InspireRequest)          .stream(FullPlanRequest)
+                |                                |
+                v                                v
+   1. resolve origin IATA (offline)   1. LocationResolver origin + dest
+   2. Amadeus FlightInspiration       2. get_weather (Open-Meteo)
+   3. enrich (meteo // candidats)     3. asyncio.gather:
+   4. LLM rank (inspire_rank.j2,         - activities  (LLM JSON schema)
+      JSON schema strict)                - accommodations (Amadeus 2-step)
+   5. Unsplash covers parallel           - transport (Amadeus or train)
+   6. event "destinations" + "complete"  - baggage (LLM JSON schema)
+                                         - cover image (Unsplash)
+                                      4. _compute_budget deterministe
+                                      5. emit destinations / weather /
+                                         activities / accommodations /
+                                         transport / baggage / budget
+                                      6. emit "complete" {trip_draft}
+                                                 |
+                                                 v
+                                  feasibility_pass.schedule_activities
+                                                 |
+                                                 v
+                                  PlanDraftService.create_draft_from_command
+                                                 |
+                                                 v
+                                  re-emit "complete" {tripId, status}
+                                                 |
+                                                 v
+                                       finally: emit "done"
 ```
 
-Active via `mode: "destinations_only"` dans la requete. Ne fait que rechercher des destinations sans planifier les activites, hebergements et bagages.
+Le `TripPlanState` legacy reste utilise par `nodes/budget.py` (estimateur deterministe) et par
+les tests qui pilotent le node en isolation. Tout nouveau node ecrit aujourd'hui via
+l'orchestrator code-only conserve la convention "1 sous-tache = 1 corofunction" + JSON schema
+strict cote LLM, ce qui evite la double couche ReAct / parsing manuel.
 
-## State (`api/src/agent/state.py`)
+## State
 
-Le `TripPlanState` est un `TypedDict` partage entre tous les noeuds :
+`TripPlanState` (`api/src/agent/state.py`) est un `TypedDict(total=False)` partage par les
+nodes residuels et certains tests. Les champs annotes avec `operator.add` utilisent un reducer
+LangGraph pour le fan-in parallele.
 
-**Entrees (set a l'invocation)** :
-- `travel_types`, `budget_range`, `duration_days`, `companions`, `constraints`
-- `departure_date`, `return_date`, `origin_city`, `travel_style`, `season`
-- `nb_travelers`, `budget_preset`, `date_mode`
+| Bloc | Champ | Type | Source / role |
+|---|---|---|---|
+| Inputs wizard | `travel_types` | `str` | Tags du wizard (CULTURE, NATURE, ...) |
+| | `duration_days` | `int` | Nombre de jours du voyage |
+| | `companions` | `str` | "solo", "couple", "family", "friends" |
+| | `constraints` | `str` | Texte libre (allergies, mobilite, "TGV"...) |
+| | `departure_date` / `return_date` | `str` (YYYY-MM-DD) | Dates utilisateur |
+| | `origin_city` / `destination_city` | `str` | Texte saisi |
+| | `destination_iata` | `str` | IATA pre-rempli (flow manuel ou retour W1) |
+| | `travel_style` / `season` | `str` | Profil voyageur |
+| | `nb_travelers` | `int` | Compte de voyageurs (defaut 1) |
+| | `budget_preset` | `str` | BACKPACKER / COMFORTABLE / PREMIUM / NO_LIMIT |
+| | `target_budget` | `float \| None` | Plafond numerique sanity-check (Topic 01) |
+| | `date_mode` | `str` | Mode date du wizard |
+| Destination | `origin_iata` | `str` | IATA resolue de l'origine |
+| | `destinations` | `list[dict]` | Liste de candidats |
+| | `selected_destination` | `dict` | `{city, country, iata, lat, lon}` |
+| | `weather_data` | `dict` | Snapshot Open-Meteo |
+| Parallel outputs | `activities` | `list[dict]` | Idees d'activites pre-feasibility |
+| | `accommodations` | `list[dict]` | Hotels Amadeus + price_total/per_night |
+| | `baggage_items` | `list[dict]` | Liste de packing |
+| Budget | `budget_estimation` | `dict` | Breakdown par categorie + min/max |
+| | `flight_offers` | `list[dict]` | Offres Amadeus brutes pour Flutter |
+| Accumulators | `events` | `Annotated[list[dict], add]` | SSE buffer LangGraph (fan-in) |
+| | `errors` | `Annotated[list[str], add]` | Warnings non fataux |
+| Final | `trip_plan` | `dict` | Plan assemble |
+| Runtime budget | `budget_deadline_monotonic` | `float` | Deadline `time.monotonic()` |
+| | `budget_consumed_seconds` | `float` | Temps deja consomme par les nodes |
+| Locale | `locale` | `str` | "en" ou "fr", thread jusqu'aux templates Jinja2 |
 
-**Sorties par noeud** :
-- `destinations`, `selected_destination`, `weather_data`, `origin_iata` (destination_research)
-- `activities` (activity_planner)
-- `accommodations` (accommodation)
-- `baggage_items` (baggage)
-- `budget_estimation` (budget)
-- `trip_plan` (assemble)
+## Nodes
 
-**Accumulateurs** (reducer `operator.add`) :
-- `events` — evenements SSE a emettre
-- `errors` — erreurs non fatales
+Le `FullPlanOrchestrator` execute les "nodes" en methodes `@classmethod` async. Quelques nodes
+historiques restent dans `api/src/agent/nodes/` (utilises par les tests et le path
+deterministe). Tableau combine :
 
-## Noeuds en detail
+| Node / sub-task | Role | Tools / API | Appel LLM |
+|---|---|---|---|
+| `_resolve_destination` (FullPlan) | Resout `destination_city` ou `destination_iata` -> `ResolvedLocation` | `LocationResolver` (offline `airportsdata` + cascade multilingue) | non |
+| `_fetch_weather` (FullPlan) | Snapshot meteo destination, alimente prompts activites + bagages | `tools.weather.get_weather` (Open-Meteo) + fallback climat-zone | non |
+| `_brainstorm_activities` (FullPlan) | Genere 6-9 `ActivityDraft` ancres meteo/profil/budget | aucun | `activity_planner.j2` (JSON schema strict, T=0.5, max_tokens=1800) |
+| `_search_accommodations` (FullPlan) | Liste les 10 premiers hotels 3-5 etoiles + offres tarifaires | `AmadeusService.search_hotel_list` + `search_hotel_offers` | non |
+| `_build_transport` (FullPlan) | Choisit FLIGHT vs TRAIN (meme pays + < `TRAIN_THRESHOLD_KM`) puis construit les jambes | `AmadeusService.search_flight_offers` OR heuristique train per-100km | non |
+| `_advise_baggage` (FullPlan) | Genere 10-14 `BaggageDraft` weather-aware | aucun | `baggage.j2` (JSON schema strict, T=0.4, max_tokens=1200) |
+| `_fetch_cover_image` (FullPlan) | Image Unsplash + fallback deterministe | `unsplash_client.fetch_cover_image` | non |
+| `_compute_budget` (FullPlan) | Breakdown deterministe : transport reel converti EUR, accommodation min, food/transport par-preset | `currency_service.convert` | non |
+| `_resolve_origin_iata` (Inspire) | IATA origine via offline aviation data | `AviationDataService.search_by_keyword` | non |
+| `_fetch_inspirations` (Inspire) | Amadeus Flight Inspiration -> N candidats trie cheapest first | `AmadeusService.search_flight_destinations` | non |
+| `_enrich_candidates` (Inspire) | Meteo en parallele sur les `TOP_K_CANDIDATES` | `tools.weather.get_weather` | non |
+| `_rank_with_llm` (Inspire) | Selectionne `pick_count` candidats + narrative copy, IATA contraint a l'enum | aucun | `inspire_rank.j2` (JSON schema enum sur IATA, T=0.4, max_tokens=900) |
+| `_llm_only_fallback` (Inspire) | Path degradation quand Amadeus inspiration KO ; over-fetch + resolution offline | `LLMRouter` + `AviationDataService` | `destination_quick.j2` (JSON schema, T=0.6, max_tokens=1400) |
+| `nodes/budget.py:budget_node` | Estimateur deterministe legacy (test + path fallback) ; `guard(state, min_required=2.0)` | `search_real_flights` + haversine fallback | non |
+| `post_trip_suggester.py` | Premium : suggere le prochain voyage a partir des feedbacks passes | `LLMRouter` | `post_trip_suggestion.j2` |
 
-### 1. `destination_research_node` (`nodes/destination_research.py`)
+## Tools
 
-**Type** : ReAct (tool calling)
-**Outils** : `resolve_iata_code`, `get_weather`
-**Prompt** : `DESTINATION_RESEARCH_PROMPT`
+Tous les tools vivent sous `api/src/agent/tools/` et sont exposes via le registry partage
+`TOOL_REGISTRY` consomme par le ReAct executor. Concurrence Amadeus capee par
+`_amadeus_semaphore = asyncio.Semaphore(3)` (`tools/_shared.py`).
 
-Fonctionnement :
-1. Construit un prompt a partir de l'etat (origin_city, travel_types, budget, etc.)
-2. Demande au LLM de proposer 3-4 destinations
-3. Le LLM utilise `resolve_iata_code` pour obtenir les vrais codes IATA
-4. Le LLM utilise `get_weather` pour obtenir les previsions meteo reelles
-5. Retourne la liste de destinations, selectionne la premiere comme principale
+### `agent/tools/flights.py`
 
-Sortie SSE : `event: destinations`
+| Element | Valeur |
+|---|---|
+| Function | `search_real_flights(origin, destination, date, return_date=None, adults=1)` |
+| API | Amadeus Flight Offers Search (max 5 offres, `currencyCode="EUR"`) |
+| Retour | `{flights: [...], cheapest: float, currency: "EUR", source: "amadeus"}` |
+| Cache | `idempotency_cache` keye sur `(origin, destination, date, return_date, adults)` |
+| Erreur | `{error, source: "error"}` ; le node appelant fallback sur `_synthesize_flight_offer` (haversine + cost lineaire) |
+| Concurrence | Acquiert `_amadeus_semaphore` |
 
-### 2. `activity_planner_node` (`nodes/activity_planner.py`)
+### `agent/tools/hotels.py`
 
-**Type** : Direct LLM (pas de tools)
-**Prompt** : `ACTIVITY_PLANNER_PROMPT`
+| Element | Valeur |
+|---|---|
+| Function | `search_real_hotels(city_code, check_in, check_out, adults=1)` |
+| API | Amadeus Hotel List (`ratings="3,4,5"`) -> 10 premiers `hotelId` -> Hotel Offers (`currency="EUR"`) |
+| Retour | `{hotels: [{name, hotel_id, rating, price_total, price_per_night, nights, ...}], source: "amadeus"}` |
+| Particularite | `price_total` ET `price_per_night` sont exposes simultanement (bug B23 : un seul champ ambigu re-multiplie par nights provoquait l'inflation budget) |
+| Cache | `idempotency_cache` keye sur `(city_code, check_in, check_out, adults)` |
+| Erreur | `{hotels: [], source: "error", error: str}` |
 
-Fonctionnement :
-1. Recoit la destination selectionnee et les donnees meteo reelles
-2. Le LLM genere 5-8 activites contextualisees (pas d'activites outdoor si pluie, etc.)
-3. Chaque activite a un `suggested_day` (1-based) et un `time_of_day` (morning/afternoon/evening)
+### `agent/tools/locations.py`
 
-Sortie SSE : `event: activities`
+| Element | Valeur |
+|---|---|
+| Function | `resolve_iata_code(city_name)` |
+| API | Offline `AviationDataService.search_by_keyword(sub_type="CITY,AIRPORT", limit=1)` |
+| Retour | `{iata, city, country, lat, lon}` ou `{error}` |
+| Cache | aucun (offline, deja O(1)) |
 
-### 3. `accommodation_node` (`nodes/accommodation.py`)
+### `agent/tools/weather.py`
 
-**Type** : ReAct (tool calling)
-**Outils** : `search_real_hotels`
-**Prompt** : `ACCOMMODATION_PROMPT`
+| Element | Valeur |
+|---|---|
+| Function | `get_weather(latitude, longitude, start_date, end_date)` |
+| API | Open-Meteo Forecast (gratuit, sans cle, `daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max`) |
+| Retour | `{avg_temp_c, min_temp_c, max_temp_c, rain_probability, description, source: "open-meteo"}` |
+| Cache | `idempotency_cache` keye sur `(lat, lon, start, end)` |
+| Fallback | `_fallback_weather(start_date, latitude)` : climate-zone par latitude absolue (subarctic / temperate / subtropical / tropical) + saison hemisphere ; `source: "estimated_climate_zone"` |
 
-Fonctionnement :
-1. Construit le prompt avec destination, dates, budget
-2. Le LLM appelle `search_real_hotels` pour obtenir des vrais prix d'hotel Amadeus
-3. Si aucun resultat, le LLM estime des prix raisonnables (source: "estimated")
+## ReAct executor + JSON repair
 
-Sortie SSE : `event: accommodations`
+Fichier : `api/src/agent/react_executor.py`. Conserve pour le path legacy (`nodes/budget.py`
+peut encore appeler `search_real_flights` directement, mais le ReAct loop reste branche dans
+les nodes historiques + tests).
 
-### 4. `baggage_node` (`nodes/baggage.py`)
-
-**Type** : Direct LLM (pas de tools)
-**Prompt** : `BAGGAGE_PROMPT`
-
-Fonctionnement :
-1. Recoit destination, meteo reelle, activites planifiees, duree
-2. Le LLM suggere 10-15 objets a emporter, ancres dans les conditions meteo reelles
-3. Fallback vers une liste par defaut si le LLM echoue (`_default_baggage_items()`)
-
-Sortie SSE : `event: baggage`
-
-### 5. `budget_node` (`nodes/budget.py`)
-
-**Type** : ReAct (tool calling)
-**Outils** : `search_real_flights`, `resolve_iata_code`
-**Prompt** : `BUDGET_PROMPT`
-
-Fonctionnement :
-1. Agrege les donnees de tous les noeuds precedents
-2. Le LLM appelle `search_real_flights` pour obtenir des vrais prix de vol
-3. Combine avec les prix d'hotel reels, les couts d'activites, et estime repas + transport
-4. Produit une estimation par categorie avec source (amadeus vs estimated)
-
-Sortie SSE : `event: budget`
-
-### 6. `assemble_node` (dans `graph.py`)
-
-**Type** : Assemblage pur (pas de LLM)
-
-Combine toutes les sorties en un `trip_plan` final et emet `event: complete`.
-
-## ReAct Executor (`api/src/agent/react_executor.py`)
-
-Le modele `gpt-oss-120b` ne supporte pas le native function calling. Le ReAct executor implemente manuellement la boucle :
+Le modele OVH `gpt-oss-120b` ne supporte pas le function-calling natif : ReAct est implemente
+en prompt-only :
 
 ```
-1. Envoyer system prompt (instruction + descriptions des outils) + user prompt
-2. Parser la sortie du LLM :
-   - Si "Action: <tool> / Action Input: <json>" → executer l'outil
-   - Si "Final Answer: <json>" → retourner le resultat
-3. Injecter "Observation: <result>" dans la conversation
-4. Repeter (max 5 iterations)
+1. Compose system prompt : agent_instruction + descriptions tools (depuis TOOL_REGISTRY)
+2. Boucle (max 5 iterations) :
+   - Appel LLM avec timeout `settings.LLM_CALL_TIMEOUT_SECONDS`
+   - parse_react_output(raw) :
+       * "Final Answer: <json>" -> retourne str (a parser)
+       * "Action: <tool> / Action Input: <json>" -> retourne (tool_name, dict)
+       * sinon -> traite la sortie comme final answer (avec recovery JSON par regex)
+   - Si tool call : execute tool_registry[tool_name]["fn"](**tool_input)
+   - Re-injecte "Observation: <json_result>" dans la conversation
+3. Final answer :
+   - _parse_final_answer(raw) : tente json.loads ; renvoie None si KO
+   - Si KO et settings.REACT_JSON_REPAIR_ENABLED :
+       _repair_json_once(llm, raw, error)
+         -> single re-prompt ("Your previous response was not valid JSON. Parse error: ...")
+         -> max 1 retry, jamais en boucle
+         -> succes : log "JSON repair succeeded"
+         -> echec : retourne {raw_answer, repair_failed: True}
+4. Si max iterations atteint -> dernier prompt "provide your Final Answer now"
 ```
 
-**Parsing** (`parse_react_output`) :
-- Detection par regex de `Action:`, `Action Input:`, `Final Answer:`
-- Nettoyage automatique des code fences markdown
-- Fallback : si ni Action ni Final Answer, traite la sortie comme une reponse finale
-- Recovery JSON : si le JSON est malformee, tente d'extraire un objet `{...}` par regex
+Points de durete :
 
-**Max iterations** : 5 (configurable). Si atteint, force un `Final Answer` en derniere iteration.
+- **Markdown stripping** : le repair re-strip les fences ```json``` au cas ou la LLM les
+  re-ajoute. Defensif - le modele OVH re-emet parfois des fences malgre l'instruction.
+- **Tool call type errors** captees separement (`TypeError`) pour fournir un message exploitable
+  au LLM (`"Error calling {tool_name}: invalid parameters - {e}"`) au lieu d'un traceback brut.
+- **JSON recovery par regex** : si `Action Input` ne parse pas, regex `\{[^}]+\}` tente
+  d'extraire un objet ; sinon `{raw}` est envoye et le LLM corrigera a l'iteration suivante.
+- **TimeoutError** propage en `{"error": "LLM call timed out after Ns"}` que le caller
+  surface en SSE `warning` / `error`.
 
-## Tools (`api/src/agent/tools.py`)
+`MAX_REACT_ITERATIONS = 5`. Au-dela, force un `Final Answer` ; double parse failure -> retour
+`{raw_answer, repair_failed: True}` sans crash.
 
-4 outils disponibles dans le `TOOL_REGISTRY` :
+## Budget cumulatif
 
-### `resolve_iata_code`
-- **Input** : `{"city_name": "Paris"}`
-- **Output** : `{"iata": "CDG", "city": "Paris", "country": "France", "lat": 49.0, "lon": 2.55}`
-- **Source** : Amadeus Location Search API
-- **Cache** : IdempotencyCache (TTL 5min)
+Fichier : `api/src/agent/runtime_budget.py`. Adresse le trou entre :
 
-### `search_real_flights`
-- **Input** : `{"origin": "CDG", "destination": "BCN", "date": "2025-07-01", "return_date": "2025-07-08", "adults": 1}`
-- **Output** : `{"flights": [...], "cheapest": 150.0, "currency": "EUR", "source": "amadeus"}`
-- **Source** : Amadeus Flight Offers Search (max 5 offres)
-- **Cache** : IdempotencyCache (TTL 5min)
+- `settings.GRAPH_TIMEOUT_SECONDS` qui cap le **total** stream (`async_generator_with_timeout`
+  cote `TripPlannerService`).
+- `settings.NODE_TIMEOUT_SECONDS` qui cap chaque **node individuel** wrappe `with_retry`.
 
-### `search_real_hotels`
-- **Input** : `{"city_code": "PAR", "check_in": "2025-07-01", "check_out": "2025-07-08", "adults": 1}`
-- **Output** : `{"hotels": [...], "source": "amadeus"}`
-- **Source** : Amadeus Hotel List + Hotel Offers (2 appels chaines)
-- **Cache** : IdempotencyCache (TTL 5min)
-- **Note** : Prend les 10 premiers hotels par ville puis cherche les offres
+Aucun des deux n'empeche une chaine de nodes lents de tenir individuellement sous leur cap
+tout en explosant le total. Solution : un budget partage stocke dans `state` comme
+`time.monotonic()` deadline.
 
-### `get_weather`
-- **Input** : `{"latitude": 48.85, "longitude": 2.35, "start_date": "2025-07-01", "end_date": "2025-07-08"}`
-- **Output** : `{"avg_temp_c": 22, "min_temp_c": 15, "max_temp_c": 28, "rain_probability": 20, "description": "Warm and pleasant", "source": "open-meteo"}`
-- **Source** : Open-Meteo API (gratuite, sans cle)
-- **Fallback** : Estimation par zone climatique (latitude) + saison si l'API echoue
+### API
 
-Tous les outils utilisent un **semaphore** (`asyncio.Semaphore(3)`) pour limiter les appels Amadeus concurrents.
+```python
+from src.agent.runtime_budget import BudgetExceededError, guard, remaining, track
 
-## Prompts (`api/src/agent/prompts.py`)
+async def my_node(state: TripPlanState) -> dict:
+    guard(state, min_required=5.0)        # raise BudgetExceededError si < 5s
+    async with track(state, "my_node"):   # cumul du temps consomme
+        await asyncio.wait_for(heavy_call(), timeout=remaining(state))
+```
 
-5 prompts systeme specialises :
+| Helper | Comportement |
+|---|---|
+| `remaining(state)` | `max(0.0, deadline - time.monotonic())`. Retourne `inf` si `budget_deadline_monotonic` absent (tests, anciens checkpoints) - backward compat |
+| `consumed(state)` | Lit `budget_consumed_seconds` (defaut 0.0) |
+| `guard(state, *, min_required)` | Raise `BudgetExceededError(f"Graph budget exhausted: {left:.1f}s left, need {min_required:.1f}s")` si `remaining < min_required` |
+| `track(state, node_name)` | Context manager async. `finally` ajoute `elapsed` a `budget_consumed_seconds` MEME en cas d'exception (le node a consomme du temps quoi qu'il arrive). Warn log si `remaining < 5.0` apres execution |
+| `BudgetExceededError` | Exception dediee. Alias backward-compat : `BudgetExceeded` |
 
-| Prompt | Longueur | Outils autorises | Format de sortie |
-|--------|----------|-------------------|------------------|
-| `DESTINATION_RESEARCH_PROMPT` | ~20 lignes | resolve_iata_code, get_weather | `{destinations: [...], origin_iata}` |
-| `ACTIVITY_PLANNER_PROMPT` | ~25 lignes | Aucun | `{activities: [...]}` |
-| `ACCOMMODATION_PROMPT` | ~15 lignes | search_real_hotels | `{accommodations: [...]}` |
-| `BAGGAGE_PROMPT` | ~15 lignes | Aucun | `{items: [...]}` |
-| `BUDGET_PROMPT` | ~20 lignes | search_real_flights, resolve_iata_code | `{estimation: {...}}` |
+`BudgetExceededError` remonte jusqu'a `TripPlannerService.stream_plan` qui le wrap en
+`event: error` ; le `finally` general emet quand meme `done` pour que le client ne reste pas
+suspendu. Le node `budget_node` (`nodes/budget.py`) demarre avec `guard(state, min_required=2.0)` -
+un budget exhausted juste avant l'agregation est non bloquant car la sous-chaine fait surtout
+de la sommation en memoire.
 
-Chaque prompt insiste sur l'utilisation de donnees reelles ("Do NOT invent prices, IATA codes, or weather data").
+## Prompts Jinja2 EN/FR
 
-## Retry (`api/src/agent/retry.py`)
+Resolveur : `api/src/agent/prompts/__init__.py`. **`render(name, locale="en", **ctx)` est le seul
+point d'entree**. Les constantes Python `XXX_PROMPT` pre-rendered ont ete supprimees au Sprint 4.
 
-Wrapper `with_retry()` pour les noeuds paralleles :
-- 1 retry apres echec (configurable `max_retries`)
-- En cas d'echec total : **degradation gracieuse** — retourne une liste vide + evenement SSE `warning`
-- Map automatique `node_name → field` : activity_planner→activities, accommodation→accommodations, baggage→baggage_items
+```python
+from src.agent.prompts import render
 
-## SSE Streaming (`api/src/api/ai/plan_trip_routes.py`)
+system_prompt = render(
+    "activity_planner",
+    locale=normalize_locale(req.locale),  # "en" | "fr"
+    target=9,
+)
+```
 
-L'endpoint `POST /v1/ai/plan-trip/stream` retourne un `StreamingResponse` avec `media_type="text/event-stream"`.
+Comportement :
 
-### Evenements emis
+| Aspect | Valeur |
+|---|---|
+| Templates root | `api/src/agent/prompts/templates/{locale}/{name}.j2` |
+| Locale par defaut | `"en"` |
+| Fallback | Si `templates/<locale>/<name>.j2` absent -> tente `templates/en/<name>.j2` -> sinon `ValueError` (= typo dans le caller) |
+| `StrictUndefined` | Toute variable Jinja absente du `**ctx` -> raise au render. Crash bruyant = mieux qu'un prompt silencieusement casse |
+| `autoescape` | `False` (bandit B701 # nosec) : les templates contiennent des blocs JSON schema `{"a": 1}`, l'escape HTML les casserait. Pas de surface XSS : sortie injectee dans `LLMRouter.chat_completion` jamais servie au browser |
+| `keep_trailing_newline` | True (les prompts se terminent par un newline) |
 
-| Evenement | Donnees | Quand |
-|-----------|---------|-------|
-| `progress` | `{phase, message}` | Debut de chaque phase |
-| `destinations` | `{destinations, origin_iata}` | Apres destination_research |
-| `activities` | `{activities, source}` | Apres activity_planner |
-| `accommodations` | `{accommodations, source}` | Apres accommodation |
-| `baggage` | `{items}` | Apres baggage |
-| `budget` | `{estimation, source}` | Apres budget |
-| `complete` | `{tripPlan}` | Plan final assemble |
-| `warning` | `{section, message}` | Noeud en echec (degradation) |
-| `error` | `{message}` | Erreur fatale du graph |
-| `heartbeat` | `{ts}` | Toutes les 15s (keepalive) |
-| `done` | `{status: "complete"}` | Signal de fin du stream |
+### Templates livres
 
-Headers de reponse : `Cache-Control: no-cache`, `Connection: keep-alive`, `X-Accel-Buffering: no`.
+| Template | EN | FR | Consumer |
+|---|---|---|---|
+| `activity_planner.j2` | 2145 o | 2424 o | `FullPlanOrchestrator._brainstorm_activities` + `ActivityService` (re-suggest manuel) |
+| `accommodation.j2` | 652 o | 747 o | path legacy `nodes/accommodation` (deprecated) |
+| `accommodation_suggest.j2` | 719 o | 871 o | `AccommodationsService` (re-suggest manuel depuis trip detail) |
+| `baggage.j2` | 691 o | 898 o | `FullPlanOrchestrator._advise_baggage` + `BaggageItemsService` |
+| `budget.j2` | 955 o | 1027 o | reserve - estimateur LLM (path legacy) |
+| `destination_quick.j2` | 2217 o | 2560 o | `InspireOrchestrator._llm_only_fallback` |
+| `inspire_rank.j2` | 1686 o | 1735 o | `InspireOrchestrator._rank_with_llm` |
+| `post_trip_suggestion.j2` | 1001 o | 1148 o | `PostTripSuggester` (feature Premium) |
+| `rank_destinations.j2` | 1442 o | 1583 o | reserve - future re-ranking pass |
 
-### Accept Plan (`POST /v1/ai/plan-trip/accept`)
+### Threading locale
 
-Cree un trip DRAFT a partir du plan IA :
-1. Resout la destination (primaire ou alternative via `selectedDestinationIndex`)
-2. Fetch image de couverture Unsplash
-3. Cree le trip avec `origin="AI"`
-4. Cree les activites avec scheduling intelligent (`suggested_day` + `time_of_day` → `date` + `start_time`)
-5. Cree les bagages IA (ou fallback i18n FR/EN si absents)
+Chaque caller normalise via `normalize_locale(request.locale or "en")` puis passe l'argument
+explicitement a `render(...)`. Le state `TripPlanState.locale` porte la valeur de bout en
+bout pour les nodes legacy. Les templates FR sont autonomes (pas de `{% include "en/..." %}`
+restant) - la cascade de fallback `fr` -> `en` reste un filet de securite cote loader.
 
-## LLM Service (`api/src/services/llm_service.py`)
+## SSE streaming
 
-Wrapper singleton autour de `langchain_openai.ChatOpenAI` :
-- Modele : `gpt-oss-120b` (OVH Kepler)
-- Base URL : `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1`
-- Temperature : 0.7
-- Methodes : `call_llm()` (sync), `acall_llm()` (async), `acall_llm_messages()` (pour ReAct)
-- Nettoyage automatique des code fences markdown avant parsing JSON
+`TripPlannerService.stream_plan(request, user_id, db)` est l'unique point de sortie SSE.
+Pattern : `_sse(event, data)` produit `"event: <type>\ndata: <json>\n\n"`. `try / finally`
+englobe TOUT le pipeline pour garantir que `done` est emis meme sur exception fatale.
 
-## Post-Trip AI (`api/src/services/post_trip_ai_service.py`)
+```python
+try:
+    if request.mode == "destinations_only":
+        async for ev_type, ev_data in InspireOrchestrator.stream(inspire_req):
+            yield _sse(ev_type, ev_data)
+        return
 
-Feature Premium : analyse les feedbacks passes de l'utilisateur et suggere un prochain voyage personalise.
+    async for ev_type, ev_data in FullPlanOrchestrator.stream(full_req):
+        if ev_type == "complete":
+            trip_draft_payload = ev_data.get("trip_draft")
+            continue                       # absorbe le complete brut
+        yield _sse(ev_type, ev_data)
 
-- Charge les 10 derniers feedbacks avec leurs trips
-- Construit un prompt avec l'historique (notes, points forts/faibles, recommandation)
-- Appel LLM direct (pas de ReAct, pas de tools)
-- Retourne une suggestion avec destination, duree, budget, activites
+    # feasibility pass + persistance + re-emit complete avec tripId
+    cmd.activities = schedule_activities(cmd)
+    trip = PlanDraftService.create_draft_from_command(db, user, cmd)
+    yield _sse("complete", {"tripId": str(trip.id), "tripDraft": ...})
+    PlanService.increment_ai_generation(db, user)
+except Exception as exc:
+    yield _sse("error", {"message": str(exc)})
+finally:
+    yield _sse("done", {"status": "complete"})
+```
 
-Guard : `require_premium` + `require_ai_quota`
+### Protocole events
+
+| Event | Quand | Payload (camelCase pour les keys exposees Flutter) |
+|---|---|---|
+| `progress` | Debut de chaque phase | `{phase, message?, originIata?, ...}` |
+| `destinations` | Apres ranking (Inspire) ou apres parallel planning (Full) | `{destinations: [...], originIata}` |
+| `weather` | Apres `_fetch_weather` (Full) | `WeatherSummary` asdict |
+| `activities` | Apres `_brainstorm_activities` | `{activities: [ActivityDraft, ...]}` |
+| `accommodations` | Apres `_search_accommodations` | `{accommodations: [AccommodationDraft, ...]}` |
+| `transport` | Apres `_build_transport` | `{legs: [TransportLeg, ...]}` |
+| `baggage` | Apres `_advise_baggage` | `{items: [BaggageDraft, ...]}` |
+| `budget` | Apres `_compute_budget` | `{budget: BudgetBreakdown}` |
+| `warning` | Sous-tache en echec (orchestrator code stable) | `{code: "ACCOMMODATIONS_AMADEUS_DOWN" \| "ACTIVITIES_FAILED" \| ..., message}` |
+| `error` | Erreur fatale (origin/dest unresolvable, LLM JSON KO, BudgetExceededError) | `{code?, message}` |
+| `complete` | Plan persiste server-side | `{tripId, status, tripDraft}` |
+| `done` | Fin garantie (`finally`) | `{status: "complete"}` |
+
+Headers HTTP : `Cache-Control: no-cache`, `Connection: keep-alive`, `X-Accel-Buffering: no`
+(desactive le buffering Nginx -> evite que les events restent bloques 4-5s).
+
+### Idempotency cache (tools)
+
+`src.utils.idempotency.idempotency_cache` est un cache in-memory TTL utilise par
+`search_real_flights`, `search_real_hotels`, `get_weather`. Cle = `(tool_name, params)`. Pas
+de Redis derriere -> en multi-worker chaque process a son propre cache (cf section
+"Ce qu'il manque").
+
+### Persistance post-stream
+
+Apres le `complete` brut du `FullPlanOrchestrator`, `TripPlannerService` :
+
+1. `schedule_activities(cmd)` (`feasibility_pass.py`) - assigne les `suggested_day` /
+   `time_of_day` manquants, trie en ordre calendaire pour matcher l'affichage Flutter.
+2. `PlanDraftService.create_draft_from_command(db, user, cmd)` - cree le `Trip` en statut
+   DRAFT + activites + accommodations + transport + baggage + budget items en une transaction.
+3. Re-emet un `complete` enrichi `{tripId, status, tripDraft}` (le client appelle
+   `/v1/trips/{tripId}` pour la suite ; pas de route `accept` separee depuis SMP-325).
+4. `PlanService.increment_ai_generation(db, user)` decremente le quota Free.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
-|---------|-------------|----------|
-| Pas de streaming du LLM token par token | Le streaming SSE emet des evenements par noeud, pas par token LLM. L'utilisateur attend la fin de chaque noeud. Fichier : `api/src/api/ai/plan_trip_routes.py` | P2 |
-| Pas de cache Redis pour les outils | Le `IdempotencyCache` est in-memory avec TTL 5min. En multi-instance, les caches ne sont pas partages. Fichier : `api/src/utils/idempotency.py` | P1 |
-| Pas de timeout global sur le graph | Si un noeud prend trop de temps (LLM lent, Amadeus timeout), le stream peut rester ouvert indefiniment. Pas de timeout global sur `astream()`. Fichier : `api/src/api/ai/plan_trip_routes.py` | P1 |
-| Fallback LLM basique | Si le LLM echoue, les noeuds activity_planner et baggage retournent des listes vides ou un fallback minimal. Pas de retry au niveau LLM. Fichier : `api/src/agent/nodes/activity_planner.py` | P2 |
-| Pas de tests pour le ReAct executor | Le parsing regex du ReAct output n'a pas de tests unitaires. Fichier : `api/src/agent/react_executor.py` | P1 |
-| Deduplication d'evenements fragile | La deduplication SSE utilise `event_key = f"{event_type}:{node_name}"` ce qui peut manquer des cas edge. Fichier : `api/src/api/ai/plan_trip_routes.py` ligne 90 | P2 |
-| Post-trip AI sans contexte d'activites | Le service `PostTripAIService` n'inclut pas les activites des trips passes dans le prompt, seulement les feedbacks. Fichier : `api/src/services/post_trip_ai_service.py` | P2 |
+|---|---|---|
+| Cache Redis pour les tools | `idempotency_cache` est in-memory TTL ; en multi-worker chaque process a son cache. Migrer vers Redis (deja singleton dans `integrations/redis_client.py`) economiserait les appels Amadeus repetes entre instances | P1 |
+| Timeout global cote orchestrators | `FullPlanOrchestrator` n'embarque pas de `runtime_budget` ; seuls les nodes legacy le consomment. Un Amadeus lent + une LLM lente cumules peuvent depasser `GRAPH_TIMEOUT_SECONDS` sans deadline interne explicite | P1 |
+| Tests ReAct executor | `parse_react_output` et `_repair_json_once` n'ont pas de tests unitaires dedies. Les regex fences + recovery JSON sont fragiles aux variations modele | P1 |
+| Streaming LLM token-par-token | Les events SSE sont emis par sous-tache (gate sur la fin du `chat_completion`) ; l'utilisateur attend la fin du brainstorm pour voir des activites. Streamer le `delta` LLM par chunk reduirait la perception de latence | P2 |
+| Convergence agent/orchestrator | `nodes/budget.py` + `tools/__init__.py` portent un duplicat partiel de la logique flight/hotel (estimateur deterministe + synthese haversine). Decision a prendre : retirer le legacy ou rebrancher le FullPlanOrchestrator dessus pour eviter la divergence | P2 |
+| Tests fallback LLM-only Inspire | `_llm_only_fallback` deroule un schema strict + cascade de resolution offline ; couverture des cas IATA hallucines limitee | P2 |
+| `accommodation_suggest` re-prompt | Le re-suggest manuel depuis trip detail (`AccommodationsService`) appelle directement le LLM sans JSON schema strict cote OVH ; pas de JSON repair si la sortie casse | P2 |
+| Post-trip suggester sans contexte activites | `PostTripSuggester` lit feedbacks + trips mais n'injecte pas les activites des voyages passes -> suggestions moins personnalisees | P3 |
+| FR templates fige | Les templates FR sont autonomes mais n'ont pas de pipeline de revue lexicale ; certaines tournures restent traduites mot-a-mot de l'EN | P3 |

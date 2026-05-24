@@ -1,203 +1,383 @@
 # Architecture Backend API
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-L'API BagTrip est une application **FastAPI** (Python) qui sert de backend pour l'application mobile Flutter et le panneau d'administration Next.js. Elle suit une architecture **layered** : Routes (controllers) -> Services -> Models (SQLAlchemy) -> PostgreSQL, avec des integrations externes (Amadeus, Stripe, Firebase, LLM) et un agent IA multi-noeud base sur LangGraph.
+L'API BagTrip est une application **FastAPI** (Python 3.12) qui sert de backend pour
+l'app mobile Flutter et le panneau d'administration Next.js. Elle suit un layering
+strict **Route -> Service -> Repository/Model -> Integration wrapper**, avec une
+base PostgreSQL via SQLAlchemy 2.0 (`Mapped[T]` typed declarative), des
+migrations Alembic, Redis pour les compteurs distribues (rate limit, locks,
+idempotence), et un agent IA LangGraph pour la planification de voyage en SSE.
 
-L'application est deployee via Docker et executee sous **Uvicorn** (ASGI), avec hot-reload en mode developpement.
+L'application tourne sous **Uvicorn** (ASGI) dans Docker, avec un lifespan FastAPI
+qui orchestre le bootstrap (init HTTP client, check DB, seeds, schedulers) et le
+teardown propre des resources.
+
+Stack runtime cle :
+
+- **FastAPI 0.124+** + Uvicorn standard
+- **Pydantic v2** (`BaseModel` + `BaseSettings`)
+- **SQLAlchemy 2.0** typed declarative + Alembic
+- **Redis 5+** (optionnel, fallback in-memory)
+- **httpx 0.28+** AsyncClient singleton
+- **LangGraph 0.2+** pour l'agent IA
+- **Prometheus + OpenTelemetry** pour l'observabilite
 
 ## Structure des fichiers
 
 ```
 api/src/
-├── main.py                      # Point d'entree FastAPI, lifespan, routers, exception handlers
-├── enums.py                     # Enums centralises (TripStatus, ActivityCategory, etc.)
-├── config/
-│   ├── env.py                   # Pydantic Settings (variables d'environnement)
-│   ├── database.py              # SQLAlchemy engine, SessionLocal, Base, get_db()
-│   └── plans.py                 # Constantes de plans (FREE / PREMIUM / ADMIN)
-├── api/                         # Couche routes (controllers)
-│   ├── auth/                    # Auth routes, middleware JWT, guards, verifiers OAuth
-│   ├── trips/                   # CRUD trips
-│   ├── activities/              # CRUD activities + suggest IA
-│   ├── accommodations/          # CRUD hebergements
-│   ├── baggage/                 # CRUD bagages + suggest IA
-│   ├── budget_items/            # CRUD budget + summary
-│   ├── travelers/               # CRUD travelers (passagers)
-│   ├── shares/                  # Partage de trips
-│   ├── feedback/                # Feedbacks post-voyage
-│   ├── flights/                 # Sous-modules: searches, offers, orders, manual, info
-│   ├── booking_intents/         # Intent de reservation + booking
-│   ├── payments/                # Authorize / Capture / Cancel Stripe
-│   ├── notifications/           # Notifications utilisateur
-│   ├── device_tokens/           # Enregistrement tokens FCM
-│   ├── profile/                 # Profil voyageur (onboarding)
-│   ├── subscription/            # Stripe Checkout / Portal / Status
-│   ├── admin/                   # Routes admin (CRUD global, dashboard, export CSV)
-│   ├── travel/                  # Routes Amadeus publiques (locations, flight offers, inspirations)
-│   ├── hotels/                  # Recherche hotels Amadeus
-│   ├── ai/                      # Plan-trip SSE + post-trip suggestion
-│   ├── booking/                 # [DEPRECATED] Ancien pattern de reservation
-│   └── stripe/webhooks/         # Webhooks Stripe
-├── services/                    # Logique metier
-├── models/                      # Modeles SQLAlchemy (ORM)
-├── agent/                       # Agent IA LangGraph (graph, nodes, tools, prompts)
-├── integrations/                # Clients externes (Amadeus, AirLabs, Unsplash, Firebase, Stripe)
-├── middleware/                  # Rate limiting
-├── jobs/                        # Background jobs (trip status, notifications)
-├── seeds/                       # Seed data (admin par defaut)
-└── utils/                       # Utilitaires (errors, logger, cookies, timeout, idempotency)
+|-- main.py                      # Entree FastAPI : lifespan, middlewares, routers, handlers
+|-- enums.py                     # Enums partages (TripStatus, ActivityCategory, ...)
+|-- config/
+|   |-- env.py                   # Pydantic Settings + validators NODE_ENV
+|   |-- database.py              # SQLAlchemy engine, SessionLocal, get_db()
+|   `-- plans.py                 # UserPlan + PLAN_LIMITS (FREE/PREMIUM/ADMIN)
+|-- api/                         # Couche routes (controllers HTTP)
+|   |-- common/
+|   |   |-- pagination.py        # PaginationParams, paginate(), Page[T]
+|   |   |-- error_handler.py     # @handle_app_errors
+|   |   |-- base_schema.py       # Schemas Pydantic de base (camelCase, alias)
+|   |   `-- redaction.py         # redact_for_viewer() role-aware
+|   |-- auth/                    # JWT + refresh rotation + OAuth (Google, Apple)
+|   |-- trips/, activities/, accommodations/, baggage/, budget_items/
+|   |-- travelers/, shares/, invites/, feedback/
+|   |-- flights/                 # searches, offers, orders, manual, info
+|   |-- booking_intents/         # Intent + booking orchestration
+|   |-- payments/, subscription/, stripe/webhooks/
+|   |-- notifications/, device_tokens/
+|   |-- profile/, travel/, hotels/
+|   |-- ai/                      # SSE plan-trip + post-trip suggestion
+|   `-- admin/                   # Routes admin (back-office)
+|-- services/                    # Logique metier (un service par domaine)
+|-- models/                      # Modeles SQLAlchemy Mapped[T] typed
+|-- agent/                       # Agent LangGraph (graph, nodes, tools, prompts)
+|-- integrations/
+|   |-- http_client.py           # httpx.AsyncClient singleton
+|   |-- redis_client.py          # get_redis_client() memoise + fallback
+|   |-- amadeus/, airlabs/, unsplash/, firebase/, stripe/
+|   `-- aviation_data/, open_meteo/, travelpayouts/
+|-- middleware/
+|   |-- request_id.py            # X-Request-ID + contextvar + log filter
+|   |-- security_headers.py      # HSTS, CSP, X-Frame, X-Content-Type, Referrer
+|   `-- rate_limit.py            # Redis-backed sliding window + in-memory fallback
+|-- utils/
+|   |-- unit_of_work.py          # Transaction context manager
+|   |-- errors.py                # AppError + create_http_exception
+|   |-- distributed_lock.py      # Lock Redis pour schedulers
+|   |-- idempotency.py           # Cache idempotent (Redis ou memoire)
+|   |-- logger.py                # Logger structure JSON
+|   |-- cookies.py, locale.py, timeout.py, iata_timezone.py
+|-- jobs/                        # Schedulers asyncio (status, notifs, plan expiration, ...)
+|-- migrations/                  # Migrations Alembic (versions/) + scripts ad-hoc legacy
+`-- seeds/                       # create_admin() bootstrap
 ```
 
 ## Configuration
 
-### Variables d'environnement (`config/env.py`)
+### Pydantic Settings (`config/env.py`)
 
-La configuration utilise **Pydantic Settings** (`BaseSettings`) avec validation automatique au demarrage. Les variables sont chargees depuis `.env` via `python-dotenv`.
+Toute la config passe par `Settings(BaseSettings)` charge depuis `.env` via
+`python-dotenv`. La validation est appliquee au boot par Pydantic v2 et un
+helper `_format_missing_env_error()` produit un message lisible avant
+`sys.exit(1)`.
 
-Variables obligatoires :
-- `DATABASE_URL` — PostgreSQL connection string
-- `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` — API Amadeus
-- `LLM_API_KEY` — Cle pour le modele LLM (gpt-oss-120b via OVH)
-- `JWT_SECRET` — Secret pour la signature des tokens JWT
+**Variables obligatoires** (raise au boot si absentes) :
 
-Variables optionnelles avec fallback gracieux :
-- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` — Payments (desactive si absent)
-- `FIREBASE_SERVICE_ACCOUNT_PATH` — Push notifications (desactive si absent)
-- `AIRLABS_API_KEY` — Infos vol temps reel (desactive si absent)
-- `UNSPLASH_ACCESS_KEY` — Images de couverture (fallback continent-based si absent)
-- `LANGCHAIN_API_KEY` — Tracing LangSmith (optionnel)
+- `DATABASE_URL` : connection string PostgreSQL
+- `AMADEUS_CLIENT_ID` / `AMADEUS_CLIENT_SECRET` : API Amadeus (vols, hotels)
+- `LLM_API_KEY` : cle LLM (OVHcloud AI Endpoints par defaut)
+- `JWT_SECRET` : signature des tokens JWT (validator refuse la valeur par
+  defaut en production)
 
-En cas de variables manquantes, l'application affiche un message d'erreur formate et `sys.exit(1)`.
+**Variables optionnelles** avec fallback gracieux :
+
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` : paiements (webhook secret
+  obligatoire en production, validator dedie)
+- `FIREBASE_SERVICE_ACCOUNT_PATH` : push FCM (desactive si absent)
+- `AIRLABS_API_KEY` : infos vol temps reel
+- `UNSPLASH_ACCESS_KEY` : images de couverture
+- `REDIS_URL` : fallback in-memory si absent (rate limit, locks, idempotence)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` : tracing distribue (silent en dev)
+- `LANGCHAIN_API_KEY` : tracing LangSmith
+
+**Validators production** (`@field_validator`) :
+
+- `JWT_SECRET` ne peut pas etre la valeur par defaut
+- `COOKIE_SECURE` doit etre `True`
+- `STRIPE_WEBHOOK_SECRET` doit etre defini
 
 ### Database (`config/database.py`)
 
-- **SQLAlchemy** synchrone avec `psycopg2-binary`
-- `clean_database_url()` retire le parametre `?schema=` de Prisma pour compatibilite
-- `pool_pre_ping=True` pour detecter les connexions mortes
-- `get_db()` : dependance FastAPI qui gere le lifecycle de la session
-- Migrations gerees par **Alembic** (pas d'autogenerate en local)
+SQLAlchemy synchrone avec `psycopg2-binary`. Le helper `clean_database_url()`
+retire le parametre Prisma `?schema=` pour compatibilite. Pool tune pour la
+fan-out des endpoints home/trip-detail :
+
+- `pool_size=20` (le defaut 5 sature en burst)
+- `max_overflow=10` connexions supplementaires sous pic
+- `pool_timeout=30` secondes d'attente max pour une connexion libre
+- `pool_recycle=1800` recycle les connexions toutes les 30 minutes (NAT,
+  PGBouncer, RDS idle-timeouts)
+- `pool_pre_ping=True` : `SELECT 1` avant chaque emprunt, fail-fast sur
+  sockets morts
+
+`get_db()` est la dependency FastAPI qui yield une session puis la close en
+`finally`. Toutes les routes la consomment via `Depends(get_db)`.
 
 ### Plans (`config/plans.py`)
 
-Trois tiers : `FREE`, `PREMIUM`, `ADMIN` avec des limites specifiques :
+Trois tiers (`UserPlan` StrEnum) avec leurs limites dans `PLAN_LIMITS` :
 
 | Limite | FREE | PREMIUM | ADMIN |
-|--------|------|---------|-------|
-| Generations IA / mois | 3 | Illimite | Illimite |
-| Viewers par trip | 2 | 10 | Illimite |
-| Notifications offline | Non | Oui | Oui |
-| Post-voyage IA | Non | Oui | Oui |
+|---|---|---|---|
+| `ai_generations_per_month` | 3 | illimite (None) | illimite |
+| `viewers_per_trip` | 2 | 10 | illimite |
+| `offline_notifications` | False | True | True |
+| `post_voyage_ai` | False | True | True |
 
-## Cycle de vie de l'application (Lifespan)
+Le `PlanService` consomme ces constantes pour les quotas et le gating de
+features. Le plan ADMIN n'est jamais souscrit via Stripe, il est attribue
+manuellement au seed et a la creation de back-office accounts.
 
-Au demarrage (`main.py` lifespan) :
+## Layering
 
-1. **Verification de la connexion DB** — `check_database_connection()` execute `SELECT 1`
-2. **Initialisation des produits Stripe** — `StripeProductsService.initialize_products()` (graceful si echec)
-3. **Creation de l'admin par defaut** — `create_default_admin()` (graceful si echec)
-4. **Lancement du scheduler de statuts** — `trip_status_scheduler()` (asyncio task, voir `jobs/`)
-5. **Lancement du scheduler de notifications** — `notification_scheduler()` (asyncio task, toutes les 30 min)
+Le code respecte un layering strict, chaque couche a une responsabilite
+unique et ne communique qu'avec la suivante.
 
-A l'arret : les tasks sont annulees proprement via `CancelledError`.
+### Route (`src/api/<feature>/routes.py`)
 
-## Middleware
+Responsabilites uniquement HTTP :
 
-### CORS
+- Parsing du request body (schemas Pydantic v2)
+- Auth via `Depends(get_current_user)` ou `Depends(get_trip_access)`
+- Pagination via `Depends(PaginationParams)`
+- Appel au service metier
+- Mapping de la reponse (schemas camelCase via `alias_generator=to_camel`)
+- Decorator `@handle_app_errors` pour normaliser les erreurs
 
-Configure via `CORSMiddleware` avec origins depuis `settings.ALLOWED_ORIGINS` (comma-separated). Autorise toutes les methodes et headers.
+**Interdit dans une route** :
 
-### Rate Limiting (`middleware/rate_limit.py`)
+- Appel direct a un client d'integration (`amadeus_client`, `stripe.Customer`,
+  `httpx.get(...)`)
+- Import d'un modele ORM pour faire de l'enrichissement metier
+- Logique conditionnelle business (calculs, validations cross-table)
 
-Deux middlewares empiles :
+### Service (`src/services/`)
 
-1. **`auth_rate_limit_middleware`** — Per-IP, 5 requetes/minute sur les endpoints auth (`/v1/auth/login`, `/register`, `/google`, `/apple`, `/refresh`). Utilise `TTLCache` (cachetools) avec auto-expiration.
+Toute la logique metier. Un service par domaine, statique ou instancie. Les
+services consomment :
 
-2. **`rate_limit_middleware`** — Per-user (JWT), 5 requetes/minute sur les endpoints IA (`/agent/chat`, `/v1/ai/*`, `/suggest`). Retourne `429` avec header `Retry-After` et `X-RateLimit-Remaining`.
+- Les modeles ORM via la session SQLAlchemy
+- Les wrappers d'integration (`AmadeusService`, `StripeGatewayService`,
+  `AirLabsService`, `LLMService`)
+- D'autres services (uniquement de bas niveau vers haut niveau, pas de
+  cycles)
 
-La classe `RateLimiter` est in-memory (dict avec nettoyage des fenetres expirees). En production, Redis serait recommande.
+Regles :
 
-## Gestion des erreurs
+- Pas de god-object (> ~600 LoC = decoupage par sous-domaine, cf. `admin/`)
+- Helper `paginate()` partout, jamais de count/offset/limit manuel
+- Transaction via `with unit_of_work(db):` pour toute mutation multi-row
+- `logger.exception(...)` sur tout catch, jamais de `except Exception: pass`
+
+### Model (`src/models/`)
+
+Structure SQLAlchemy 2.0 typed declarative : `Mapped[T]` + `mapped_column(...)`.
+Les relations sont declarees avec `Mapped[list["Child"]]` ou
+`Mapped["Parent"]`, les cycles resolus via `TYPE_CHECKING`. Pas de methodes
+metier sur les modeles (data only).
+
+### Integration wrapper (`src/integrations/`)
+
+Clients vers les services externes. Exposes par un service facade
+(`AmadeusService` wrap `amadeus_client`, `StripeGatewayService` wrap le SDK
+Stripe). Aucune route ne consomme un integration directement. Tous partagent
+le `httpx.AsyncClient` singleton via `get_http_client()`.
+
+## Middlewares
+
+Ordre d'enregistrement dans `main.py` (FastAPI execute en ordre inverse, donc
+le dernier enregistre voit le request en premier) :
+
+1. **CORS** (`fastapi.middleware.cors`) : origines lues depuis
+   `settings.ALLOWED_ORIGINS` (comma-separated), `allow_credentials=True`,
+   methodes et headers `*`.
+2. **Rate limit** (`rate_limit_middleware`) : per-user (JWT), 5 req/min sur
+   `/agent/chat`, `/v1/ai/*`, `/suggest`. Retourne `429` avec `Retry-After` et
+   `X-RateLimit-Remaining`.
+3. **Auth rate limit** (`auth_rate_limit_middleware`) : per-IP, 5 req/min sur
+   `/v1/auth/login`, `/register`, `/google`, `/apple`, `/refresh`. Protection
+   credential stuffing.
+4. **Security headers** (`security_headers_middleware`) : HSTS (si
+   `COOKIE_SECURE`), CSP `default-src 'none'`, `X-Frame-Options: DENY`,
+   `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`,
+   `Permissions-Policy`, COOP/CORP `same-origin`.
+5. **Request ID** (`request_id_middleware`) : reflete `X-Request-ID` entrant
+   ou genere un UUID4, expose via `contextvars.ContextVar`, injecte dans
+   chaque log ligne par `RequestIdLogFilter` (template `[rid=%(request_id)s]`).
+   Capture aussi le trace id OTEL pour correlation Loki/Tempo.
+
+Backend Redis vs in-memory : `_CounterStore` dans `rate_limit.py` essaie Redis
+via `pipeline.incr().expire()` (atomique multi-worker) et tombe sur un
+`cachetools.TTLCache` per-process si Redis est indisponible. La methode `ttl()`
+retourne le TTL Redis ou la fenetre complete en fallback memoire.
+
+## Pagination
+
+Toutes les listes paginees passent par `src/api/common/pagination.py` :
+
+- **`PaginationParams`** : dependency FastAPI avec `page: int >= 1` (default 1)
+  et `limit: int 1..100` (default 20). `pagination.offset` calcule
+  `(page - 1) * limit`. Constructeur alternatif `PaginationParams.of(page,
+  limit)` pour usage hors FastAPI (services, tests, jobs).
+- **`paginate(query, params, serializer)`** : pipeline
+  `count() -> offset().limit().all() -> map(serializer)`. Retourne un
+  `PageResult[T]` dataclass avec `items`, `total`, `page`, `limit`,
+  `total_pages` (et `as_tuple()` pour migration legacy).
+- **`Page[T]`** : reponse Pydantic generique camelCase (alias `totalPages`),
+  construite via `Page.from_result(result)`.
+
+Usage standard :
+
+```python
+@router.get("/things")
+def list_things(
+    pagination: PaginationParams = Depends(PaginationParams),
+    db: Session = Depends(get_db),
+) -> Page[ThingResponse]:
+    query = ThingService.list_query(db)
+    result = paginate(query, pagination, ThingResponse.model_validate)
+    return Page.from_result(result)
+```
+
+Aucune route ne doit reimplementer `offset = (page-1)*limit / count() /
+offset().limit()` inline.
+
+## Error handling
 
 ### `AppError` (`utils/errors.py`)
 
-Classe d'exception custom avec :
-- `code` (string) — code machine (ex: `TRIP_NOT_FOUND`, `AI_QUOTA_EXCEEDED`)
-- `status_code` (int) — HTTP status
-- `message` (string) — message user-facing
-- `detail` (dict, optionnel) — donnees supplementaires
+Exception applicative custom portant :
 
-### Exception Handlers (dans `main.py`)
+- `code` (str) : code machine (`TRIP_NOT_FOUND`, `AI_QUOTA_EXCEEDED`, ...)
+- `status_code` (int) : HTTP status
+- `message` (str) : message user-facing (mappe vers l10n cote Flutter par
+  `toUserFriendlyMessage`)
+- `detail` (dict | None) : contexte supplementaire
 
-1. **`AppError`** → `create_http_exception()` → `JSONResponse` avec `{error, code, ...detail}`
-2. **`Exception` generique** → `JSONResponse 500` avec traceback complete en mode debug
+### Exception handlers globaux (`main.py`)
 
-En mode `development` (`NODE_ENV`), les erreurs non gerees incluent le type d'exception et la traceback dans la reponse JSON.
+- `@app.exception_handler(AppError)` : JSONResponse avec status, body
+  `{detail: {error, code, ...detail}}`. Log en DEBUG si niveau actif.
+- `@app.exception_handler(Exception)` : 500 generique. En production le body
+  ne contient que `{error: "Internal server error"}` ; en DEBUG il inclut le
+  type, le message et la traceback complete (pour faciliter le debug local
+  sans leak prod).
 
-## Utilitaires
+### `@handle_app_errors` (`api/common/error_handler.py`)
 
-### Logger (`utils/logger.py`)
+Decorator obligatoire sur les nouvelles routes. Laisse passer `AppError`
+intact (le handler global le mappe) et convertit toute autre exception en
+`AppError("INTERNAL_ERROR", 500, ...)` apres log avec `exc_info=True`. Permet
+aux services de juste lever `AppError(...)` sans boilerplate try/except.
 
-Logger custom avec 4 niveaux (`DEBUG`, `INFO`, `WARN`, `ERROR`). En mode development, le niveau est `DEBUG`. Supporte le logging structure avec donnees JSON.
+```python
+@router.get("/things")
+@handle_app_errors
+async def list_things(...):
+    return await ThingService.list_things(...)
+```
 
-### Cookies (`utils/cookies.py`)
+## Transactions unit_of_work
 
-Helpers pour les cookies httpOnly d'authentification :
-- `set_auth_cookies()` — set `access_token` (httpOnly), `refresh_token` (httpOnly, path `/v1/auth`), `auth-status` (non httpOnly, pour le front)
-- `clear_auth_cookies()` — supprime les 3 cookies
+`src/utils/unit_of_work.py` expose un context manager qui wrap commit/rollback
+autour d'une session existante :
 
-### IdempotencyCache (`utils/idempotency.py`)
+```python
+with unit_of_work(db):
+    booking.status = "CONFIRMED"
+    db.add(BudgetItem(...))
+    db.add(FlightOrder(...))
+# commit unique a la sortie, rollback automatique sur exception
+```
 
-Cache in-memory (dict + lock threading) avec TTL de 5 minutes. Utilise pour deduplication des appels outils dans les agents IA. Cle = SHA256 du nom de l'outil + parametres normalises en JSON.
+Caracteristiques :
 
-### Timeout decorators (`utils/timeout.py`)
+- N'ouvre pas une nouvelle session : wrap la session request-scoped existante
+- Detecte les contextes imbriques via `db.in_nested_transaction()` : seul le
+  frame outermost commit, les inner deviennent no-op (services composables)
+- Log `unit_of_work rollback` avec type d'exception sur erreur, puis re-raise
 
-- `with_timeout()` — pour fonctions async (via `asyncio.wait_for`)
-- `with_timeout_sync()` — pour fonctions synchrones (via `ThreadPoolExecutor`)
+Regle : tout service qui mute plus d'une ligne ou plusieurs tables passe par
+`unit_of_work`. Pas de `db.commit()` multiples manuels dans une meme operation
+metier.
 
-Retournent une `fallback_value` en cas de timeout ou d'erreur.
+## Lifespan
 
-## Services Layer
+`@asynccontextmanager async def lifespan(app)` dans `main.py` orchestre boot
+et shutdown. Phase boot :
 
-La logique metier est encapsulee dans des classes service statiques dans `services/`. Chaque service recoit une `Session` SQLAlchemy et manipule les modeles ORM :
+1. **`init_http_client()`** : cree le `httpx.AsyncClient` singleton partage
+   par toutes les integrations (`max_connections=100`, `keepalive=20`,
+   timeout 30s par defaut, override per-call).
+2. **`check_database_connection()`** : execute `SELECT 1` via le pool. Raise
+   `ConnectionError` si KO, ce qui empeche le demarrage.
+3. **Migration legacy `migrate_trips_table`** : ad-hoc, kept pour
+   compatibilite. Le schema canonique est gere par Alembic
+   (`alembic upgrade head`).
+4. **`StripeProductsService.initialize_products()`** : cree/idempotente les
+   produits + prix Premium sur Stripe. Graceful si echec (warn log).
+5. **`create_default_admin()`** : seed l'admin par defaut si la table est
+   vide. Graceful si echec.
+6. **Schedulers asyncio** lances en `asyncio.create_task()` :
+   - `trip_status_scheduler` : transitions automatiques de TripStatus
+   - `notification_scheduler` : dispatch des notifications planifiees
+   - `plan_expiration_scheduler` : downgrade auto PREMIUM->FREE
+   - `zombie_payment_intents_scheduler` : cleanup des PaymentIntents stuck
+   - `currency_refresh_scheduler` : refresh ECB toutes les 12h
+   (lock distribue Redis pour multi-worker, cf. `utils/distributed_lock.py`)
 
-| Service | Responsabilite |
-|---------|---------------|
-| `TripsService` | CRUD trips, pagination, groupement par statut, auto-transition |
-| `ActivityService` | CRUD activities, pagination, suggestions IA, batch update |
-| `AccommodationsService` | CRUD hebergements |
-| `BaggageItemsService` | CRUD bagages, suggestions IA |
-| `BudgetItemService` | CRUD budget items, summary avec alertes |
-| `TravelersService` | CRUD travelers (passagers vol) |
-| `TripShareService` | Partage de trips (invite par email) |
-| `FeedbackService` | Feedbacks post-voyage |
-| `FlightSearchService` | Recherche de vols (Amadeus) + persistance |
-| `FlightOfferPricingService` | Re-pricing d'offres vol |
-| `ManualFlightService` | Vols manuels (sans Amadeus) |
-| `BookingIntentsService` | Creation d'intents de reservation |
-| `BookingOrchestratorService` | Orchestration booking (intent + Amadeus + payment) |
-| `StripePaymentsService` | PaymentIntent Stripe (authorize, capture, cancel) |
-| `StripeWebhooksService` | Traitement des webhooks Stripe |
-| `SubscriptionService` | Checkout + Portal Stripe pour Premium |
-| `StripeProductsService` | Initialisation des produits Stripe |
-| `NotificationService` | Creation + envoi FCM + deduplication |
-| `DeviceTokenService` | Gestion des tokens FCM |
-| `PlanService` | Quotas IA, gating features, plan info |
-| `ProfileService` | Profil voyageur (onboarding) |
-| `PostTripAIService` | Suggestions post-voyage via LLM |
-| `LLMService` | Wrapper LLM (OpenAI-compatible via LangChain) |
-| `AdminService` | CRUD admin global, metriques, export CSV |
+Phase shutdown :
+
+- Cancel de chaque task scheduler, await avec `contextlib.suppress(CancelledError)`
+- `close_http_client()` ferme proprement le pool httpx
+
+Observabilite branchee apres l'app : **Prometheus** (`/metrics`,
+`Instrumentator` du package `prometheus_fastapi_instrumentator` filtrant
+`/metrics`, `/health`, `/`) et **OpenTelemetry** (si
+`OTEL_EXPORTER_OTLP_ENDPOINT` est defini : FastAPI / SQLAlchemy / Redis /
+HTTPX auto-instrumentes, export OTLP gRPC vers Tempo).
+
+## Plans
+
+Le gating des features premium s'appuie sur trois axes :
+
+- **`UserPlan`** (FREE/PREMIUM/ADMIN) stocke dans `User.plan`.
+- **`PLAN_LIMITS`** : dict centralise consomme par `PlanService.get_limits()`.
+- **`SubscriptionService`** : checkout + portal Stripe pour souscrire/manager
+  PREMIUM. Le `StripeWebhooksService` reagit aux events
+  `customer.subscription.*` pour upgrader/downgrader le `User.plan`.
+
+Le `plan_expiration_scheduler` downgrade automatiquement les utilisateurs
+PREMIUM dont aucune subscription Stripe active n'est detectee (filet de
+securite si un webhook a ete loupe).
+
+Endpoints concernes par le gating :
+
+- IA (plan trip, post-trip suggestion) : quota mensuel `ai_generations_per_month`
+- Partage trip : limite `viewers_per_trip`
+- Notifications offline + post-voyage IA : booleens
+
+ADMIN bypass tous les quotas et expose `/admin/*` (back-office Next.js).
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
-|---------|-------------|----------|
-| Rate limiting Redis | Le rate limiter est in-memory (`dict` + `TTLCache`). En multi-instance, il faut migrer vers Redis. Fichier : `middleware/rate_limit.py` ligne 62-66 | P1 |
-| IdempotencyCache Redis | Le cache d'idempotence est in-memory. Commentaire dans `utils/idempotency.py` ligne 67 : "pour POC, en production utiliser Redis" | P1 |
-| Tests unitaires backend | Aucun fichier de test n'est present dans `api/`. Il n'y a pas de repertoire `tests/` | P0 |
-| Validation `NODE_ENV` en production | `JWT_SECRET` a une valeur par defaut `"dev-secret-key-change-in-production"` dans `config/env.py` ligne 50. Pas de validation forcee en production | P0 |
-| Health check approfondi | L'endpoint `/health` ne verifie pas la connexion DB ni les services externes. Fichier : `main.py` lignes 229-231 | P2 |
-| Structured logging / correlation ID | Le logger est basique (pas de request ID, pas de correlation entre requetes). Fichier : `utils/logger.py` | P2 |
-| Graceful shutdown des sessions DB | Pas de fermeture explicite du pool de connexions au shutdown. Fichier : `config/database.py` | P2 |
+|---|---|---|
+| `startup.py` + `router_registry.py` | Le lifespan et l'inclusion des routers vivent encore dans `main.py` (~370 lignes). La regle CLAUDE.md cible un `main.py` minimal avec ces deux modules dedies. Refactor a faire. | P1 |
+| Migrations legacy `migrate_trips_table` | Le script ad-hoc dans `migrations/` reste appele au boot pour compat. A retirer une fois sur que toutes les instances sont alignees Alembic. | P2 |
+| Pagination cursor-based | `Page[T]` reste offset-based : sur les listes de notifications/activities, le cursor (keyset) eviterait les drifts en cas d'inserts concurrents. | P2 |
+| Health check approfondi | `/health` retourne `{status: ok}` sans verifier DB ni dependances externes. Ajouter un `/health/ready` qui ping DB + Redis. | P2 |
+| Override mypy services legacy | `pyproject.toml` liste encore 14 services + 5 routes en `ignore_errors = true` (dette Sprint 5 documentee). A reduire progressivement. | P2 |

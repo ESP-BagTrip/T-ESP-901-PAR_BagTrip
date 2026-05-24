@@ -1,153 +1,203 @@
-# BagTrip VPS — inventory snapshot
+# Inventaire VPS BagTrip
 
-> Snapshot taken 2026-04-26, before the observability stack landed.
-> This document captures the **as-is state** of the BagTrip-managed surface on the production VPS, so subsequent Ansible roles encode reality rather than guesses.
+> Derniere mise a jour : 2026-05-23
 
-## 1. Host
+## Vue d'ensemble
 
-| Field | Value |
+BagTrip tourne en mono-VPS sur OVH. Une seule machine heberge les
+deux environnements applicatifs (production + preproduction) et la
+stack d'observabilite, derriere un Caddy de bordure place devant
+Cloudflare. Le VPS est referenes dans Ansible (`infra/ansible/inventory/hosts.yml`)
+sous l'identifiant `vps_prod`, dans le groupe `bagtrip_vps`.
+
+Roles assumes par la machine :
+
+- Heberger les containers Docker des stacks `bagtrip` (prod) et
+  `bagtrip-preprod` (preprod) sous `/opt/`.
+- Faire tourner la stack d'observabilite (`/opt/observability`)
+  deployee par le role Ansible `observability_stack`.
+- Servir le trafic public via le Caddy de bordure (`/opt/edge`)
+  qui termine TLS pour tous les hostnames `*.bagtrip.fr`.
+- Recevoir les deploiements continus depuis GitHub Actions
+  (workflow `.github/workflows/cd.yml`) via SSH.
+- Heberger le repository Restic local pour les sauvegardes
+  Postgres.
+
+OS : Ubuntu 25.04, kernel 6.14, 8 vCPU / 31 GiB RAM, disque
+ext4 193 GiB. Pas de swap. Docker Engine 29.x. Aucun socket
+Docker n'est expose a un container hors observabilite.
+
+## Acces
+
+| Canal | Detail |
 |---|---|
-| Provider | OVH VPS |
-| Reachable via | SSH alias `yanis` (declared in `~/.ssh/config`) |
-| OS | Ubuntu 25.04 |
-| Kernel | 6.14.0-37-generic |
-| CPUs | 8 vCPU (post-2026-04-26 upgrade; previously 4) |
-| RAM | 31 GiB (post-2026-04-26 upgrade; previously 16) |
-| Root filesystem | 193 GiB ext4 — usage at snapshot time: ~40 % (volume expanded during the 2026-04-26 maintenance window) |
-| Swap | none |
-| Hostname | OVH-generated UUID (treated as opaque) |
+| SSH operateur | Alias `yanis` declare dans `~/.ssh/config` (resolution + ProxyJump + cle) |
+| Utilisateur SSH | `ubuntu` (sudoer, hors groupe `docker`) |
+| Utilisateur CD | `deploy` (proprietaire de `/opt/bagtrip*`, hors groupe `docker`) |
+| Root SSH | Desactive |
+| GitHub Actions | Secrets `OVH_HOST`, `OVH_USER`, `OVH_SSH_KEY` (cf `.github/workflows/cd.yml`) |
+| Ansible control plane | `infra/ansible/inventory/hosts.yml` cible `ansible_host: yanis` |
 
-User accounts:
+Le Caddy admin API est lie en loopback (`127.0.0.1:2019`), aucune
+API d'administration des containers n'est exposee a Internet.
 
-- `ubuntu` — sudoer, primary administration account.
-- `deploy` — owns `/opt/<bagtrip-stack>` repos for the CI/CD deployment flow. **Not in the `docker` group**, so any Docker invocation from this account requires `sudo`.
-- Root login over SSH is disabled.
+## Stacks deployes
 
-## 2. Filesystem layout (BagTrip scope)
+Les stacks sont rangees sous `/opt/` avec un repo git par stack,
+proprietaire `deploy:deploy`. Le workflow CD fait un
+`git reset --hard` sur la branche cible puis un
+`docker compose up -d --build`.
 
-```
-/opt/
-├── bagtrip/             # Production stack repo (deploy:deploy)
-├── bagtrip-preprod/     # Pre-production stack repo (deploy:deploy)
-├── edge/                # Edge Caddy configuration + TLS certs (deploy:deploy)
-└── monitoring/          # Netdata compose (deploy:deploy)
-```
+| Stack | Path | Compose | Description |
+|---|---|---|---|
+| bagtrip (prod) | `/opt/bagtrip` | `compose.prod.yml` + `.env.production` | API FastAPI + admin Next.js + Postgres + Redis + Caddy interne, branche `main` |
+| bagtrip-preprod | `/opt/bagtrip-preprod` | `compose.prod.yml` + `.env.production` | Meme topologie que prod, branche `develop`, Caddy interne sur port 8082, donnees clonees depuis prod a chaque deploy |
+| edge | `/opt/edge` | `compose.yml` (caddy host network) | Caddy 2 de bordure, termine TLS pour tous les hostnames publics, logs JSON dans `/opt/edge/logs/access.log` |
+| observability | `/opt/observability` | Genere par `roles/observability_stack` (`compose.yml.j2`) | Prometheus, Grafana, Loki, Promtail, Tempo, Alertmanager, exporters et Blackbox |
 
-Notable system paths under management:
+Profil Falco present mais inactif sur la stack observability
+(profile compose `security` non active sur ce kernel).
 
-```
-/etc/iptables/rules.v4                                   # 103 lines, includes incident-2026-04-26 C2 block
-/etc/iptables/rules.v6                                   # IPv6 baseline rules
-/etc/systemd/journald.conf.d/persistence.conf            # SystemMaxUse=2G, MaxRetentionSec=3month
-/etc/docker/daemon.json                                  # log-driver json-file, max-size 50m, max-file 5
-/usr/local/bin/shutdown-snapshot.sh                      # invoked by shutdown-snapshot.service
-/var/log/incident/                                       # forensic artefacts (REPORT.md + XXEKdPOH.bin) — preserve
-/var/log/shutdown-snapshots/                             # outputs of shutdown-snapshot.service
-/opt/edge/logs/access.log                                # Caddy JSON access logs, 50 MB × 7 rotation
-```
+## Containers bagtrip (prod et preprod)
 
-## 3. Edge & networking
+Topologie strictement identique entre prod et preprod, le seul
+ecart est le port loopback du Caddy interne (`CADDY_HOST_PORT`
+8081 en prod, 8082 en preprod) et les volumes Docker dont le
+nom est prefixe par le nom de stack (`bagtrip_*` vs
+`bagtrip-preprod_*`). Les noms de containers utilises ci-dessous
+sont ceux de la prod ; en preprod il faut lire `bagtrip-preprod-<name>-1`.
 
-Edge proxy: a single Caddy 2.11.2 container (`edge-caddy`) running with `network_mode: host`, listening on `:80` and `:443`.
+| Container | Image | Role | Expose |
+|---|---|---|---|
+| `bagtrip-postgres-1` | `postgres:15-alpine` | Base relationnelle BagTrip | Reseau interne Docker uniquement |
+| `bagtrip-redis-1` | `redis:7-alpine` | Sessions, rate limit, idempotency, locks distribues | Reseau interne Docker uniquement |
+| `bagtrip-api-1` | Build local `./api` | FastAPI + Uvicorn, port 3000, healthcheck `/health` | Reseau interne, scrape OTel vers `tempo:4317` |
+| `bagtrip-admin-1` | Build local `./admin-panel` | Next.js 14, port 8000, read-only rootfs, `cap_drop: ALL`, tmpfs sur `/tmp` et `/app/.next/cache` | Reseau interne uniquement |
+| `bagtrip-caddy-1` | `caddy:2-alpine` | Reverse proxy interne, route par hostname (`bagtrip.fr` -> admin, `api.bagtrip.fr` -> api), bloque `/metrics` publics | `127.0.0.1:8081` (prod), `127.0.0.1:8082` (preprod) |
 
-Public listening sockets on the VPS:
+Le Caddyfile interne est partage entre prod et preprod, le tri
+des requetes se fait sur le `Host` propage par le Caddy de bordure.
 
-| Port | Process | Purpose |
+## Containers observability_stack
+
+Deployes par le role `observability_stack` sous `/opt/observability`.
+Multi-homed sur les reseaux Docker externes `bagtrip_default` et
+`bagtrip-preprod_default` pour atteindre les containers d'app
+sans publier de port.
+
+| Container | Image | Role |
 |---|---|---|
-| 22/tcp | sshd | Operations access (key-only) |
-| 80/tcp | edge-caddy | Cloudflare-fronted HTTP redirect |
-| 443/tcp | edge-caddy | Cloudflare-fronted HTTPS |
+| `observability-prometheus` | `prom/prometheus:v2.55.1` | Scrape des cibles, retention 30j / 20 GB |
+| `observability-grafana` | `grafana/grafana:11.4.0` | UI dashboards et alertes |
+| `observability-alertmanager` | `prom/alertmanager:v0.27.0` | Routage alertes (webhook Discord optionnel) |
+| `observability-loki` | `grafana/loki:3.3.2` | Logs centralises (retention 14j) |
+| `observability-promtail` | `grafana/promtail:3.3.2` | Collecte logs Docker + journald + `/opt/edge/logs` |
+| `observability-tempo` | `grafana/tempo:2.7.1` | Traces OTLP recues sur `tempo:4317` depuis l'API |
+| `observability-node-exporter` | `prom/node-exporter:v1.8.2` | Metriques hote, lit `textfile` pour metrics Restic |
+| `observability-cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Metriques par container |
+| `observability-postgres-exporter-prod` | `prometheuscommunity/postgres-exporter:v0.16.0` | Metriques Postgres prod |
+| `observability-postgres-exporter-preprod` | meme image | Metriques Postgres preprod |
+| `observability-redis-exporter-prod` | `oliver006/redis_exporter:v1.66.0` | Metriques Redis prod |
+| `observability-redis-exporter-preprod` | meme image | Metriques Redis preprod |
+| `observability-blackbox-exporter` | `prom/blackbox-exporter:v0.25.0` | Sonde HTTP des hostnames publics |
+| `observability-falco` | `falcosecurity/falco:0.39.0` | Profile compose `security`, non active par defaut |
 
-All other listeners bind to `127.0.0.1`:
+## Hostnames publics
 
-| Loopback port | Service |
-|---|---|
-| 127.0.0.1:8081 | bagtrip prod inner Caddy |
-| 127.0.0.1:8082 | bagtrip preprod inner Caddy |
-| 127.0.0.1:8085 | Netdata (proxied to `monitoring.bagtrip.fr` behind basic auth) |
-| 127.0.0.1:8086 | CrowdSec LAPI |
-| 127.0.0.1:2019 | Caddy admin API |
-| 127.0.0.1:6060 | CrowdSec metrics endpoint |
+Tous les hostnames passent par Cloudflare (proxy + certificat
+origin Cloudflare en `/opt/edge/certs/`). Le Caddy de bordure
+ecoute en host network sur 80 et 443 et route vers le Caddy
+interne du stack concerne.
 
-Public domains routed by edge Caddy (BagTrip scope):
-
-- `bagtrip.fr` → bagtrip prod admin
-- `api.bagtrip.fr` → bagtrip prod API
-- `dev.bagtrip.fr` → bagtrip preprod admin
-- `api.dev.bagtrip.fr` → bagtrip preprod API
-- `monitoring.bagtrip.fr` → Netdata (basic auth in edge Caddyfile)
-
-TLS: Cloudflare-issued origin certificates in `/opt/edge/certs/`. Cloudflare in front of every public hostname.
-
-## 4. Docker stacks (BagTrip scope)
-
-Docker Engine 29.2.1, daemon configured for log rotation (`json-file`, 50 MB × 5).
-
-### 4.1 `bagtrip` (production) — `/opt/bagtrip/compose.prod.yml`
-
-| Container | Image | Notes |
+| Hostname | Backend | Public/Restricted |
 |---|---|---|
-| `bagtrip-caddy-1` | `caddy:2-alpine` | Inner reverse proxy, binds 127.0.0.1:8081 |
-| `bagtrip-admin-1` | `bagtrip-admin` | Next.js 16.2.4. Hardened: `read_only`, `tmpfs:/tmp:noexec,nosuid`, `cap_drop:[ALL]` + minimal cap_add, `no-new-privileges:true` |
-| `bagtrip-api-1` | `bagtrip-api` | FastAPI + Uvicorn, healthcheck on `/health` |
-| `bagtrip-postgres-1` | `postgres:15-alpine` | Primary DB |
-| `bagtrip-redis-1` | `redis:7-alpine` | Sessions + rate-limit counters |
+| `bagtrip.fr` | bagtrip prod -> admin Next.js | Public |
+| `api.bagtrip.fr` | bagtrip prod -> api FastAPI | Public |
+| `dev.bagtrip.fr` | bagtrip-preprod -> admin Next.js | Public (preprod) |
+| `api.dev.bagtrip.fr` | bagtrip-preprod -> api FastAPI | Public (preprod) |
+| `grafana.bagtrip.fr` | observability -> Grafana (`127.0.0.1:8087`) | Restricted (basic auth edge Caddy) |
+| `monitoring.bagtrip.fr` | Netdata historique (`127.0.0.1:8085`) | Restricted (basic auth edge Caddy) |
 
-### 4.2 `bagtrip-preprod` (preprod) — `/opt/bagtrip-preprod/compose.prod.yml`
+Endpoints `/metrics` publics : refuses par les Caddyfiles
+internes ET par un drop iptables sur le port `8089` Caddy edge
+metrics. Les exporters internes sont scrapes via DNS Docker.
 
-Same five-service shape as prod, with the same hardening on `bagtrip-preprod-admin-1`. Inner Caddy binds 127.0.0.1:8082.
+## Volumes persistents
 
-### 4.3 `monitoring` — `/opt/monitoring/compose.yml`
+Tous les volumes sont des volumes Docker nommes, geres par chaque
+compose. Les chemins host vivent sous `/var/lib/docker/volumes/`.
 
-| Container | Image | Notes |
+| Volume | Stack | Contenu |
 |---|---|---|
-| `netdata` | `netdata/netdata:stable` | Linked to Netdata Cloud; binds 127.0.0.1:8085 |
+| `bagtrip_postgres_data` | bagtrip prod | Donnees Postgres production |
+| `bagtrip_redis_data` | bagtrip prod | Snapshot Redis (`--save 60 1`) |
+| `bagtrip_caddy_data` / `bagtrip_caddy_config` | bagtrip prod | Etat Caddy interne |
+| `bagtrip-preprod_postgres_data` | bagtrip preprod | Donnees Postgres preprod (ecrasees a chaque deploy) |
+| `bagtrip-preprod_redis_data` | bagtrip preprod | Snapshot Redis preprod |
+| `bagtrip-preprod_caddy_data` / `bagtrip-preprod_caddy_config` | bagtrip preprod | Etat Caddy interne preprod |
+| `observability_prometheus_data` | observability | TSDB Prometheus (30j / 20 GB) |
+| `observability_grafana_data` | observability | Config et dashboards Grafana persistes |
+| `observability_loki_data` | observability | Index + chunks Loki (14j) |
+| `observability_promtail_data` | observability | Position des tailers de logs |
+| `observability_tempo_data` | observability | Traces stockees |
+| `observability_alertmanager_data` | observability | Etat silences / notifications |
 
-### 4.4 `edge` — `/opt/edge/compose.yml`
+Chemins host hors volumes Docker :
 
-| Container | Image | Notes |
-|---|---|---|
-| `edge-caddy` | `caddy:2-alpine` | `network_mode: host`, configures all public hostnames listed in §3 |
+- `/var/backups/bagtrip-restic` : repository Restic local
+  (cf. `observability_restic_local_repo_path`).
+- `/var/lib/node_exporter/textfile` : metriques Prometheus
+  ecrites par les hooks Restic (backup + restore drill).
+- `/opt/edge/logs/access.log` : logs JSON Caddy, monte
+  read-only dans Promtail.
+- `/opt/edge/certs/` : certificats Cloudflare origin.
 
-## 5. systemd units in scope
+## Backups Restic
 
-Unit files BagTrip operations depends on:
+Geres par `roles/observability_stack` via deux unites systemd
+templatisees :
 
-| Unit | State | Purpose |
-|---|---|---|
-| `ssh.service` | active (running) | Operations access |
-| `docker.service` | active (running) | Container engine |
-| `containerd.service` | active (running) | Container runtime |
-| `crowdsec.service` | active (running) | IDS agent (LAPI on 127.0.0.1:8086) |
-| `crowdsec-firewall-bouncer.service` | active (running) | Iptables driver for CrowdSec decisions |
-| `systemd-journald.service` | active (running) | Persistent journald per `persistence.conf` |
-| `unattended-upgrades.service` | active (running) | Security updates auto-applied |
-| `netfilter-persistent.service` | enabled (loads on boot) | Restores `/etc/iptables/rules.v4` after reboot |
-| `shutdown-snapshot.service` | enabled (runs at shutdown) | Captures system state before poweroff |
+- `restic-backup.timer` -> `restic-backup.service` : tous les
+  jours a 02:00 UTC, snapshot Postgres prod + preprod
+  (cibles definies dans `observability_restic_targets`).
+  Le script `restic_backup.sh` exporte les bases via
+  `pg_dump` puis pousse dans le repo Restic et ecrit les
+  metriques de succes / duree dans le textfile node_exporter.
+- `restic-restore-test.timer` -> `restic-restore-test.service` :
+  tous les dimanches a 03:00 UTC, lance
+  `restic_restore_test.sh` qui restaure le dernier snapshot
+  dans un container Postgres jetable et verifie l'integrite.
 
-## 6. Defence-in-depth controls (snapshot)
+Politique de retention : 7 daily, 4 weekly, 6 monthly.
+Repository par defaut local sous `/var/backups/bagtrip-restic`,
+basculable vers Backblaze B2 via les variables
+`observability_restic_repository`, `observability_restic_b2_account_id`
+et `observability_restic_b2_account_key`.
 
-- **Inbound**: only `:22`, `:80`, `:443` reachable from outside the VPS. Everything else binds loopback.
-- **iptables-persistent**: `/etc/iptables/rules.v4` (103 lines) restored on every boot. Includes the `OUTPUT -d 51.81.51.221 -j DROP` block from incident-2026-04-26.
-- **CrowdSec**: SSH brute-force scenarios + community CAPI blocklist; firewall bouncer applies decisions. Active decisions count visible via `cscli decisions list`.
-- **journald**: persistent storage, 2 GB cap, 3-month retention.
-- **Docker logs**: rotated at 50 MB × 5 per container.
-- **Edge access logs**: JSON to `/opt/edge/logs/access.log`, 50 MB × 7 rotation.
-- **Container hardening (admin only)**: applied 2026-04-26 — see post-mortem §4.3.
+## Ce qu'il manque
 
-## 7. Known constraints
+Limites identifiees a la cloture du projet :
 
-- **Disk**: root at ~40 % on a 193 GiB volume — comfortable headroom for the observability stack (Loki / Tempo retention).
-- **No swap**: memory is hard-capped at 31 GiB. Stack additions must respect this budget, but the headroom is now substantial.
-- **Docker socket**: not exposed to any container. Future work must keep this property (asserted in the `common` Ansible role).
-- **`ubuntu` not in `docker` group**: every Docker call goes through sudo. Ansible playbooks `become: true` to handle this transparently.
-
-## 8. What was added on top of this baseline
-
-The following landed on top of this baseline:
-
-- A new `monitoring/` compose stack containing Prometheus, Grafana, Alertmanager, Loki, Promtail, Tempo, and the dedicated exporters. Deployed by Ansible.
-- Additional public hostname `grafana.bagtrip.fr` (or `obs.bagtrip.fr`) routed by edge Caddy with basic auth.
-- New `infra/dashboards/` and `infra/alerts/` shipped to Grafana / Prometheus by Ansible.
-
-This document will be re-snapshotted later to capture the post-rollout reality.
+- **Single point of failure** : tout vit sur un seul VPS OVH.
+  Pas de standby, pas de bascule automatique. Un incident
+  hardware = downtime complet jusqu'a restore Restic sur une
+  nouvelle machine.
+- **Backups off-site** : Restic ecrit par defaut sur le meme
+  disque que les bases. La bascule B2 est cablee mais pas
+  activee en prod.
+- **Pas d'IaC pour les stacks app** : seul `observability_stack`
+  est decrit dans Ansible. `bagtrip`, `bagtrip-preprod` et
+  `edge` sont deployes via `git pull` + `docker compose`,
+  sans role Ansible qui materialise l'etat attendu.
+- **Pas de rotation de secret automatisee** : `.env.production`
+  est edite manuellement sur le VPS, jamais sealed / pas de
+  vault central.
+- **Falco hors service** : le profile `security` du compose
+  observability reste off, le probe eBPF echoue sur le kernel
+  6.14 du VPS.
+- **Pas de monitoring synthetic externe** : Blackbox tourne
+  depuis le VPS lui-meme, donc une panne reseau OVH ne genere
+  ni alerte ni metrique.
+- **DNS Cloudflare** : pas de Terraform / pas d'export
+  versionne des records, la zone est manipulee a la main
+  dans la console.

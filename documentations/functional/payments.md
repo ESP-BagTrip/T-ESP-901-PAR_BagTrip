@@ -1,304 +1,257 @@
 # Paiements et abonnements Stripe
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-BagTrip integre Stripe pour deux cas d'usage distincts : les **paiements transactionnels** (reservations de vols via PaymentIntent en capture manuelle) et les **abonnements Premium** (via Stripe Checkout + webhooks). L'architecture repose sur un client Stripe centralise cote API, un service de gestion des produits/prix, un service de webhooks pour la synchronisation asynchrone, et des pages de resultat cote mobile. Le plan utilisateur (FREE / PREMIUM / ADMIN) determine les limites fonctionnelles de l'application.
+BagTrip integre Stripe sur deux axes distincts mais branches sur le meme `User.stripe_customer_id` :
+
+- **Abonnement Premium** mensuel a 9.99 EUR via PaymentSheet natif (deferred IntentConfiguration), avec cycle de vie complet : checkout, gestion du moyen de paiement, annulation a la fin de periode, reactivation, listing des factures.
+- **Paiement transactionnel d'un vol** via PaymentIntent en capture manuelle. Le client autorise le montant a la reservation, l'API capture une fois le booking Amadeus confirme, et peut rembourser tout ou partie de la charge.
+
+La synchronisation entre Stripe et la base BagTrip passe exclusivement par les webhooks (verifies HMAC en prod, idempotents via `stripe_event_id` unique). Le `User.plan` (FREE / PREMIUM / ADMIN) gere par `PlanService` est la source du gating (quotas IA, viewers, post-trip, notifications offline). Cote mobile, l'integralite des flux 3DS / SCA reste in-app via `flutter_stripe` -- plus aucun hop par Stripe Checkout / Billing Portal sur le chemin nominal.
 
 ---
 
-## Plans et limites
+## Cote Backend
 
-### Configuration des plans (`api/src/config/plans.py`)
+### Plans et gating (`api/src/config/plans.py`, `api/src/api/auth/plan_guard.py`)
 
-Trois plans definis via l'enum `UserPlan` :
+`UserPlan` (StrEnum) : `FREE` / `PREMIUM` / `ADMIN`. La table `PLAN_LIMITS` definit pour chaque plan :
 
-| Plan | Generations IA / mois | Viewers par trip | Notifications offline | Post-voyage IA |
-|------|----------------------|------------------|-----------------------|----------------|
-| FREE | 3 | 2 | Non | Non |
-| PREMIUM | Illimite | 10 | Oui | Oui |
-| ADMIN | Illimite | Illimite | Oui | Oui |
+| Plan    | IA / mois | Viewers / trip | Notifs offline | Post-voyage IA |
+|---------|-----------|----------------|----------------|----------------|
+| FREE    | 3         | 2              | Non            | Non            |
+| PREMIUM | Illimite  | 10             | Oui            | Oui            |
+| ADMIN   | Illimite  | Illimite       | Oui            | Oui            |
 
-### PlanService (`api/src/services/plan_service.py`)
+Dependencies FastAPI :
 
-Service stateless qui fournit :
-- `get_plan(user)` : retourne le `UserPlan` (fallback FREE si invalide)
-- `get_limits(user)` : retourne le dictionnaire de limites pour le plan
-- `check_ai_generation_quota(db, user)` : leve `AppError("AI_QUOTA_EXCEEDED", 402)` si le quota mensuel est atteint. Reset automatique du compteur au changement de mois.
-- `increment_ai_generation(db, user)` : incremente le compteur
-- `can_access_feature(user, feature)` : gate generique par feature
-- `get_plan_info(db, user)` : retourne plan + limites + usage courant pour les reponses API
+- `require_ai_quota` : appele sur les routes IA. Reconcilie le plan local avec Stripe avant de checker le quota -- un freshly-subscribed user dont le webhook tarde n'est pas bloque.
+- `require_premium` : 402 `UPGRADE_REQUIRED` si le plan reconcilie est FREE.
 
-Le quota IA est stocke directement sur le modele User : `ai_generations_count` et `ai_generations_reset_at`.
+### Abonnement Premium (`api/src/api/subscription/routes.py`, `api/src/services/subscription_service.py`)
 
----
+Prefixe `/v1/subscription`. Le path principal est le PaymentSheet natif ; Checkout / Billing Portal restent comme fallback web.
 
-## Cote Backend (API FastAPI)
+| Methode | Route                       | Description                                                                                          |
+|---------|-----------------------------|------------------------------------------------------------------------------------------------------|
+| POST    | `/start`                    | Bootstrap PaymentSheet : retourne `{customer, ephemeral_key, amount, currency}`. Aucun write Stripe. |
+| POST    | `/confirm`                  | Cree la Subscription avec le `paymentMethodId` choisi. Retourne le `client_secret` pour 3DS in-line. |
+| POST    | `/payment-method/setup`     | SetupIntent + ephemeral key pour changer de carte sans quitter l'app.                                |
+| POST    | `/payment-method/attach`    | Attache le PM confirme comme `default_payment_method` de la Subscription + du Customer.              |
+| POST    | `/checkout`                 | [Legacy] Stripe Checkout Session -- fallback web seulement.                                           |
+| POST    | `/portal`                   | [Fallback] Billing Portal -- ouvert en in-app browser pour les cas non couverts par les flux natifs.  |
+| GET     | `/status`                   | Plan + `stripe_subscription_id` + `plan_expires_at`. Reconcilie avec Stripe.                         |
+| GET     | `/me`                       | Detail complet : `cancel_at_period_end`, `current_period_end`, `payment_method` (brand/last4/exp).   |
+| POST    | `/cancel`                   | `cancel_at_period_end=true`. Premium garde jusqu'a `current_period_end`.                             |
+| POST    | `/reactivate`               | Annule la planification de cancellation tant que la periode courante n'est pas terminee.             |
+| GET     | `/invoices?limit=12`        | Liste paginee : `id`, `number`, `status`, `amount_paid`, `hosted_invoice_url`, `invoice_pdf`.        |
 
-### Client Stripe (`api/src/integrations/stripe/client.py`)
+Points cles :
 
-Wrapper statique autour du SDK Stripe Python :
-- `create_customer(email, name?)` : creation client Stripe
-- `create_payment_intent(amount, currency, metadata?, capture_method?, customer?, description?)` : creation PaymentIntent (defaut capture manuelle)
-- `capture_payment_intent(payment_intent_id)` : capture
-- `cancel_payment_intent(payment_intent_id)` : annulation
-- `retrieve_payment_intent(payment_intent_id)` : recuperation
+- **Auto-heal du Customer** : `_resolve_customer_id` retrieve le customer avant chaque mutation. Si Stripe renvoie `resource_missing` (suppression dashboard, switch de workspace), un nouveau Customer est cree + persiste avec une idempotency key randomisee.
+- **Idempotency keys stables** sur `confirm` (`sub-{user_id}-confirm-{pm_id}-v1`), `cancel` (`sub-{user_id}-cancel-v1`), `reactivate`, `attach`. Un retry reseau ne duplique pas la Subscription.
+- **Self-heal sur `/me`** : si `customer.subscription.created` est en retard, `get_subscription_details` interroge Stripe directement via le `stripe_subscription_id` persiste cote API au moment du confirm.
+- **Garde `ALREADY_PREMIUM`** : `/start`, `/confirm` et `/checkout` refusent si `PlanService.get_plan(user) != FREE`.
 
-La cle API est initialisee au demarrage depuis `settings.STRIPE_SECRET_KEY`.
+### Paiement transactionnel vol (`api/src/api/payments/routes.py`, `api/src/services/stripe_payments_service.py`)
 
-### Gestion des produits Stripe (`api/src/services/stripe_products_service.py`)
+Prefixe `/v1/booking-intents`. Le BookingIntent doit etre cree au prealable via `POST /v1/trips/{tripId}/booking-intents` (`api/src/api/booking_intents/routes.py`).
 
-Le service `StripeProductsService` initialise les produits Stripe au demarrage de l'API :
+| Methode | Route                                  | Description                                                                                      |
+|---------|----------------------------------------|--------------------------------------------------------------------------------------------------|
+| POST    | `/{intentId}/payment/authorize`        | Cree un PaymentIntent `capture_method=manual`. Retourne `clientSecret` pour le SDK mobile.        |
+| POST    | `/{intentId}/payment/capture`          | Capture le PaymentIntent. Exige `BOOKED` en prod, `BOOKED` ou `AUTHORIZED` hors prod.            |
+| POST    | `/{intentId}/payment/cancel`           | Annule le PaymentIntent. Refuse si deja `CAPTURED`. Best-effort cote Stripe, source de verite local. |
+| POST    | `/{intentId}/payment/refund`           | Refund total ou partiel. Valide `amount` contre `charge.amount_captured - amount_refunded`.      |
+| POST    | `/{intentId}/payment/confirm-test`     | [ADMIN only, bloque en prod] Confirme avec `pm_card_visa` pour le QA.                            |
 
-| Produit | Type | Prix |
-|---------|------|------|
-| Flight Booking | one-time (PaymentIntent) | Variable selon l'offre |
-| BagTrip Premium | subscription (recurring) | 9.99 EUR/mois |
+Garanties :
 
-Fonctionnement :
-- `initialize_products()` : cherche les produits existants par metadata `type`, les cree si inexistants. Pour Premium, cree aussi un `Price` recurrent (mensuel, 999 centimes EUR).
-- Les IDs sont caches dans le dictionnaire global `STRIPE_PRODUCT_IDS`.
-- `get_product_id(product_type)` : lecture du cache.
+- **Idempotency keys** : `bi-{intent_id}-{authorize|capture|cancel|refund-...}-v1` sur chaque call mutant.
+- **Validation refund authoritative** : le service retrieve la `Charge` cote Stripe et calcule `remaining = max(0, amount_captured - amount_refunded)` avant d'autoriser. Bloque les double-refunds meme si le refund a ete declenche depuis le dashboard.
+- **Metadata enrichies** : `booking_intent_id`, `trip_id`, `type`, `product_id`, et pour les vols : `flight_origin`, `flight_destination`, `flight_departure`, `flight_offer_id`, `amadeus_offer_id`.
+- **State machine** : `INIT -> AUTHORIZED -> BOOKING_PENDING -> BOOKED -> CAPTURED -> REFUNDED`. Le passage `BOOKED -> CAPTURED` est declenche apres la commande Amadeus reussie (`BookingOrchestratorService.book` cree atomiquement le `FlightOrder` + `BudgetItem` via `unit_of_work`).
 
-### Endpoints paiements transactionnels
+### Webhooks Stripe (`api/src/api/stripe/webhooks/routes.py`, `api/src/services/stripe_webhooks/`)
 
-Prefixe `/v1/booking-intents` (fichier `api/src/api/payments/routes.py`).
+Endpoint : `POST /v1/stripe/webhooks`. Signature HMAC verifiee via `STRIPE_WEBHOOK_SECRET` (obligatoire en prod, raise au boot si absent). Dev escape hatch sans secret si `NODE_ENV != production`, avec WARN une fois par process.
 
-| Methode | Route | Description |
-|---------|-------|-------------|
-| POST | `/{intentId}/payment/authorize` | Cree un PaymentIntent Stripe en capture manuelle. Retourne `clientSecret` pour le SDK mobile. |
-| POST | `/{intentId}/payment/capture` | Capture un paiement autorise (statut BOOKED ou AUTHORIZED en POC). |
-| POST | `/{intentId}/payment/cancel` | Annule un PaymentIntent. Refuse si deja capture. |
-| POST | `/{intentId}/payment/confirm-test` | [TEST/POC] Confirme un paiement avec la carte test `pm_card_visa`. |
+Dispatch table dans `stripe_webhooks/service.py` :
 
-### Schemas paiements (`api/src/api/payments/schemas.py`)
+| Evenement                                     | Handler                                  | Action                                                                                       |
+|-----------------------------------------------|------------------------------------------|----------------------------------------------------------------------------------------------|
+| `payment_intent.amount_capturable_updated`    | `payment.handle_amount_capturable_updated` | INIT -> AUTHORIZED                                                                           |
+| `payment_intent.succeeded`                    | `payment.handle_payment_intent_succeeded`  | Safety net : BOOKED/AUTHORIZED -> CAPTURED, backfill `stripe_charge_id`                       |
+| `payment_intent.canceled`                     | `payment.handle_payment_intent_canceled`   | -> CANCELLED (sauf CAPTURED)                                                                  |
+| `payment_intent.payment_failed`               | `payment.handle_payment_intent_failed`     | -> FAILED + `last_error`                                                                      |
+| `charge.refunded`                             | `charge.handle_charge_refunded`            | CAPTURED -> REFUNDED si refund total (capte aussi les refunds dashboard)                      |
+| `charge.dispute.created`                      | `charge.handle_charge_dispute_created`     | Log ERROR, pas de state change auto (review humaine)                                         |
+| `customer.subscription.created`               | `subscription.handle_subscription_created` | user.plan = PREMIUM, stocke `subscription_id` + `plan_expires_at`                            |
+| `customer.subscription.updated`               | `subscription.handle_subscription_updated` | Refresh `plan_expires_at`. Si status in (`canceled`, `unpaid`, `incomplete_expired`) -> FREE |
+| `customer.subscription.deleted`               | `subscription.handle_subscription_deleted` | user.plan = FREE, clear `subscription_id` et `plan_expires_at`                               |
+| `invoice.payment_succeeded`                   | `invoice.handle_invoice_payment_succeeded` | Refresh `plan_expires_at` depuis `lines.data[].period.end`, force PREMIUM                    |
+| `invoice.payment_failed`                      | `invoice.handle_invoice_payment_failed`    | Log WARN seulement (Stripe gere les dunning retries)                                         |
 
-- **PaymentAuthorizeRequest** : `returnUrl?`
-- **PaymentAuthorizeResponse** : `stripePaymentIntentId`, `clientSecret`, `status`
-- **PaymentCaptureResponse** : `bookingIntent` (dict), `stripe` (dict avec `paymentIntentId`)
-- **PaymentCancelResponse** : `bookingIntent` (dict)
+Idempotence : chaque evenement est insere dans `stripe_events` avec contrainte unique sur `stripe_event_id`. Les retries Stripe (replays dashboard, 5xx) court-circuitent en retournant la ligne existante. Les handlers qui throw sont catches : `processing_error` est persiste mais la requete renvoie 200 pour ne pas declencher de retry infini sur un bug applicatif. Les events `payment_intent.*` linkent automatiquement le `booking_intent_id` extrait des metadata.
 
-### StripePaymentsService (`api/src/services/stripe_payments_service.py`)
+Le plan ADMIN n'est jamais ecrase par un webhook : tous les handlers gardent `if user.plan != "ADMIN"`.
 
-Service pour les operations de paiement :
+### Produits Stripe (`api/src/services/stripe_products_service.py`)
 
-**create_manual_capture_payment_intent** :
-1. Verifie que le `BookingIntent` existe, appartient a l'utilisateur, et est en statut `INIT`
-2. Verifie que l'utilisateur a un `stripe_customer_id`
-3. Convertit le montant en centimes
-4. Recupere le `product_id` Stripe via `StripeProductsService`
-5. Enrichit les metadata avec les details de l'offre (vol: origin, destination, date, airline)
-6. Cree le PaymentIntent avec `capture_method="manual"`
-7. Stocke le `stripe_payment_intent_id` sur le BookingIntent
+`StripeProductsService.initialize_products()` est appele au boot. Cherche par metadata `type` :
 
-**capture_payment** :
-1. Verifie le statut BOOKED ou AUTHORIZED (POC)
-2. Appelle `StripeClient.capture_payment_intent`
-3. Met a jour le statut en CAPTURED et stocke le `stripe_charge_id`
+- `flight` : Product one-shot, prix variable (montant fourni au PaymentIntent).
+- `premium_subscription` : Product + Price recurrent 999 cents EUR / mois. Le Price.id est le `premium_price_id` utilise par `/start` et `/confirm`.
 
-**cancel_payment** :
-1. Refuse si le statut est CAPTURED
-2. Appelle `StripeClient.cancel_payment_intent` (erreurs supprimees)
-3. Met a jour le statut en CANCELLED
-
-**confirm_payment_with_test_card** :
-- Endpoint POC uniquement
-- Confirme le PaymentIntent avec `pm_card_visa` et `return_url=bagtrip://payment/result`
-- Met a jour en AUTHORIZED si le statut Stripe est `requires_capture`
-
-### Endpoints abonnement
-
-Prefixe `/v1/subscription` (fichier `api/src/api/subscription/routes.py`).
-
-| Methode | Route | Description |
-|---------|-------|-------------|
-| POST | `/checkout` | Cree une Stripe Checkout Session pour l'abonnement Premium. |
-| POST | `/portal` | Cree une session Stripe Billing Portal pour gerer l'abonnement. |
-| GET | `/status` | Retourne le statut de l'abonnement courant. |
-
-### SubscriptionService (`api/src/services/subscription_service.py`)
-
-**create_checkout_session** :
-1. Verifie que Stripe est configure
-2. Verifie que l'utilisateur est en plan FREE (refuse si deja premium)
-3. Verifie la presence du `stripe_customer_id`
-4. Cree une `stripe.checkout.Session` en mode `subscription` avec le `premium_price_id`
-5. URLs de redirection : `bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}` et `bagtrip://subscription/cancel`
-6. Retourne `{ url: session.url }`
-
-**create_portal_session** :
-- Cree une session Billing Portal avec `return_url=bagtrip://profile`
-- Permet a l'utilisateur de gerer/annuler son abonnement
-
-**get_status** :
-- Retourne les infos de plan + `stripe_subscription_id` + `plan_expires_at`
-
-### Webhooks Stripe (`api/src/api/stripe/webhooks/routes.py`)
-
-Endpoint : `POST /v1/stripe/webhooks`
-
-1. Recoit le body brut + header `stripe-signature`
-2. Verifie la signature avec `STRIPE_WEBHOOK_SECRET` (bypass en dev si non configure)
-3. Delegue au `StripeWebhooksService.process_event`
-
-### StripeWebhooksService (`api/src/services/stripe_webhooks_service.py`)
-
-**Idempotence** : chaque evenement est stocke dans la table `stripe_events` avec son `stripe_event_id` unique. Si l'evenement a deja ete traite, il est retourne directement sans re-traitement.
-
-**Evenements traites** :
-
-| Evenement Stripe | Action |
-|------------------|--------|
-| `payment_intent.amount_capturable_updated` | Met a jour le BookingIntent en AUTHORIZED si en INIT |
-| `payment_intent.canceled` | Met a jour le BookingIntent en CANCELLED (sauf si CAPTURED) |
-| `payment_intent.payment_failed` | Met a jour le BookingIntent en FAILED avec `last_error` |
-| `customer.subscription.created` | Set `user.plan = "PREMIUM"`, stocke `subscription_id` et `period_end` |
-| `customer.subscription.updated` | Met a jour `plan_expires_at`. Si statut canceled/unpaid/incomplete_expired -> plan FREE |
-| `customer.subscription.deleted` | Set `user.plan = "FREE"`, clear `subscription_id` et `plan_expires_at` |
-| `invoice.payment_succeeded` | Set `user.plan = "PREMIUM"` (sauf ADMIN), met a jour `plan_expires_at` depuis la periode de facturation |
-
-La resolution de l'utilisateur se fait via `stripe_customer_id` sur le champ `customer` de l'evenement Stripe.
-
-### Modele StripeEvent (`api/src/models/stripe_event.py`)
-
-Table `stripe_events` : `id` (UUID), `stripe_event_id` (unique), `type`, `livemode`, `payload` (JSON), `received_at`, `booking_intent_id?` (FK), `processed_at?`, `processing_error?` (JSON).
+Cache global `STRIPE_PRODUCT_IDS` lu via `get_product_id(type)`. Le mobile lit `amount` et `currency` depuis `/start` (Stripe Price.retrieve cote serveur), donc un changement de tarif backend se propage sans update app.
 
 ---
 
-## Cote Mobile (Flutter)
+## Cote Mobile
 
-### Pages de resultat paiement
+### Subscription page (`bagtrip/lib/subscription/view/subscription_settings_page.dart`)
 
-Trois pages statiques pour les retours de paiement 3DS (deep links) :
+Page "Manage subscription" inspiree d'iOS Settings : un seul ecran qui change de body selon `details.isPremium`.
 
-- **PaymentResultPage** (`bagtrip/lib/pages/payment/payment_result_page.dart`) : page generique de retour 3DS avec icone de paiement et bouton "Retour aux trips". Route vers `HomeRoute`.
-- **PaymentSuccessPage** (`bagtrip/lib/pages/payment/payment_success_page.dart`) : page de succes avec icone check verte et message de confirmation.
-- **PaymentCancelPage** (`bagtrip/lib/pages/payment/payment_cancel_page.dart`) : page d'annulation avec icone warning et bouton `context.pop()`.
+- **Body FREE** : PageView swipeable de 4 cards (IA, viewers, notifs offline, post-trip), prix, CTA unique qui lance `PremiumCheckout.run(context)`. Plus de paywall intermediaire.
+- **Body PREMIUM** : badge statut, `_PaymentMethodCard` (brand + last4 + expiry), `_RenewalSummary` (renews on / expires on selon `cancelAtPeriodEnd`), trois `_ActionTile` : Update payment method (sheet native SetupIntent), View invoices, Cancel / Reactivate (ton destructive / primary selon l'etat).
 
-Toutes utilisent le gradient `PersonalizationColors.backgroundGradient` et les textes l10n.
+Le `RefreshIndicator.adaptive` dispatche `RefreshSubscription` qui re-fetch `/subscription/me`.
 
-### Pages de resultat abonnement
+### SubscriptionBloc (`bagtrip/lib/subscription/bloc/subscription_bloc.dart`)
 
-- **SubscriptionSuccessPage** (`bagtrip/lib/pages/subscription/subscription_success_page.dart`) :
-  - Recoit un `sessionId` optionnel
-  - Poll le statut de l'abonnement jusqu'a 5 fois (toutes les 2 secondes) via `SubscriptionRepository.getStatus()`
-  - Affiche un spinner pendant la verification, puis un message de succes (Premium confirme) ou un message "en attente" (webhook pas encore recu)
-  - Bouton "Continuer" navigue vers `ProfileRoute`
+App-level Bloc (`MultiBlocProvider` racine, a cote de `AuthBloc` et `HomeBloc`). Events :
 
-- **SubscriptionCancelPage** (`bagtrip/lib/pages/subscription/subscription_cancel_page.dart`) :
-  - Affiche un message d'annulation
-  - Bouton "Reessayer" relance le flow checkout via `SubscriptionRepository.getCheckoutUrl()` puis `launchUrl` en mode externe
-  - Bouton secondaire "Retour au profil" navigue vers `ProfileRoute`
+- `LoadSubscription` / `RefreshSubscription` : fetch `/subscription/me`. Garde de regression : ne reflip pas un PREMIUM optimiste vers FREE si la reponse est en retard sur le webhook.
+- `LoadInvoices(limit)` : populate `state.invoices` pour `InvoicesPage`.
+- `CancelSubscription` / `ReactivateSubscription` : action + reload + `AuthBloc.add(UserRefreshRequested())` pour propager au gating.
+- `OptimisticSubscriptionActivated` + `ConfirmSubscriptionActivation` : flip immediat vers PREMIUM apres PaymentSheet, puis poll `/subscription/me` a 500ms / 2s / 5s pour remplacer le stub par les vraies donnees Stripe (renewal date, payment method).
 
-### SubscriptionRepository (`bagtrip/lib/repositories/subscription_repository.dart`)
+### PremiumCheckout (`bagtrip/lib/subscription/premium_checkout.dart`)
 
-Interface abstraite :
-- `getCheckoutUrl()` -> `Result<String>` : recupere l'URL de la session Checkout
-- `getPortalUrl()` -> `Result<String>` : recupere l'URL du Billing Portal
-- `getStatus()` -> `Result<Map<String, dynamic>>` : recupere le statut de l'abonnement
+Fonction stateless `PremiumCheckout.run(context) -> Future<bool>`. Capture `messenger`, `authBloc`, `subscriptionBloc` AVANT le await pour survivre a la disposition du parent.
 
-### Modele User cote mobile
+1. `repository.start()` -> `{customer, ephemeralKey, amount, currency}`.
+2. `Stripe.instance.initPaymentSheet(IntentConfiguration(mode: paymentMode, ..., confirmHandler))`. Apple Pay conditionne par `AppConfig.appleMerchantIdentifier`, Google Pay sur EUR/FR.
+3. `Stripe.instance.presentPaymentSheet()` (3DS / SCA in-line). Le `confirmHandler` appelle `_handleConfirm` qui POST `/subscription/confirm` et renvoie le `client_secret` via `Stripe.instance.intentCreationCallback`.
+4. Sur succes : `OptimisticPremiumActivated` + `ConfirmPremiumActivation` sur AuthBloc, idem sur SubscriptionBloc, snackbar `premiumActivated`.
+5. Sur `FailureCode.Canceled` : retourne `false` silencieusement. Sur autre erreur Stripe : snackbar rouge avec `localizedMessage`.
 
-Le modele `User` Freezed (`bagtrip/lib/models/user.dart`) inclut :
-- `plan` (defaut: 'FREE')
-- `aiGenerationsRemaining?`
-- `planExpiresAt?`
-- Proprietes calculees : `isFree`, `isPremium` (PREMIUM ou ADMIN), `isAdmin`
+### Booking flow (`bagtrip/lib/booking/bloc/booking_bloc.dart`)
+
+States : `BookingInitial`, `BookingLoading`, `PaymentAuthorizing`, `PaymentSheetReady(clientSecret, intentId)`, `PaymentSuccess`, `PaymentFailed`, `PaymentCancelled`, `RefundInProgress`, `RefundSucceeded`.
+
+Sequence nominale :
+
+1. `CreateBookingIntent(tripId, flightOfferId)` -> `POST /v1/trips/{tripId}/booking-intents` -> dispatch `AuthorizePayment(intentId)`.
+2. `AuthorizePayment` -> `POST /payment/authorize` -> emit `PaymentSheetReady(clientSecret)`.
+3. `PresentPaymentSheet(clientSecret, intentId)` -> `Stripe.instance.initPaymentSheet({paymentIntentClientSecret, returnURL: 'bagtrip://payment/result?intentId=<id>'})` + `presentPaymentSheet()`. Sur succes dispatch `CapturePayment`.
+4. `CapturePayment` -> `POST /payment/capture` -> `PaymentSuccess` + `AuthBloc.add(UserRefreshRequested())`.
+5. Retour 3DS deep-link `bagtrip://payment/result?intentId=<id>` -> `PaymentResultPage` dispatch `ConfirmPaymentFromDeepLink`. Le bloc valide que l'`intentId` matche le payment en cours pour eviter de capturer une reservation tierce.
+
+Garde offline : `_offlineFailure()` renvoie un `PaymentFailed(NetworkError("connection_required"))` avant toute requete si `ConnectivityService.isOnline` est false.
+
+`RefundPayment(intentId, amount?, reason?)` route vers `POST /payment/refund` avec un enum `RefundReason` (`duplicate`, `fraudulent`, `requestedByCustomer`) qui matche les valeurs autorisees backend.
 
 ---
 
-## Flux de paiement transactionnel (reservations)
+## Flux
+
+### Checkout abonnement (PaymentSheet natif)
 
 ```
 Mobile                                        API                           Stripe
   |                                            |                              |
-  |-- POST /{intentId}/payment/authorize ----->|                              |
-  |                                            |-- create_payment_intent ---->|
-  |                                            |<-- PaymentIntent (manual) ---|
-  |<-- { clientSecret, status } --------------|                              |
+  |-- POST /subscription/start --------------->|                              |
+  |                                            |-- Customer.retrieve -------->|
+  |                                            |-- Price.retrieve ----------->|
+  |                                            |-- EphemeralKey.create ------>|
+  |<-- {customer, ephemeralKey, amount, currency}                             |
   |                                            |                              |
-  |-- Stripe SDK / 3DS confirmation ---------->|                              |
-  |                                            |<-- webhook: amount_capt... --|
-  |                                            |   -> BookingIntent AUTHORIZED|
-  |                                            |                              |
-  |-- POST /{intentId}/payment/capture ------>|                              |
-  |                                            |-- capture_payment_intent --->|
-  |                                            |<-- PaymentIntent captured ---|
-  |                                            |   -> BookingIntent CAPTURED  |
-  |<-- { bookingIntent, stripe } -------------|                              |
+  |-- initPaymentSheet(IntentConfig deferred)  |                              |
+  |-- presentPaymentSheet() -----[user taps Pay]-------                       |
+  |   confirmHandler(paymentMethod)            |                              |
+  |-- POST /subscription/confirm {pmId} ------>|                              |
+  |                                            |-- PM.attach (idem key) ----->|
+  |                                            |-- Subscription.create ------>|
+  |                                            |    default_incomplete +      |
+  |                                            |    default_payment_method    |
+  |                                            |<-- sub + latest_invoice.PI --|
+  |<-- {subscription_id, client_secret}--------|                              |
+  |   intentCreationCallback(clientSecret)     |                              |
+  |   SDK finalise paiement (3DS in-sheet)     |                              |
+  |                                            |<-- webhook sub.created ------|
+  |                                            |    user.plan = PREMIUM       |
+  |                                            |<-- webhook invoice.paid -----|
+  |                                            |    plan_expires_at refresh   |
+  |   OptimisticSubscriptionActivated          |                              |
+  |   + ConfirmSubscriptionActivation poll x3  |                              |
+  |-- GET /subscription/me ------------------->|                              |
+  |<-- payload reel (renewal, PM) -------------|                              |
 ```
 
-### Machine a etats BookingIntent
+### Achat vol avec 3DS
 
 ```
-INIT -> AUTHORIZED -> BOOKED -> CAPTURED
-  |        |                       ^
-  |        +---- (POC shortcut) ---+
-  |        |
-  +--------+-> CANCELLED
-  |
-  +-> FAILED
+Mobile                                        API                  Stripe   Amadeus
+  |                                            |                     |        |
+  |-- POST /trips/{id}/booking-intents ------->|                     |        |
+  |<-- BookingIntent(INIT) --------------------|                     |        |
+  |-- POST /booking-intents/{id}/payment/authorize ------------------>        |
+  |                                            |-- PI.create manual->|        |
+  |<-- {clientSecret, status} -----------------|                     |        |
+  |                                            |                     |        |
+  |   initPaymentSheet(clientSecret, returnURL=bagtrip://payment/result?id)  |
+  |   presentPaymentSheet() -> 3DS challenge bank                            |
+  |                                            |<-- webhook amount_capturable |
+  |                                            |    BookingIntent AUTHORIZED  |
+  |   redirect bagtrip://payment/result?intentId=...                         |
+  |   PaymentResultPage -> ConfirmPaymentFromDeepLink                       |
+  |                                            |                     |        |
+  |   (apres BOOKED par /book Amadeus)         |                     |        |
+  |-- POST /booking-intents/{id}/book --------->|                     |        |
+  |                                            |-- create_flight_order ------>|
+  |                                            |<-- order_id --------|--------|
+  |                                            |    unit_of_work : FlightOrder + BudgetItem |
+  |<-- BookingIntent(BOOKED) ------------------|                     |        |
+  |-- POST /payment/capture ------------------->|                     |        |
+  |                                            |-- PI.capture ------>|        |
+  |<-- BookingIntent(CAPTURED) ----------------|                     |        |
+  |                                            |<-- webhook PI.succeeded (safety) |
 ```
 
----
-
-## Flux d'abonnement Premium
+### Reactivation apres cancel
 
 ```
 Mobile                                        API                           Stripe
-  |                                            |                              |
-  |-- POST /subscription/checkout ----------->|                              |
-  |                                            |-- checkout.Session.create -->|
-  |                                            |<-- { url } -----------------|
-  |<-- { url } -------------------------------|                              |
-  |                                            |                              |
-  |-- launchUrl(url) --> navigateur externe -->|                              |
-  |                                            |                              |
-  |   (utilisateur complete le paiement)       |                              |
-  |                                            |<-- webhook: sub.created -----|
-  |                                            |   -> user.plan = PREMIUM     |
-  |                                            |                              |
-  |<-- deep link: bagtrip://subscription/success                              |
-  |                                            |                              |
-  |-- GET /subscription/status (poll x5) ---->|                              |
-  |<-- { plan: "PREMIUM" } -------------------|                              |
-  |                                            |                              |
-  |   Affiche "Bienvenue Premium!"            |                              |
+  |-- POST /subscription/cancel -------------->|                              |
+  |                                            |-- Sub.modify cancel_at_period_end=true |
+  |<-- {scheduled_for_cancellation, period_end}|                              |
+  |                                            |<-- webhook sub.updated ------|
+  |                                            |    plan_expires_at = period_end |
+  |   ... user change d'avis avant period_end                                 |
+  |-- POST /subscription/reactivate ---------->|                              |
+  |                                            |-- Sub.modify cancel_at_period_end=false |
+  |<-- {status=active, period_end} ------------|                              |
+  |                                            |<-- webhook sub.updated ------|
 ```
-
-### URLs de redirection Stripe
-
-Configurees dans `api/src/config/env.py` :
-- **Succes** : `bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}`
-- **Annulation** : `bagtrip://subscription/cancel`
-- **Retour portal** : `bagtrip://profile`
-
----
-
-## Creation du client Stripe a l'inscription
-
-A l'inscription (email ou OAuth), l'API cree automatiquement un client Stripe :
-- `StripeClient.create_customer(email, name?)` est appele dans les routes `/register`, `/google`, `/apple` (`api/src/api/auth/routes.py`)
-- Le `stripe_customer_id` est stocke sur le modele User
-- En cas d'echec de creation Stripe, l'inscription continue (best effort, erreur loguee)
 
 ---
 
 ## Ce qu'il manque
 
-| Element | Description | Priorite |
-|---------|-------------|----------|
-| Pas de BLoC pour les paiements transactionnels | Les pages de paiement (`payment_result_page.dart`, `payment_success_page.dart`, `payment_cancel_page.dart`) sont des pages statiques sans BLoC. Aucune logique de verification du statut du paiement apres retour 3DS, contrairement a la `SubscriptionSuccessPage` qui fait du polling. | P0 |
-| Pas de Stripe SDK cote mobile | Aucune integration du SDK Stripe Flutter (stripe_flutter) n'est visible dans le code explore. Le `clientSecret` retourne par `/authorize` n'est pas utilise dans un PaymentSheet ou CardField. Le flow 3DS semble reposer sur des deep links sans gestion native. | P0 |
-| Endpoint confirm-test en production | L'endpoint `/payment/confirm-test` utilise `pm_card_visa` en dur et n'a aucun guard pour empecher son utilisation en production (`stripe_payments_service.py` ligne 221). | P0 |
-| Pas de refund | Aucun endpoint ni service pour les remboursements Stripe. | P1 |
-| Pas de gestion des erreurs de paiement cote mobile | Les pages de resultat sont des vues statiques sans retry ni affichage d'erreur detaillee. | P1 |
-| Webhook `checkout.session.completed` non traite | Le `StripeWebhooksService` ne traite pas `checkout.session.completed`. La mise a jour du plan depend uniquement des evenements `customer.subscription.*` et `invoice.payment_succeeded`. En theorie suffisant, mais le checkout session ID passe dans l'URL de retour n'est jamais verifie. | P2 |
-| Tests backend paiements/subscriptions absents | Aucun fichier de test dans `api/tests/` pour les routes de paiement, subscription ou webhooks. | P1 |
-| Tests Flutter subscription partiels | `bagtrip/test/service/subscription_service_test.dart` et `bagtrip/test/models/payment_card_test.dart` existent mais pas de test d'integration pour le flow complet. Aucun test pour les pages de resultat. | P1 |
-| Pas d'essai gratuit (trial) | Le checkout Stripe ne configure pas de `trial_period_days`. Pas de notion de periode d'essai dans le code. | P2 |
-| Pas de gestion multi-devise | Le prix Premium est fixe en EUR (999 centimes). Les paiements transactionnels utilisent la devise du `BookingIntent`, mais le Premium est EUR uniquement. | P2 |
-| Pas de receipts / factures | Aucune fonctionnalite d'historique de paiement ou d'affichage de factures Stripe cote mobile. | P2 |
-| Resilience du polling subscription | Le polling dans `SubscriptionSuccessPage` fait 5 tentatives avec 2s d'intervalle. Si le webhook Stripe est en retard (>10s), l'utilisateur voit "en attente" sans possibilite de retry. | P2 |
-| Pas de plan annuel | Seul un prix mensuel (9.99 EUR/mois) est configure. Pas d'option annuelle avec remise. | P2 |
+| Element                                                                                                                                                                              | Priorite |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| Pas de trial period sur Premium. `subscription.create` ne passe pas `trial_period_days` -- toute conversion FREE -> PREMIUM debite immediatement.                                     | P1       |
+| Pas de plan annuel. Seul un Price mensuel EUR 999 est initialise. Pas d'upgrade / downgrade entre tiers.                                                                              | P2       |
+| Pas de promo codes / coupons. `checkout.Session.create` n'expose pas `allow_promotion_codes`, et `/start` ne passe aucun coupon.                                                      | P2       |
+| Multi-devise Premium absente. Le prix Premium est fixe en EUR ; les vols suivent la devise du `BookingIntent` mais l'abonnement non.                                                  | P2       |
+| Pas de gestion explicite des disputes (`charge.dispute.created` log mais ne suspend pas l'utilisateur). Une chargeback frauduleuse laisse le compte en PREMIUM.                       | P1       |
+| Tests backend payments / webhooks partiels. `tests/services/stripe_webhooks/` couvre les handlers principaux, mais pas tous les chemins refund (over-refund, dashboard refund).      | P1       |
+| Tests Flutter PaymentSheet absents. Pas d'integration test sur `PremiumCheckout.run` (flutter_stripe mocke mal). Couverture limitee a `subscription_bloc_test.dart`.                  | P1       |
+| Resilience polling `ConfirmSubscriptionActivation` limitee. Si le webhook depasse 7.5s (500ms + 2s + 5s), le stub optimiste reste sans refresh ulterieur -- l'utilisateur doit pull-to-refresh. | P2       |
+| Pas de receipt / facture telechargeable cote mobile au-dela des liens Stripe (`hosted_invoice_url`, `invoice_pdf`). Pas de cache local.                                              | P2       |
+| Pas de regeneration automatique du Customer lors d'un changement de cle Stripe en prod -- `_resolve_customer_id` couvre le cas, mais aucune metric / alerting si ca se declenche.    | P2       |
+| Webhook `checkout.session.completed` non traite. Le flow legacy `/checkout` repose donc uniquement sur les events `customer.subscription.*` pour activer le plan.                     | P2       |

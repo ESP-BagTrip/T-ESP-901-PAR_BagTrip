@@ -1,322 +1,339 @@
-# CI/CD -- Workflows, Hooks, Quality Gates
+# CI / CD
 
-> Derniere mise a jour : 2026-04-09
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-La pipeline CI/CD de BagTrip s'appuie sur cinq niveaux complementaires :
+BagTrip s'appuie sur deux workflows GitHub Actions complementaires, un scan de
+supply-chain transverse, et une instance SonarQube self-hosted pour boucler la
+quality gate :
 
-1. **Pre-commit hooks** -- Verification locale avant chaque commit (linting API + mobile)
-2. **GitHub Actions CI Quality Gates** -- Verification automatique sur push/PR (lint, tests, coverage)
-3. **GitHub Actions PR checks** -- Validation de la PR elle-meme (titre semantique, analyse de taille)
-4. **SonarQube self-hosted** -- Analyse statique + quality gate via `sonar.bagtrip.fr`
-5. **GitHub Actions CD** -- Deploiement automatique apres CI : `main` -> production, `develop` -> pre-production
+1. `ci.yml` (CI Quality Gates) tourne sur push / PR vers `main` ou `develop`.
+   Il detecte les stacks modifiees (Flutter / API / Admin) via path-filter
+   `dorny/paths-filter@v3` puis enchaine lint, tests, coverage, Trivy et
+   SonarQube. Sur `main` et `develop` (ou PR ciblant ces branches) le filtre
+   est ignore : tous les jobs sont forces pour garantir une analyse complete.
+2. `cd.yml` se declenche en `workflow_run` apres une CI verte. `main` ->
+   production (`/opt/bagtrip`), `develop` -> pre-prod (`/opt/bagtrip-preprod`)
+   avec restauration prealable de la base prod dans la pre-prod.
+3. Pre-commit hooks (`.pre-commit-config.yaml`) jouent les memes outils en
+   local avant chaque commit pour eviter les allers-retours CI.
+4. SonarQube self-hosted (`https://sonar.bagtrip.fr`) agrege les rapports de
+   coverage (API + Admin) sur les branches protegees uniquement.
+
+L'host VPS OVH heberge prod et pre-prod cote a cote, derriere Traefik
+(`api.bagtrip.fr:8081` / `api.dev.bagtrip.fr:8082`).
+
+## Workflow CI (ci.yml)
+
+Concurrence : `ci-${{ github.ref }}` avec `cancel-in-progress: true`. Les
+runs en cours sur une meme ref sont annules a chaque nouveau push.
+
+Permissions : `contents:read`, `pull-requests:read`,
+`security-events:write` (necessaire pour publier le SARIF Trivy dans l'onglet
+Code scanning de GitHub).
+
+### detect-changes
+
+Sortie : booleens `flutter`, `api`, `admin`, plus `protected` (true sur
+`main` / `develop`). Sur branche protegee, `force=true` court-circuite les
+filtres pour reexecuter toute la pipeline. Filtres :
+
+- `flutter` : `bagtrip/**`, `.github/workflows/ci.yml`
+- `api` : `api/**`, `.github/workflows/ci.yml`
+- `admin` : `admin-panel/**`, `.github/workflows/ci.yml`
+
+### flutter-analyze
+
+Setup Flutter stable + cache `~/.pub-cache` (cle = hash de `pubspec.lock`).
+Steps :
+
+- `flutter pub get`
+- `flutter analyze` (zero issue requis, configuration dans
+  `bagtrip/analysis_options.yaml` : `flutter_lints` + lints additionnels
+  `prefer_const_constructors`, `require_trailing_commas`, `avoid_print`,
+  `exhaustive_cases`, `unnecessary_*`, etc.)
+- `dart format --set-exit-if-changed .`
+
+### flutter-test
+
+Memes setup et cache. Execute `bash test_coverage.sh` qui :
+
+1. lance `flutter test --coverage`,
+2. filtre `coverage/lcov.info` via `lcov --remove` pour exclure le code
+   genere (`*.g.dart`, `*.freezed.dart`, `lib/l10n/app_localizations*.dart`,
+   `lib/gen/**`, `lib/firebase_options.dart`), le bootstrap (`lib/main.dart`,
+   `lib/config/service_locator.dart`), le routing
+   (`lib/navigation/route_definitions*.dart`, `app_router.dart`,
+   `app_shell.dart`, `page_transitions.dart`) et les pages Stripe
+   (`lib/pages/payment/*`),
+3. enforce un seuil `COVERAGE_THRESHOLD=60` localement.
+
+La CI uploade `bagtrip/coverage/lcov.info` en artifact (retention 7j) puis
+enforce un seuil minimum de 30% dans le job summary via `lcov --summary` (le
+script local vise 60%, la gate CI bloque a 30% pour absorber les filtres
+agressifs sur les ouvertures de PR).
+
+### api-checks
+
+Setup Python 3.12 + `astral-sh/setup-uv@v4` + cache `~/.cache/uv`
+(cle = hash de `uv.lock`). Steps sequentiels :
+
+- `uv sync` (installe deps `dev` : ruff, mypy, bandit, pytest, pytest-cov,
+  pytest-asyncio, passlib).
+- `uv run ruff check src/` (regles `E,W,F,I,N,UP,B,C4,SIM` definies dans
+  `api/ruff.toml`, ignores `E501,B008,N815,N803` pour les types Amadeus
+  mixedCase).
+- `uv run ruff format --check src/` (`line-length=100`, `quote-style=double`).
+- `uv run mypy src/` (Python 3.12, plugin `pydantic.mypy`,
+  `warn_redundant_casts`, `warn_unreachable`). Overrides actuels :
+  `src.integrations.amadeus.*`, `src.integrations.aviation_data.*`,
+  `src.integrations.stripe.*` (SDK non types) et dette Sprint 5 sur
+  certains services / routes encore non strict.
+- `uv run bandit -c pyproject.toml -r src/ --severity-level medium
+  --confidence-level medium`. Skips contextuels : B101 (asserts), B311
+  (RNG non-crypto). B104 reste actif.
+- Coverage services gate : `uv run pytest tests/services tests/utils
+  tests/config tests/agent --cov=src.services --cov-fail-under=70`.
+- Coverage API gate : `uv run pytest tests/api --cov=src.api
+  --cov-fail-under=70`.
+- Full coverage XML pour Sonar : `uv run pytest --cov=src --cov-report=xml
+  :coverage.xml` puis `sed` pour reecrire `<source>src</source>` en
+  `<source>api/src</source>` (mapping SonarQube). Upload artifact
+  `api-coverage` (retention 7j).
+
+### admin-checks
+
+Setup Node 22.x + cache npm (`admin-panel/package-lock.json`). Steps :
+
+- `npm ci --prefer-offline --no-audit`
+- `cp .env.local.example .env.local`
+- `npm run type-check` (`tsc --noEmit`)
+- `npm run lint` (ESLint Next.js core-web-vitals + `@typescript-eslint`,
+  cf. `admin-panel/.eslintrc.json` : `no-unused-vars: error`,
+  `no-explicit-any: warn`, `prefer-const: error`, `no-var: error`)
+- `npm run format:check` (Prettier)
+- `npx vitest run --coverage` (env jsdom, reporter `text` + `lcov`,
+  exclusions setup + `components/ui/**` + `app/app/dev/**`)
+- Upload `admin-panel/coverage/lcov.info` en artifact `admin-coverage`.
+- `npm run build` (Next.js production build, garantit que la PR ne casse pas
+  le build).
+
+### quality-gate / report
+
+`quality-gate` execute `if: always()` et passe si chaque dependance est
+`success`, `skipped` ou `cancelled`. Il sert de cible aux branch protection
+rules GitHub. `report` ecrit un tableau recapitulatif dans
+`$GITHUB_STEP_SUMMARY`.
+
+## Quality gates
+
+| Stack | Outil | Seuil |
+|---|---|---|
+| Flutter | `flutter analyze` (flutter_lints + customs) | 0 issue |
+| Flutter | `dart format --set-exit-if-changed` | 0 diff |
+| Flutter | Coverage CI (`lcov --summary`) | 30% |
+| Flutter | Coverage local (`test_coverage.sh`) | 60% |
+| API | `ruff check src/` | 0 issue |
+| API | `ruff format --check src/` | 0 diff |
+| API | `mypy src/` (Python 3.12, pydantic plugin) | 0 erreur hors overrides |
+| API | `bandit --severity-level medium --confidence-level medium` | 0 finding |
+| API | `pytest tests/services` coverage `src.services` | 70% |
+| API | `pytest tests/api` coverage `src.api` | 70% |
+| Admin | `tsc --noEmit` | 0 erreur |
+| Admin | `eslint` (Next.js + typescript) | 0 issue |
+| Admin | `prettier --check` | 0 diff |
+| Admin | `vitest run --coverage` | tests verts |
+| Admin | `next build` | build OK |
+| Supply-chain | `trivy fs` HIGH / CRITICAL | 0 vulnerabilite non waivee |
+| Sonar | Quality Gate projet `bagtrip` | conditions Sonar par defaut |
+
+## Trivy scan
+
+Job `trivy-scan`, declenche des qu'au moins une stack est modifiee. Deux
+passes successives sur `aquasecurity/trivy-action@v0.36.0` :
+
+1. Scan `fs` en format `table` avec `severity: HIGH,CRITICAL`,
+   `ignore-unfixed: true`, `exit-code: 1`. Le job echoue si une CVE non
+   waivee est detectee. Le fichier `.trivyignore` accepte des waivers mais
+   chaque entree doit porter une `expiry: YYYY-MM-DD` qui force un re-audit.
+2. Re-scan identique en `format: sarif` (output `trivy-results.sarif`),
+   uploade via `github/codeql-action/upload-sarif@v3` (`category: trivy`)
+   dans l'onglet Security > Code scanning.
+
+Couverture : manifests + lockfiles (`uv.lock`, `package-lock.json`,
+`pubspec.lock`) plus Dockerfiles. Aucun build d'image n'est requis ; Trivy
+walk le repo a froid.
+
+## SonarQube
+
+Instance self-hosted `https://sonar.bagtrip.fr` (Community 26.x, projet en
+visibilite **private**, 5 comptes individuels en `user` + `codeviewer`).
+
+Job `sonar` dans `ci.yml`. Conditions :
+
+- `needs.detect-changes.outputs.protected == 'true'` (branches `main` /
+  `develop` ou PR les ciblant).
+- Au moins un des jobs (`flutter-test`, `api-checks`, `admin-checks`) doit
+  etre `success`.
+
+Steps :
+
+1. Checkout `fetch-depth: 0` (Sonar a besoin de l'historique git pour
+   l'analyse de blame).
+2. Download artifacts `flutter-coverage` -> `bagtrip/coverage`,
+   `api-coverage` -> `api`, `admin-coverage` -> `admin-panel/coverage`.
+3. `SonarSource/sonarqube-scan-action@v4` avec `SONAR_TOKEN` et
+   `SONAR_HOST_URL` en secrets.
+
+Configuration (`sonar-project.properties`) :
+
+- `sonar.projectKey=ESP-BagTrip_T-ESP-901-PAR_BagTrip`,
+  `sonar.projectName=BagTrip`.
+- `sonar.sources=api/src,admin-panel/src` (le code Dart est exclu car la
+  Community Edition ne ship pas d'analyseur Dart -- l'inclure mettrait
+  toute la stack Flutter a 0% et ferait chuter la moyenne).
+- `sonar.tests=api/tests` + `sonar.test.inclusions=**/*.test.ts*,
+  **/*.spec.ts*` pour les tests admin co-localises (a ne PAS dupliquer dans
+  `sonar.tests` sous peine de double-comptage).
+- `sonar.python.coverage.reportPaths=api/coverage.xml`,
+  `sonar.javascript.lcov.reportPaths=admin-panel/coverage/lcov.info`.
+- Exclusions standards : `venv`, `node_modules`, `.next`, `cypress`,
+  `migrations`, `seeds`, fichiers `*.pyc` et `__pycache__`.
+
+Script utilitaire local : `scripts/run-sonar-analysis.sh` (lance le scan
+depuis un poste de dev avec un `.env` charge ; reste sur l'URL legacy
+SonarCloud, ne pas utiliser pour le scan officiel).
+
+## Workflow CD (cd.yml)
+
+Trigger : `workflow_run` sur completion du workflow `CI Quality Gates`,
+filtre branches `main` et `develop`. Chaque job teste explicitement
+`github.event.workflow_run.conclusion == 'success'`. Deploiement via
+`appleboy/ssh-action@v1` sur le VPS OVH en tant qu'utilisateur `deploy`.
+
+### deploy-production (main -> /opt/bagtrip)
+
+Concurrence `deploy-production` + `cancel-in-progress: true`. Script :
+
+```bash
+cd /opt/bagtrip
+git fetch origin main
+git reset --hard origin/main
+docker compose -f compose.prod.yml --env-file .env.production up -d --build
+sleep 10
+curl -fsS --max-time 30 \
+  --resolve api.bagtrip.fr:8081:127.0.0.1 \
+  -H 'Host: api.bagtrip.fr' \
+  http://127.0.0.1:8081/health
+```
+
+L'API rejoue `alembic upgrade head` au boot ; pas d'etape migration
+explicite dans le workflow.
+
+### deploy-preprod (develop -> /opt/bagtrip-preprod)
+
+Concurrence `deploy-preprod`. Specificite : la base pre-prod est dropee
+puis restauree depuis la prod a chaque deploy, pour avoir des donnees
+realistes. Sequence :
+
+1. `git fetch origin develop && git reset --hard origin/develop` dans
+   `/opt/bagtrip-preprod`.
+2. `docker compose -f compose.prod.yml --env-file .env.production down`
+   (libere les connexions DB).
+3. `docker compose ... up -d postgres` (seule la DB pre-prod, on attend
+   `pg_isready`).
+4. Lecture des mots de passe Postgres depuis chaque `.env.production`
+   (prod + pre-prod, fichiers locaux au VPS).
+5. `dropdb --if-exists bagtrip` puis `createdb bagtrip` sur le container
+   `bagtrip-preprod-postgres-1`. `DROP DATABASE` ne pouvant pas tourner
+   dans une transaction, les wrappers CLI sont obligatoires.
+6. Pipe `pg_dump -U bagtrip -d bagtrip --no-owner --no-acl --clean
+   --if-exists` (depuis `bagtrip-postgres-1`) vers `psql -U bagtrip -d
+   bagtrip -v ON_ERROR_STOP=1` (vers `bagtrip-preprod-postgres-1`).
+7. `docker compose ... up -d --build` -- l'API rejoue
+   `alembic upgrade head` sur les donnees clonees (no-op s'il n'y a pas
+   de nouvelle migration depuis le dump).
+8. Health check : `curl --resolve api.dev.bagtrip.fr:8082:127.0.0.1
+   -H 'Host: api.dev.bagtrip.fr' http://127.0.0.1:8082/health`.
+
+Secrets requis cote GitHub : `OVH_HOST`, `OVH_USER`, `OVH_SSH_KEY`,
+`SONAR_TOKEN`, `SONAR_HOST_URL`.
 
 ## Pre-commit hooks
 
-**Fichier** : `.pre-commit-config.yaml`
-
-Version minimale requise : `3.0.0`
-
-### Hooks configures
+Fichier `.pre-commit-config.yaml`, version minimale `3.0.0`.
 
 | Hook | Scope | Action |
-|------|-------|--------|
-| `check-added-large-files` | Tous les fichiers | Empeche les fichiers volumineux d'etre commites (pre-commit-hooks v6.0.0) |
-| `api-lint-format` | `^api/` | Execute `ruff format src/` puis `ruff check src/` |
-| `mobile-lint-format` | `^bagtrip/` | Execute `flutter analyze` puis `dart format .` |
+|---|---|---|
+| `check-added-large-files` | tous | bloque les fichiers volumineux (pre-commit-hooks v6.0.0) |
+| `api-lint-format` | `^api/` | `cd api && uv run ruff format src/ && uv run ruff check src/` |
+| `api-mypy` | `^api/(src\|pyproject.toml)/.*\.(py\|toml)$` | `uv run mypy src/` |
+| `api-bandit` | meme scope que mypy | `uv run bandit -c pyproject.toml -r src/ --severity-level medium --confidence-level medium` |
+| `mobile-lint-format` | `^bagtrip/` | `flutter analyze && dart format .` |
+| `admin-lint-format` | `^admin-panel/` | `npm run format && npm run lint:fix && rm -rf .next/types && npm run type-check` |
 
-### Installation
+Tous les hooks tournent en `language: system` (uv / flutter / dart / npm
+attendus localement) avec `pass_filenames: false` : ils relancent la totalite
+du repertoire de la stack concernee a chaque trigger. Installation :
+`make init` ou `pre-commit install` ou
+`scripts/setup-pre-commit.sh` (tente `uv tool install`, `pipx`, `pip3`,
+`pip` dans cet ordre).
 
-```bash
-make init           # installe pre-commit + hooks
-# ou
-pre-commit install  # directement
-# ou
-scripts/setup-pre-commit.sh  # script standalone
+Equivalents Makefile pour rejouer une stack : `make lint-api`,
+`make lint-mobile`, `make lint-admin`, `make test-api`, `make test-mobile`,
+`make test-e2e`, `make coverage`, `make check` (pre-commit sur tous les
+fichiers).
+
+## Conventions
+
+### Branches
+
+Format : `task/smp-{ticket}` (ex. `task/smp-311`). Base et target PR :
+`develop`. Hotfix : `fix/smp-{ticket}-{slug}` autorise. `main` recoit
+uniquement les merges depuis `develop` apres validation pre-prod.
+
+### Commits
+
+Format Conventional Commits : `type(scope): description`. Types acceptes :
+`feat`, `fix`, `chore`, `refactor`, `test`, `docs`, `style`, `perf`,
+`ci`, `build`. Le `scope` est optionnel et generalement le numero de
+ticket (`feat(SMP-311): add origin city field`). Le sujet ne doit pas
+commencer par une majuscule.
+
+### Pull Requests
+
+Titre `type(SMP-XXX): description courte` (< 70 caracteres). Body en
+trois sections obligatoires :
+
+```markdown
+## Problem
+Bullet points concis decrivant les problemes / besoins.
+
+## Solution
+Description de ce qui resout chaque item de Problem, organisee par
+sous-feature si la PR couvre plusieurs sujets.
+
+## Test plan
+- [x] Tests automatises qui passent (API / Flutter / hooks)
+- [ ] Tests manuels a effectuer par le reviewer
 ```
 
-Le script `setup-pre-commit.sh` tente l'installation via `uv tool install`, `pipx`, `pip3` ou `pip` dans cet ordre.
-
-### Limites
-
-- **Pas de hook admin-panel** : les fichiers dans `admin-panel/` ne declenchent aucun hook pre-commit
-- **Hooks locaux uniquement** : les deux hooks `api-lint-format` et `mobile-lint-format` utilisent `language: system`, ce qui suppose que `uv`, `ruff`, `flutter` et `dart` sont installes localement
-- **`pass_filenames: false`** : les hooks lint l'ensemble du repertoire concerne, pas seulement les fichiers modifies
-
-## GitHub Actions -- CI Quality Gates
-
-**Fichier** : `.github/workflows/ci.yml`
-
-### Declencheurs
-
-- **Push** sur : `main`, `develop`, plus quelques branches feat historiques
-- **Pull request** vers les memes branches
-- **Concurrence** : `ci-${{ github.ref }}` avec `cancel-in-progress: true` (annule les runs en cours sur la meme branche)
-
-### Detection de changements
-
-Le job `detect-changes` utilise `dorny/paths-filter@v3` pour ne lancer que les jobs pertinents :
-
-| Filtre | Chemins surveilles |
-|--------|--------------------|
-| `flutter` | `bagtrip/**`, `.github/workflows/ci.yml` |
-| `api` | `api/**`, `.github/workflows/ci.yml` |
-
-### Jobs
-
-#### 1. Flutter Analyze (`flutter-analyze`)
-
-- **Condition** : changements dans `bagtrip/`
-- **Runner** : `ubuntu-latest`
-- **Actions** :
-  - Setup Flutter (channel stable, cache active)
-  - Cache `~/.pub-cache` (cle : `pubspec.lock` hash)
-  - `flutter pub get`
-  - `flutter analyze` -- zero issues requis
-  - `dart format --set-exit-if-changed .` -- formatage verifie
-
-#### 2. Flutter Test (`flutter-test`)
-
-- **Condition** : changements dans `bagtrip/`
-- **Actions** :
-  - `flutter test --coverage`
-  - Upload `coverage/lcov.info` comme artifact (retention 7 jours)
-  - **Seuil de couverture : 60%** -- le job echoue si la couverture de lignes est inferieure
-  - Ecrit un resume dans `$GITHUB_STEP_SUMMARY` avec le pourcentage
-
-#### 3. API Checks (`api-checks`)
-
-- **Condition** : changements dans `api/`
-- **Actions** :
-  - Setup Python 3.12 + uv (`astral-sh/setup-uv@v4`)
-  - Cache `~/.cache/uv` (cle : `uv.lock` hash)
-  - `uv sync`
-  - `uv run ruff check .` -- lint
-  - `uv run ruff format --check .` -- formatage
-  - `uv run pytest` -- tests
-
-#### 5. Quality Gate (`quality-gate`)
-
-- **Condition** : `always()` (s'execute meme si des jobs precedents sont skipped)
-- **Logique** : verifie que tous les jobs sont `success` ou `skipped`. Echoue si un job a `failure`.
-- Ce job est le "gate keeper" que les branch protection rules peuvent cibler.
-
-#### 6. CI Report (`report`)
-
-- **Condition** : `always()`
-- **Action** : genere un tableau recapitulatif dans `$GITHUB_STEP_SUMMARY` :
-
-```
-| Check | Status |
-|-------|--------|
-| Flutter Analyze | Passed/Skipped/Failed |
-| Flutter Test | ... |
-| API Checks | ... |
-```
-
-### Diagramme de dependances
-
-```
-detect-changes
-  |
-  |---> flutter-analyze ----\
-  |---> flutter-test --------\---> sonar ---> quality-gate ---> report
-  |---> api-checks ---------/
-```
-
-## SonarQube self-hosted
-
-**Instance** : `https://sonar.bagtrip.fr` (self-hosted SonarQube Community 26.x). Le CI publie les analyses sur cette instance, qui remplace l'usage initial de SonarCloud.
-
-### Job `sonar` dans `ci.yml`
-
-- **Action** : `SonarSource/sonarqube-scan-action@v4`
-- **Declencheur** : apres `flutter-test` ou `api-checks` avec succes
-- **Variables d'environnement** :
-  - `SONAR_TOKEN` -- token `PROJECT_ANALYSIS_TOKEN` scope au projet `bagtrip` (secret GitHub Actions)
-  - `SONAR_HOST_URL` -- `https://sonar.bagtrip.fr` (secret GitHub Actions)
-- **Coverage agregee** : downloads des artifacts `flutter-coverage` et `api-coverage` vers les chemins attendus par `sonar-project.properties`
-
-### Configuration (`sonar-project.properties`)
-
-```properties
-sonar.projectKey=ESP-BagTrip_T-ESP-901-PAR_BagTrip
-sonar.projectName=BagTrip
-sonar.sources=api/src,admin-panel/src,bagtrip/lib
-sonar.tests=api/tests,bagtrip/test
-sonar.python.coverage.reportPaths=api/coverage.xml
-sonar.javascript.lcov.reportPaths=admin-panel/coverage/lcov.info
-sonar.dart.lcov.reportPaths=bagtrip/coverage/lcov.info
-```
-
-La cle `sonar.organization` (utile uniquement sur SonarCloud) a ete retiree lors de la migration.
-
-### Acces utilisateur
-
-Le projet `bagtrip` est en visibilite **private**. Seuls les comptes explicitement provisionnes peuvent le consulter (5 comptes individuels, permissions `user` + `codeviewer`). Aucun compte n'a de permission globale.
-
-## GitHub Actions -- CD (deploiement automatique)
-
-**Fichier** : `.github/workflows/cd.yml`
-
-### Declencheurs
-
-- **`workflow_run`** sur la completion de `CI Quality Gates`
-- **Branches** : `main`, `develop`
-- **Condition** : ne s'execute que si la conclusion CI est `success`
-
-### Jobs
-
-#### 1. `deploy-production` (main -> /opt/bagtrip)
-
-- **Condition** : `workflow_run.head_branch == 'main' && conclusion == 'success'`
-- **Concurrence** : `deploy-production` avec `cancel-in-progress: true` (annule les deploys en cours)
-- **Action** : `appleboy/ssh-action@v1` -> SSH sur le VPS en tant que `deploy`
-- **Script** :
-  1. `cd /opt/bagtrip`
-  2. `git fetch origin main && git reset --hard origin/main`
-  3. `docker compose -f compose.prod.yml --env-file .env.production up -d --build`
-  4. Smoke test : `curl --resolve api.bagtrip.fr:8081:127.0.0.1 -H 'Host: api.bagtrip.fr' http://127.0.0.1:8081/health`
-
-#### 2. `deploy-preprod` (develop -> /opt/bagtrip-preprod)
-
-- **Condition** : `workflow_run.head_branch == 'develop' && conclusion == 'success'`
-- **Concurrence** : `deploy-preprod` avec `cancel-in-progress: true`
-- **Specificite** : avant chaque deploy, la base pre-prod est **droppee et restauree depuis la prod** pour qu'elle reflete les donnees courantes.
-- **Script** :
-  1. `cd /opt/bagtrip-preprod`
-  2. `git fetch origin develop && git reset --hard origin/develop`
-  3. `docker compose down`
-  4. `docker compose up -d postgres` (uniquement la BDD pre-prod, pour pouvoir restaurer)
-  5. `dropdb` puis `createdb` la BDD `bagtrip` pre-prod
-  6. `pg_dump -U bagtrip -d bagtrip --no-owner --no-acl` (depuis le conteneur prod) piped vers `psql -U bagtrip -d bagtrip` (vers le conteneur pre-prod)
-  7. `docker compose up -d --build` (l'API rejoue `alembic upgrade head` sur les donnees clonees -- no-op si pas de nouvelle migration)
-  8. Smoke test : `curl --resolve api.dev.bagtrip.fr:8082:127.0.0.1 -H 'Host: api.dev.bagtrip.fr' http://127.0.0.1:8082/health`
-
-### Secrets requis
-
-| Secret | Usage |
-|--------|-------|
-| `OVH_HOST` | IP / hostname du VPS |
-| `OVH_USER` | Utilisateur SSH (`deploy`) |
-| `OVH_SSH_KEY` | Cle privee ed25519 dediee BagTrip CD |
-| `SONAR_TOKEN` | Token analyse SonarQube (PROJECT_ANALYSIS_TOKEN) |
-| `SONAR_HOST_URL` | `https://sonar.bagtrip.fr` |
-
-### Diagramme du flux complet
-
-```
-push develop                   push main
-     |                              |
-     v                              v
-CI Quality Gates             CI Quality Gates
-   (lint + tests +              (lint + tests +
-    sonar scan)                  sonar scan)
-     |                              |
-     v                              v
-  success?                       success?
-     |                              |
-     v                              v
-deploy-preprod                 deploy-production
- (clone prod data,              (rebuild & restart
-  rebuild & restart              /opt/bagtrip)
-  /opt/bagtrip-preprod)
-     |                              |
-     v                              v
-https://dev.bagtrip.fr         https://bagtrip.fr
-https://api.dev.bagtrip.fr     https://api.bagtrip.fr
-```
-
-## GitHub Actions -- PR Checks
-
-**Fichier** : `.github/workflows/pr-checks.yml`
-
-### Declencheurs
-
-- **Pull request** : `opened`, `synchronize`, `reopened`, `ready_for_review`
-
-### Jobs
-
-#### 1. PR Validation (`pr-validation`)
-
-- **Condition** : PR non-draft (`github.event.pull_request.draft == false`)
-- **Action** : verifie le titre de la PR avec `amannn/action-semantic-pull-request@v5`
-- **Types autorises** : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`
-- **Scope** : non requis (`requireScope: false`)
-- **Pattern du sujet** : ne doit PAS commencer par une majuscule (`^(?![A-Z]).+$`)
-
-#### 2. PR Size Analysis (`size-analysis`)
-
-- **Action** : analyse la taille de la PR via `actions/github-script@v7`
-- **Calcul** : `git diff --stat origin/<base>...HEAD`
-- **Labels automatiques** :
-
-| Taille | Total de changements |
-|--------|---------------------|
-| XS | <= 10 lignes |
-| S | 11-100 lignes |
-| M | 101-500 lignes |
-| L | 501-1000 lignes |
-| XL | > 1000 lignes |
-
-- Poste un commentaire automatique avec le detail (fichiers, insertions, deletions)
-- Ajoute un label `size/<xs|s|m|l|xl>` a la PR
-
-## Commandes Makefile -- Quality
-
-Le Makefile fournit des equivalents locaux pour toutes les verifications CI :
-
-| CI Job | Commande locale |
-|--------|----------------|
-| Flutter Analyze + Format | `make lint-mobile` |
-| Flutter Test | `make test-mobile` |
-| Flutter Test + Coverage | `make coverage` (seuil 60%) |
-| Flutter E2E Tests | `make test-e2e` |
-| API Lint + Format | `make lint-api` |
-| API Tests | `make test-api` |
-| Admin Lint + Types + Format | `make lint-admin` |
-| Pre-commit (tous les hooks) | `make check` |
-| Tout | `make test` (api + mobile + e2e) |
-
-## Linters et formatters
-
-### API (Python)
-
-**Outil** : ruff (`api/ruff.toml`)
-
-| Parametre | Valeur |
-|-----------|--------|
-| `line-length` | 100 |
-| `target-version` | `py313` |
-| `select` | E, W, F, I, N, UP, B, C4, SIM |
-| `ignore` | E501, B008, N815, N803 |
-| `quote-style` | double |
-| `indent-style` | space |
-| `isort.known-first-party` | `["src"]` |
-
-N815 et N803 sont ignores pour les parametres API Amadeus qui utilisent du mixedCase.
-
-### Admin Panel (TypeScript)
-
-**Outils** : ESLint (Next.js), Prettier, TypeScript (`tsc --noEmit`)
-
-La commande `npm run check-all` enchaine : `type-check` -> `lint` -> `format:check`
-
-### Mobile (Dart/Flutter)
-
-**Outils** : `flutter analyze` (flutter_lints), `dart format`
+Chaque item de `Problem` doit avoir un item correspondant dans `Solution`.
+Le test plan distingue ce qui est verifie automatiquement de ce qui
+necessite un test manuel. Une PR sans description specifique
+("amelioration", "mise a jour") est rejetee.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
-|---------|-------------|----------|
-| Tests admin-panel en CI | Le workflow `ci.yml` ne couvre pas l'admin-panel. Ni le lint, ni les tests Cypress, ni le type-check ne sont executes en CI. Le `detect-changes` ne filtre pas `admin-panel/`. | P0 |
-| Hook pre-commit admin-panel | `.pre-commit-config.yaml` ne couvre que `api/` et `bagtrip/`. L'admin-panel n'a aucun hook pre-commit. | P1 |
-| Branch protection rules | Les workflows definissent un `quality-gate` mais aucune configuration de branch protection n'est visible dans le repo. Il faut configurer GitHub pour exiger le passage du quality-gate (et idealement du job CD) avant merge. | P1 |
-| Rollback automatique CD | Les jobs CD ne savent pas rollback : si le smoke test echoue apres `compose up`, le service est dans un etat casse jusqu'a intervention manuelle. Idealement, capturer l'image courante avant le `up` et la redeployer si le healthcheck echoue. | P1 |
-| E2E tests en CI | Les tests E2E Flutter (`integration_test/`) ne sont pas executes en CI. `make test` les inclut en local mais le workflow `ci.yml` n'a pas de job dedie (necessiterait un simulateur iOS/Android ou un device farm). | P1 |
-| Couverture API | Aucun seuil de couverture n'est configure pour l'API (pytest). Seul Flutter a un seuil a 60%. | P2 |
-| Notifications d'echec CI/CD | Aucune integration Slack/Discord/email pour les echecs CI ou CD. Les developpeurs doivent verifier manuellement sur GitHub. | P2 |
-| Cache Docker layers en CI | Les jobs CI ne utilisent pas de cache Docker. Les images sont reconstruites a chaque run. Cela n'affecte pas les jobs actuels (qui n'utilisent pas Docker) mais serait necessaire si des tests d'integration avec la BDD etaient ajoutes. | P2 |
-| Dependabot / Renovate | Aucune automation de mise a jour des dependances n'est configuree (ni `.github/dependabot.yml`, ni `renovate.json`). | P2 |
+|---|---|---|
+| Branch protection rules | `quality-gate` existe comme cible mais aucune protection GitHub n'est codifiee dans le repo. Forcer le passage de `quality-gate` + revue avant merge sur `main` et `develop`. | P0 |
+| Rollback automatique CD | Aucun rollback si le health check post-deploy echoue. Capturer l'image courante avant `compose up` et la redeployer en cas d'echec. | P1 |
+| E2E en CI | Les flows Flutter `integration_test/` (FT1 -> FT5) ne sont pas executes dans `ci.yml`. Requiert un device farm ou un emulateur Android headless. | P1 |
+| Migration de la pre-prod | Le `pg_dump | psql` se fait depuis le VPS, sans snapshot intermediaire. Stocker un dump horodate avant la restoration permettrait un rollback rapide. | P1 |
+| Trivy waivers expires | `.trivyignore` impose un `expiry`, mais aucun job ne verifie qu'aucun waiver expire (au-dela du fail naturel a la prochaine CI). Ajouter un check dedie. | P2 |
+| Notifications echec | Aucun webhook Slack / Discord sur echec CI ou CD. Les developpeurs verifient manuellement sur GitHub. | P2 |
+| Cache Docker layers | Les jobs n'utilisent pas de cache Docker (les tests ne montent pas de container). Necessaire si on ajoute des tests d'integration backed par Postgres. | P2 |
+| Renovate / Dependabot | Aucune automation pour les mises a jour de dependances (`.github/dependabot.yml` absent, pas de `renovate.json`). | P2 |
+| SonarQube Dart | Le plugin Dart n'est pas installe sur l'instance Sonar -- `bagtrip/lib` n'est pas analyse cote Sonar (juste cote `flutter analyze`). | P3 |

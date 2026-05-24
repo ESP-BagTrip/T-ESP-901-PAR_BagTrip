@@ -1,327 +1,318 @@
-# Integrations Externes
+# Integrations externes
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-L'API BagTrip s'integre avec 5 services externes. Chaque integration est encapsulee dans un client dedie sous `api/src/integrations/`. Les integrations sont concues pour une **degradation gracieuse** : si un service externe est indisponible ou non configure, l'application continue de fonctionner (avec des fonctionnalites reduites).
+L'API BagTrip dialogue avec sept fournisseurs tiers. Chaque integration est isolee derriere un wrapper sous `api/src/integrations/<provider>/` et exposee aux routes via un service facade sous `api/src/services/<provider>_service.py`. Trois principes non-negociables :
+
+- **Aucune route n'appelle un client tiers directement** — la couche service est le seul point d'entree.
+- **Tous les clients HTTP sortants partagent le singleton `httpx.AsyncClient`** initialise dans le lifespan FastAPI (`src/integrations/http_client.py`). Pas de `httpx.AsyncClient()` cree par requete.
+- **Degradation gracieuse systematique** : une integration non configuree (cle absente) ou en panne ne casse jamais le boot ; les fonctionnalites associees deviennent indisponibles avec un fallback explicite (None, valeur par defaut, 503).
+
+| Integration | Usage | Cache | Fallback |
+|-------------|-------|-------|----------|
+| Amadeus | Vols (search/price/order), hotels, POI, activites bookables, sentiments, destinations inspirantes | Token OAuth2 en memoire (expires_in - 5s) | `AppError(UPSTREAM_*)` + retry decorator |
+| AirLabs | Statut vol temps reel (terminal, gate, retard) par code IATA | Dict in-memory, TTL 5 min | `None` si cle absente ou echec ; route renvoie 503 |
+| Unsplash | Image de couverture des trips (paysage 1080px) | Dict in-memory, TTL 1h | URL statique continent-based (7 buckets) |
+| Firebase FCM | Push notifications mobile | n/a | Notification persistee en DB meme sans FCM ; SDK desactive si service account absent |
+| Stripe | Paiement vols (PaymentIntent capture manuelle), abonnement Premium, customers, billing portal | Idempotency keys cote Stripe (24h) | Boot warn si cle absente ; webhooks rejetes en prod sans secret |
+| LLM (OVHcloud) | Generation de voyage SSE, ReAct executor, embeddings | n/a (chain de modeles + retry) | Fallback chain `LLM_MODEL_PRIMARY` -> `LLM_MODEL_FALLBACKS` |
+| Open-Meteo | Meteo destination (forecast + climate) et geocoding multilingue | `idempotency_cache` agent (in-memory) | Estimation par zone climatique ; resolveur IATA cascade plus loin |
+
+Toutes les integrations sont egalement listees dans `src/integrations/__init__.py` ; l'aviation data (referentiel aeroports IATA offline via `airportsdata`) y figure mais n'est pas un service externe — voir `architecture.md`.
 
 ## Amadeus
 
-**Fichiers** : `api/src/integrations/amadeus/`
+**Fichiers** : `src/integrations/amadeus/{auth,client,flights,hotels,pois,activities,sentiments,types,errors,retry}.py`
+**Service facade** : `src/services/amadeus_service.py` (`AmadeusService`)
 
-Amadeus est le fournisseur principal pour les donnees de voyage : recherche de vols, hotels, locations, et booking.
+Amadeus Self-Service est le fournisseur principal pour les donnees de voyage : recherche, pricing, booking.
 
-### Authentification (`auth.py`)
+### Authentification
 
-- **Type** : OAuth2 Client Credentials (`client_credentials`)
-- **URL** : `{AMADEUS_BASE_URL}/v1/security/oauth2/token`
-- **Cache** : Token en memoire avec expiration (cache jusqu'a 5s avant expiration)
-- **Timeout** : `REQUEST_TIMEOUT_MS` (3000ms par defaut)
+OAuth2 Client Credentials. Le token est mis en cache process-wide dans `_token_cache` (`auth.py`) avec une marge de 5 s avant expiration. Tout appel passe par `await fetch_token()` qui re-issue automatiquement le token a echeance.
 
 ```
-POST /v1/security/oauth2/token
+POST {AMADEUS_BASE_URL}/v1/security/oauth2/token
 Content-Type: application/x-www-form-urlencoded
-Body: grant_type=client_credentials&client_id=...&client_secret=...
+grant_type=client_credentials&client_id=...&client_secret=...
 ```
 
-Le token est reutilise entre les appels via la variable globale `_token_cache`. En cas d'expiration, un nouveau token est demande automatiquement.
+Decorateur `@amadeus_retry` (`retry.py`) sur chaque appel : backoff exponentiel sur 429 / 5xx / `httpx.NetworkError`. Mapping des codes upstream vers `AppError("UPSTREAM_*", 502)` dans `errors.py`.
 
-### Client (`client.py`)
+### Endpoints utilises
 
-Classe `AmadeusClient` qui expose une interface unifiee. Instance globale : `amadeus_client`.
+| Methode service | Endpoint Amadeus | Timeout |
+|-----------------|------------------|---------|
+| `search_flight_offers` | `GET /v2/shopping/flight-offers` | 20 s |
+| `search_flight_destinations` | `GET /v1/shopping/flight-destinations` | 15 s |
+| `search_flight_cheapest_dates` | `GET /v1/shopping/flight-dates` | 15 s |
+| `confirm_flight_price` | `POST /v1/shopping/flight-offers/pricing` | 20 s |
+| `create_flight_order` | `POST /v1/booking/flight-orders` | 30 s |
+| `search_hotel_list` | `GET /v1/reference-data/locations/hotels/by-city` | (default 30 s) |
+| `search_hotel_offers` | `GET /v3/shopping/hotel-offers` | (default 30 s) |
+| `search_pois` | `GET /v1/reference-data/locations/pois` | (default) |
+| `search_activities` | `GET /v1/shopping/activities` | (default) |
+| `search_hotel_sentiments` | `GET /v2/e-reputation/hotel-sentiments` | (default) |
 
-### Modules
+### Cache et TTL
 
-#### Locations
+Pas de cache HTTP cote BagTrip. Le seul element memoise est le token OAuth2 (~30 min). Les recherches sont logiquement deduplicables par hash de query si un caller veut wrap dans Redis (cf. note `AmadeusService.search_pois` qui delegue le cache aux callers).
 
-Les recherches de locations (aeroports, villes, codes IATA) sont gerees par le module **Aviation Data** offline. Voir la section [Aviation Data](#aviation-data-offline) ci-dessous.
-
-#### Flights (`flights.py`)
-- `search_flight_offers(query)` — Offres de vols (GET `/v2/shopping/flight-offers`)
-- `search_flight_destinations(query)` — Destinations inspirantes (GET `/v1/shopping/flight-destinations`)
-- `search_flight_cheapest_dates(query)` — Dates les moins cheres (GET `/v1/shopping/flight-dates`)
-- `confirm_flight_price(offer)` — Confirmation de prix (POST `/v1/shopping/flight-offers/pricing`)
-- `create_flight_order(offer, travelers)` — Creation de commande (POST `/v1/booking/flight-orders`)
-
-#### Hotels (`hotels.py`)
-- `search_hotel_list(query)` — Liste d'hotels par ville (GET `/v1/reference-data/locations/hotels/by-city`)
-- `search_hotel_offers(query)` — Offres d'hotel avec prix (GET `/v3/shopping/hotel-offers`)
-
-### Types (`types.py`)
-
-Modeles Pydantic pour les requetes et reponses Amadeus :
-- `FlightOfferSearchQuery`, `FlightInspirationSearchQuery`, `FlightCheapestDateSearchQuery`
-- `HotelListSearchQuery`, `HotelOffersSearchQuery`
-- `LocationKeywordSearchQuery`, `LocationIdSearchQuery`, `LocationNearestSearchQuery`
-- `FlightOffer`, `FlightOrderTraveler`, `FlightPriceResponse`
-
-### API Logging (`models/amadeus_api_log.py`)
-
-Le modele `AmadeusApiLog` existe pour tracer les appels Amadeus (endpoint, status, duree, etc.) mais le logging effectif n'est pas implemente dans le client actuel.
-
-### Concurrence
-
-Un `asyncio.Semaphore(3)` dans `tools.py` limite les appels Amadeus concurrents depuis les agents IA pour eviter le rate-limiting.
-
-### Environnement
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
 | `AMADEUS_CLIENT_ID` | (requis) | Client ID Amadeus |
 | `AMADEUS_CLIENT_SECRET` | (requis) | Client Secret Amadeus |
-| `AMADEUS_BASE_URL` | `https://test.api.amadeus.com` | URL de base (test ou production) |
-
-## Aviation Data (Offline)
-
-**Fichier** : `api/src/integrations/aviation_data/`
-
-Module de donnees aeroportuaires offline qui remplace les appels Amadeus pour les donnees de reference (aeroports, villes, codes IATA). Base sur le package Python `airportsdata` (28 428 aeroports, 7 884 avec code IATA, licence MIT).
-
-### Motivation
-
-L'API Amadeus Self-Service impose un quota de ~2 000 requetes/mois (tier test). Les donnees de reference (noms d'aeroports, codes IATA, coordonnees) sont **statiques** et n'ont pas besoin d'etre appelees via une API payante avec rate-limiting.
-
-### Service (`service.py`)
-
-Classe `AviationDataService` — instance globale `aviation_data_service` :
-
-| Methode | Description |
-|---------|-------------|
-| `search_by_keyword(keyword, sub_type, limit)` | Recherche par mot-cle (nom, ville, code IATA) avec ranking intelligent |
-| `get_by_id(iata_code)` | Lookup O(1) par code IATA |
-| `search_nearest(latitude, longitude, limit)` | Aeroports les plus proches (distance haversine) |
-
-Toutes les methodes retournent des objets `Location` (meme modele Pydantic qu'Amadeus) pour une compatibilite totale avec le frontend.
-
-### Ranking de recherche
-
-La recherche par mot-cle utilise un scoring a 8 niveaux :
-1. Exact IATA match
-2. City exact + "International" dans le nom
-3. City exact
-4. IATA starts with keyword
-5. City starts with + International
-6. City starts with
-7. Name starts with
-8. Contains dans city ou name
-
-### Utilisation
-
-- **Routes travel** : `/v1/travel/locations`, `/locations/{id}`, `/locations/nearest`
-- **Agent IA** : `resolve_iata_code()` dans `api/src/agent/tools.py`
-- **Cache vols** : TTLCache (15 min) sur `/v1/travel/flight/offers` pour deduplication
-
-### Environnement
-
-Aucune variable d'environnement requise — les donnees sont embarquees dans le package `airportsdata`.
+| `AMADEUS_BASE_URL` | `https://test.api.amadeus.com` | Base URL (test ou production) |
+| `REQUEST_TIMEOUT_MS` | `3000` | Timeout du token endpoint en ms |
 
 ## AirLabs
 
-**Fichier** : `api/src/integrations/airlabs/client.py`
+**Fichier** : `src/integrations/airlabs/client.py`
+**Service facade** : `src/services/airlabs_service.py` (`AirLabsService.lookup_flight`)
 
-Service de suivi de vol en temps reel.
+Lookup vol temps reel par code IATA (ex `AF1234`). Utilise par l'endpoint flight info quand un trip a un manual flight enregistre.
 
-### Client (`AirLabsClient`)
+### Endpoint
 
-- **API** : REST (GET `https://airlabs.co/api/v9/flight`)
-- **Methode** : `lookup_flight(flight_iata)` — recherche par code IATA vol (ex: `AF1234`)
-- **Cache** : In-memory dict, TTL 5 minutes
-- **Timeout** : 10 secondes (httpx)
-- **Instance globale** : `airlabs_client`
-
-### Donnees retournees
-
-```json
-{
-  "flight_iata": "AF1234",
-  "airline_iata": "AF",
-  "airline_name": "Air France",
-  "status": "en-route",
-  "dep_iata": "CDG",
-  "dep_terminal": "2E",
-  "dep_gate": "K42",
-  "dep_time": "2026-03-26T08:30:00+01:00",
-  "dep_actual": "2026-03-26T08:35:00+01:00",
-  "dep_delayed": 5,
-  "arr_iata": "JFK",
-  "arr_terminal": "1",
-  "arr_time": "2026-03-26T11:00:00-04:00"
-}
+```
+GET https://airlabs.co/api/v9/flight?flight_iata={code}&api_key={AIRLABS_API_KEY}
 ```
 
-### Degradation
+Le client renvoie la premiere entree de la liste `response` (ou l'objet si dict). Champs principaux exposes : `flight_iata`, `airline_iata`, `airline_name`, `status`, `dep_iata`, `dep_terminal`, `dep_gate`, `dep_time`, `dep_actual`, `dep_delayed`, `arr_iata`, `arr_terminal`, `arr_time`.
 
-Si `AIRLABS_API_KEY` n'est pas configure, `lookup_flight()` retourne `None` et l'endpoint `/v1/travel/flights/{flightNumber}/info` retourne 503.
+### Cache et fallback
 
-### Environnement
+- Cache dict in-memory `_CACHE`, TTL 5 minutes par code IATA.
+- Si `AIRLABS_API_KEY` absente : retourne `None` immediatement.
+- Sur exception ou payload vide : warn log + `None`.
+
+**Limitation connue** : le client AirLabs utilise `httpx.get(...)` synchrone (10 s timeout) au lieu du singleton `AsyncClient` — point de dette technique, voir "Ce qu'il manque".
+
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `AIRLABS_API_KEY` | `None` (optionnel) | Cle API AirLabs |
+| `AIRLABS_API_KEY` | `None` | Cle API AirLabs (optionnel) |
 
 ## Unsplash
 
-**Fichier** : `api/src/integrations/unsplash/client.py`
+**Fichier** : `src/integrations/unsplash/client.py`
+**Usage** : `api/trips/routes.py` (creation trip sans `coverImageUrl`), `api/ai/plan_trip_routes.py` (accept plan).
 
-Fournit des images de couverture automatiques pour les trips.
+### Endpoint
 
-### Client (`UnsplashClient`)
+```
+GET https://api.unsplash.com/search/photos?query={destination}&orientation=landscape&per_page=1
+Authorization: Client-ID {UNSPLASH_ACCESS_KEY}
+```
 
-- **API** : REST (GET `https://api.unsplash.com/search/photos`)
-- **Methode** : `fetch_cover_image(destination_name)` — recherche une photo paysage
-- **Auth** : Header `Authorization: Client-ID {UNSPLASH_ACCESS_KEY}`
-- **Parametres** : `query=<destination>`, `orientation=landscape`, `per_page=1`
-- **Cache** : In-memory dict, TTL 1 heure
-- **Timeout** : 10 secondes (httpx async)
-- **Instance globale** : `unsplash_client`
+Le client passe par `get_http_client()` (singleton httpx) avec timeout 10 s. L'URL retournee est `results[0].urls.regular` (1080px).
 
-### Fallback continent-based
+### Cache et fallback continent-based
 
-Methode `get_fallback_url(destination_name)` :
-1. Detecte le continent a partir de mots-cles dans le nom de destination
-2. Retourne une URL Unsplash statique correspondante
+- Cache dict `_CACHE`, TTL 1h, cle = `destination.lower().strip()`.
+- Sans cle API ou sur echec : `fetch_cover_image()` renvoie `None`.
+- Le caller appelle ensuite `UnsplashClient.get_fallback_url(destination_name)` qui detecte le continent par mots-cles (`_CONTINENT_KEYWORDS` couvre Europe, Asia, North America, South America, Africa, Oceania) et renvoie une URL Unsplash statique royalty-free pre-selectionnee. Defaut : photo monde.
 
-Continents detectes : Europe, Asia, North America, South America, Africa, Oceania.
-
-Exemple : "Paris" → Europe → `https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1080`
-
-### Utilisation
-
-Appele dans :
-- `api/src/api/trips/routes.py` — creation de trip (si pas de `coverImageUrl`)
-- `api/src/api/ai/plan_trip_routes.py` — accept plan (pour le trip IA)
-
-### Environnement
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `UNSPLASH_ACCESS_KEY` | `None` (optionnel) | Access Key Unsplash |
+| `UNSPLASH_ACCESS_KEY` | `None` | Access Key Unsplash (optionnel) |
 
 ## Firebase (FCM)
 
-**Fichier** : `api/src/integrations/firebase/__init__.py`
-
-Firebase Admin SDK pour les push notifications (Firebase Cloud Messaging).
+**Fichier** : `src/integrations/firebase/__init__.py`
+**Service consommateur** : `src/services/notification_service.py` (`NotificationService._send_fcm`)
 
 ### Initialisation
 
-- Charge le service account depuis `FIREBASE_SERVICE_ACCOUNT_PATH`
-- Initialise l'app Firebase via `firebase_admin.initialize_app(cred)`
-- **Degradation gracieuse** : si le path n'est pas configure ou l'init echoue, `get_firebase_app()` retourne `None` et les notifications push sont desactivees (mais les notifications sont quand meme creees en DB)
+`_init_firebase()` est appele a l'import du module. Si `FIREBASE_SERVICE_ACCOUNT_PATH` est absent ou si l'init Firebase echoue, `get_firebase_app()` renvoie `None` et les notifications push sont desactivees silencieusement (les Notification SQL sont toujours creees pour l'in-app feed).
 
-### Envoi (`services/notification_service.py`)
+### Envoi
 
-Methode `_send_fcm()` :
-- **1 token** : `messaging.Message` + `messaging.send()`
-- **Plusieurs tokens** : `messaging.MulticastMessage` + `messaging.send_each_for_multicast()`
-- **Nettoyage** : si un token est invalide (`UnregisteredError`), il est supprime de la DB automatiquement
+`NotificationService._send_fcm(db, tokens, title, body, data)` :
+- 1 token : `messaging.Message` + `messaging.send()`.
+- N tokens : `messaging.MulticastMessage` + `messaging.send_each_for_multicast()`.
+- Sur `messaging.UnregisteredError` : le device token est supprime de la table `device_tokens` automatiquement (purge des inscriptions perimees).
 
-### Environnement
+Les payloads localises sont produits par `render_notification(...)` (`notification_messages.py`) — backend-owned, le client ne fait que rendre.
+
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | `None` (optionnel) | Chemin vers le fichier JSON du service account |
-| `GOOGLE_FIREBASE_PROJECT_ID` | `bagtrip-7d2d8` | Project ID pour la verification des tokens Google |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | `None` | Chemin local vers le JSON service account |
+| `GOOGLE_FIREBASE_PROJECT_ID` | `bagtrip-7d2d8` | Project ID pour la verif des id tokens Google Sign-In |
 
 ## Stripe
 
-**Fichier** : `api/src/integrations/stripe/client.py`
+**Fichier** : `src/integrations/stripe/client.py`
+**Service facade non-payment** : `src/services/stripe_gateway_service.py` (`StripeGatewayService.delete_customer`)
+**Services metier** : `stripe_payments_service.py`, `stripe_products_service.py`, `stripe_webhooks/service.py`, `subscription_service.py`.
 
-Stripe est utilise pour deux fonctionnalites :
-1. **Paiement des reservations de vol** — PaymentIntent avec capture manuelle
-2. **Abonnement Premium** — Checkout Session + Billing Portal
+Stripe couvre deux flux distincts :
+1. **Paiement vols** — PaymentIntent en `capture_method=manual`, autorise puis capture apres confirmation Amadeus.
+2. **Abonnement Premium** — Subscription en `default_incomplete` consommee par le `PaymentSheet` Flutter natif (pas de Checkout URL).
 
-### Client (`StripeClient`)
+### Lazy-init non-mutante (sous reserve)
 
-Wrapper statique autour de la lib `stripe` Python :
+Au chargement de `src/integrations/stripe/client.py`, **si** `STRIPE_SECRET_KEY` est definie, le module pose `stripe.api_key` et `stripe.api_version = "2024-10-28.acacia"`. Si la cle est absente le SDK reste inerte (les routes payment renvoient 503 a l'usage). Le pinning explicite de la version API evite qu'un rolling update Stripe change silencieusement les payloads webhook.
 
-| Methode | Description |
-|---------|-------------|
-| `create_customer(email, name)` | Cree un client Stripe (a l'inscription) |
-| `create_payment_intent(amount, currency, metadata, capture_method, customer, description)` | Cree un PaymentIntent (capture manuelle par defaut) |
-| `capture_payment_intent(payment_intent_id)` | Capture un PI autorise |
-| `cancel_payment_intent(payment_intent_id)` | Annule un PI |
-| `retrieve_payment_intent(payment_intent_id)` | Recupere un PI |
+### Operations exposees par `StripeClient`
 
-### Flux de paiement (Booking)
+| Domaine | Methode | Stripe API |
+|---------|---------|------------|
+| Customer | `create_customer` / `retrieve_customer` / `delete_customer` | `Customer.create/retrieve/delete` |
+| PaymentIntent | `create_payment_intent(capture_method="manual")`, `capture_payment_intent`, `cancel_payment_intent`, `retrieve_payment_intent` | `PaymentIntent.*` |
+| Charge / Refund | `retrieve_charge`, `create_refund` | `Charge.retrieve`, `Refund.create` |
+| Subscription | `create_subscription` (mode `default_incomplete`), `retrieve/list/cancel/update_subscription` | `Subscription.*` |
+| Invoice | `list_invoices` | `Invoice.list` |
+| PaymentSheet | `retrieve_payment_method`, `attach_payment_method`, `create_setup_intent`, `create_ephemeral_key` | mobile-native flows |
+| Billing Portal | `create_billing_portal_session` | `billing_portal.Session.create` |
 
-```
-1. POST /v1/trips/{id}/booking-intents     → BookingIntent (status: INIT)
-2. POST /v1/booking-intents/{id}/payment/authorize  → Stripe PaymentIntent (capture: manual)
-   → Webhook payment_intent.amount_capturable_updated → status: AUTHORIZED
-3. POST /v1/booking-intents/{id}/book       → Amadeus Flight Order
-   → status: BOOKED
-4. POST /v1/booking-intents/{id}/payment/capture     → Stripe capture
-   → status: CAPTURED
-```
+Chaque mutation accepte un `idempotency_key` optionnel — Stripe dedupe 24 h, ce qui rend les retry reseau coherents avec une operation metier (ex `f"bi-{booking_intent_id}-authorize-v1"`).
 
-### Flux d'abonnement (Premium)
+### Products bootstrap
 
-```
-1. POST /v1/subscription/checkout    → Stripe Checkout Session URL
-2. Utilisateur complete le paiement sur Stripe
-3. Webhook customer.subscription.created → user.plan = "PREMIUM"
-4. POST /v1/subscription/portal      → Stripe Billing Portal URL (gestion)
-```
+`StripeProductsService.initialize_products()` est appele dans le lifespan : il cherche par metadata `type=flight` / `type=premium_subscription` et cree le produit + prix recurrent (999 cts / EUR / month) s'ils n'existent pas. Les IDs sont caches dans `STRIPE_PRODUCT_IDS` pour reutilisation par `SubscriptionService`. Sans `STRIPE_SECRET_KEY` le bootstrap est skip avec warn.
 
-### Services Stripe
+### Webhooks
 
-| Service | Fichier | Responsabilite |
-|---------|---------|---------------|
-| `StripePaymentsService` | `services/stripe_payments_service.py` | Authorize / Capture / Cancel PaymentIntents |
-| `StripeWebhooksService` | `services/stripe_webhooks_service.py` | Traitement des evenements webhook |
-| `StripeProductsService` | `services/stripe_products_service.py` | Initialisation des produits au demarrage |
-| `SubscriptionService` | `services/subscription_service.py` | Checkout + Portal + Status |
+Endpoint `/v1/stripe/webhooks` (`api/stripe/webhooks/routes.py`). Verification signature via `stripe.Webhook.construct_event(body, sig, STRIPE_WEBHOOK_SECRET)`. En prod, l'absence du secret leve une erreur de boot via field validator (`env.py`). Hors prod, une escape hatch permet de parser sans signature avec un warn.
 
-### Webhooks traites (`stripe_webhooks_service.py`)
+Evenements traites (`stripe_webhooks/handlers/`) :
 
 | Evenement | Action |
 |-----------|--------|
-| `payment_intent.amount_capturable_updated` | BookingIntent → AUTHORIZED |
-| `payment_intent.canceled` | BookingIntent → CANCELLED |
-| `payment_intent.payment_failed` | BookingIntent → FAILED |
-| `customer.subscription.created` | User plan → PREMIUM |
-| `customer.subscription.updated` | Mise a jour expiration, downgrade si cancelled/unpaid |
-| `customer.subscription.deleted` | User plan → FREE |
-| `invoice.payment_succeeded` | Mise a jour plan_expires_at |
+| `payment_intent.amount_capturable_updated` | BookingIntent -> AUTHORIZED |
+| `payment_intent.canceled` | BookingIntent -> CANCELLED |
+| `payment_intent.payment_failed` | BookingIntent -> FAILED |
+| `customer.subscription.created` | User plan -> PREMIUM |
+| `customer.subscription.updated` | Maj expiration ; downgrade si `canceled` / `unpaid` |
+| `customer.subscription.deleted` | User plan -> FREE |
+| `invoice.payment_succeeded` | Maj `plan_expires_at` |
 
-Idempotence : chaque evenement Stripe est persiste dans `StripeEvent` et deduplique par `stripe_event_id`.
+Idempotence : chaque event est persiste dans `StripeEvent` deduplique par `stripe_event_id`.
 
-### Environnement
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `STRIPE_SECRET_KEY` | `None` (optionnel) | Cle secrete Stripe |
-| `STRIPE_WEBHOOK_SECRET` | `None` (optionnel) | Secret pour verifier les webhooks |
-| `STRIPE_SUCCESS_URL` | `bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}` | URL de retour apres paiement reussi |
-| `STRIPE_CANCEL_URL` | `bagtrip://subscription/cancel` | URL de retour apres annulation |
+| `STRIPE_SECRET_KEY` | `None` | Cle secrete (sk_test_ ou sk_live_) |
+| `STRIPE_WEBHOOK_SECRET` | `None` ; **requis en prod** (field validator) | Secret signature webhook |
+| `STRIPE_SUCCESS_URL` | `bagtrip://subscription/success?session-id={CHECKOUT_SESSION_ID}` | Retour mobile post-checkout legacy |
+| `STRIPE_CANCEL_URL` | `bagtrip://subscription/cancel` | Retour mobile annulation |
+
+## LLM (OVHcloud — OpenAI-compatible)
+
+**Fichier router** : `src/services/llm_router.py` (`LLMRouter` singleton)
+**Facade legacy** : `src/services/llm_service.py` (`LLMService` — `call_llm`, `acall_llm`, `acall_llm_messages`)
+
+Le router est l'unique point d'acces au provider LLM pour le process API. Il cible un endpoint OpenAI-compatible — par defaut `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1` (OVHcloud AI Endpoints). Le modele principal historique etait `gpt-oss-120b` ; la chain par defaut actuelle est `Mistral-Small-3.2-24B-Instruct-2506` -> `Qwen3-32B` -> `Meta-Llama-3_3-70B-Instruct`.
+
+### Responsabilites
+
+- **Fallback chain** : `LLM_MODEL_PRIMARY` puis chaque entree de `LLM_MODEL_FALLBACKS`. Un modele qui rejette une feature (tool calls non supportes, response_format refuse, 4xx schema) est skip vers le suivant (`_PermanentLLMError`). Tenacity gere uniquement les transients (`_TransientLLMError`).
+- **Retry transient** : 408 / 429 / 5xx / `httpx.TimeoutException` / `httpx.NetworkError` avec backoff exponentiel jitter (`stop_after_attempt(LLM_RETRY_MAX_ATTEMPTS)`, `wait_exponential_jitter(base, max)`).
+- **Concurrence** : `asyncio.Semaphore(LLM_MAX_CONCURRENCY)` partage par process pour rester sous la limite RPM OVH.
+- **Client HTTP** : `httpx.AsyncClient` dedie au router (Authorization bearer + base_url + timeout `(connect=10, read=LLM_CALL_TIMEOUT_SECONDS, write=10, pool=5)`). Pas le singleton commun car ce client porte les headers Auth fixes et son propre timeout long. `aclose()` enregistre via `atexit`.
+- **Tracing** : chaque call logge `model`, `attempt`, `latency_s`, `prompt_tokens`, `completion_tokens`, `finish_reason`, `tool_calls`. Le payload de retour est augmente d'un champ `_router = { model_used, attempts[] }` pour reconstituer la trace post-mortem.
+
+### Surface publique
+
+- `chat_completion(messages, tools?, tool_choice?, response_format?, temperature, max_tokens, models?)` -> dict OpenAI-compatible.
+- `stream_chat_completion(...)` -> async iterator de chunks JSON (`data: ... [DONE]`). **Ne fallback PAS** une fois le premier byte forwarde au client SSE.
+- `embed(inputs, model?)` -> `list[list[float]]` via `/embeddings`.
+
+`LLMService` enveloppe `chat_completion` pour les call sites legacy qui attendent un dict JSON parse (avec `_strip_markdown_fences` defensif) ou un raw string (`acall_llm_messages`).
+
+### Variables d'environnement
+
+| Variable | Defaut | Description |
+|----------|--------|-------------|
+| `LLM_API_BASE` | `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1` | Endpoint OpenAI-compatible |
+| `LLM_API_KEY` | (requis) | Bearer token OVH |
+| `LLM_MODEL_PRIMARY` | `Mistral-Small-3.2-24B-Instruct-2506` | Modele principal |
+| `LLM_MODEL_FALLBACKS` | `Qwen3-32B,Meta-Llama-3_3-70B-Instruct` | CSV fallback chain |
+| `LLM_EMBEDDING_MODEL` | `bge-m3` | Modele d'embeddings |
+| `LLM_MAX_CONCURRENCY` | `24` | Semaphore cap |
+| `LLM_RETRY_MAX_ATTEMPTS` | `3` | Tentatives par modele |
+| `LLM_RETRY_BACKOFF_BASE_S` / `_MAX_S` | `0.5` / `8.0` | Backoff jitter |
+| `LLM_CALL_TIMEOUT_SECONDS` | `120` | Timeout read par appel (SMP-324) |
 
 ## Open-Meteo
 
-**Usage** : `api/src/agent/tools.py` (fonction `get_weather`)
+Deux endpoints sont consommes, tous via `get_http_client()` (singleton) :
 
-Service meteo gratuit, sans cle API. Utilise pour obtenir des previsions reelles dans le pipeline IA et l'endpoint weather des trips.
+### Forecast (`agent/tools/weather.py`)
 
-- **API** : GET `https://api.open-meteo.com/v1/forecast`
-- **Parametres** : latitude, longitude, start_date, end_date, daily metrics
-- **Metrics** : `temperature_2m_max`, `temperature_2m_min`, `precipitation_probability_max`
-- **Timeout** : 10 secondes
-- **Fallback** : Estimation par zone climatique (latitude) + saison si l'API echoue
+```
+GET {OPEN_METEO_BASE_URL}/v1/forecast?latitude=..&longitude=..&start_date=..&end_date=..&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max
+```
 
-### Environnement
+Utilise par le tool `get_weather` du graph LangGraph et par l'endpoint weather des trips. Gratuit, sans cle API. Mis en cache via `idempotency_cache.get/set("get_weather", params)` (Redis-backed ou in-memory si Redis absent). Sur echec : fallback estimation par zone climatique (latitude) + saison.
+
+### Geocoding (`src/integrations/open_meteo/geocoding.py`)
+
+```
+GET https://geocoding-api.open-meteo.com/v1/search?name={place}&language={fr|en}&count=5&format=json
+```
+
+`search_places(name, language, count)` -> `list[GeocodedPlace]` (name, lat, lon, country, country_code, admin1, population). Resolveur multilingue qui plug dans `airportsdata.search_nearest()` pour la resolution IATA quand l'utilisateur saisit "Singapour", "Tokyo", "Marrakech" en FR. Timeout 5 s, fallback `[]` sur echec — le resolveur IATA a d'autres etages de fallback.
+
+### Variables d'environnement
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `OPEN_METEO_BASE_URL` | `https://api.open-meteo.com` | URL de base Open-Meteo |
+| `OPEN_METEO_BASE_URL` | `https://api.open-meteo.com` | Base URL forecast |
+| `OPEN_METEO_GEOCODING_BASE_URL` | `https://geocoding-api.open-meteo.com` | Base URL geocoding |
+
+## Patterns communs
+
+### Singleton `httpx.AsyncClient` (`src/integrations/http_client.py`)
+
+Un seul pool process-wide, owne par le lifespan FastAPI. Limites : 100 connexions totales, 20 keepalive, timeout default 30 s. Chaque caller passe son `timeout=` per request — Amadeus flight offers tape 20 s, Amadeus order 30 s, Unsplash 10 s, Open-Meteo 5 s. `init_http_client()` est idempotent (safe sur warm reload) ; `close_http_client()` est appele en teardown.
+
+Exceptions historiques :
+- **LLMRouter** maintient son propre `httpx.AsyncClient` car il porte un `Authorization` bearer et un timeout long fixe.
+- **AirLabs** utilise `httpx.get` synchrone — dette technique a migrer.
+
+### Service facade obligatoire
+
+Pattern impose par CLAUDE.md : `Route -> Service (metier) -> Integration wrapper`. Toute nouvelle integration passe par `src/services/<name>_service.py` (facade thin avec methodes statiques delegant au client). Les routes ne peuvent jamais importer `amadeus_client`, `airlabs_client`, `StripeClient`, `unsplash_client` directement.
+
+### Cache Redis pour les integrations lentes
+
+Quand un appel externe est cher ou rate-limite (Amadeus hotels, Open-Meteo forecast, agent tool results), le caller wrap dans `idempotency_cache` (`src/utils/idempotency.py`) qui pointe sur Redis quand `REDIS_URL` est defini et fallback in-memory sinon. Le client Redis lui-meme est centralise dans `src/integrations/redis_client.py` (singleton avec ping memoise — None si indispo).
+
+### Lazy-init des SDK
+
+Pour Stripe le module pose `stripe.api_key` au load mais le SDK ne pre-cree pas de connexion ; pour Firebase l'`initialize_app(cred)` est ramene a un no-op si le service account est absent. Aucune mutation globale ne casse le boot.
+
+### Idempotency cote provider
+
+- Stripe : `idempotency_key` sur toute mutation (create/capture/cancel PaymentIntent, attach PaymentMethod, refund, subscription).
+- Webhooks Stripe : `StripeEvent` deduplique par `stripe_event_id`.
+- Amadeus : pas d'idempotency native — les retries restent au niveau HTTP (`@amadeus_retry`).
+
+### Tracing et observabilite
+
+Chaque integration logge structuredly avec contexte (`model`, `url`, `params`, `status`, `latency_s`). Le middleware `request_id` injecte un `X-Request-ID` propage dans tous les logs sortants via `contextvars`. Les LLMRouter responses portent un champ `_router` synthetique pour debug.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| Amadeus API logging non implemente | Le modele `AmadeusApiLog` existe mais aucun appel Amadeus ne cree de log. Fichier : `api/src/models/amadeus_api_log.py` | P2 |
-| Pas de circuit breaker | Aucun circuit breaker sur les appels externes (Amadeus, AirLabs, Unsplash). Un service down entraine des timeouts repetes. Fichiers : tous les clients | P1 |
-| Stripe en mode test uniquement | L'URL de base Amadeus est `test.api.amadeus.com` par defaut. L'endpoint `confirm-test` permet de payer avec la carte 4242. Fichier : `api/src/api/payments/routes.py` | P1 |
-| Pas de monitoring des webhooks | Les erreurs de traitement des webhooks Stripe sont persistees dans `processing_error` mais pas d'alerte. Fichier : `api/src/services/stripe_webhooks_service.py` | P2 |
-| Cache Unsplash non distribue | Le cache Unsplash est in-memory (dict). En multi-instance, chaque worker refait les requetes. Fichier : `api/src/integrations/unsplash/client.py` | P2 |
-| AirLabs cache synchrone | Le client AirLabs utilise `httpx` synchrone (pas async). Fichier : `api/src/integrations/airlabs/client.py` ligne 37 | P2 |
+| AirLabs sync httpx | `httpx.get(...)` synchrone dans `airlabs/client.py` bloque l'event loop FastAPI ; migrer sur `get_http_client()` async | P1 |
+| Pas de circuit breaker | Aucun breaker sur Amadeus / AirLabs / Unsplash / LLM. Un provider down entraine timeouts repetes sur chaque requete tant qu'il ne repond pas | P1 |
+| Amadeus en mode test par defaut | `AMADEUS_BASE_URL` pointe sur `test.api.amadeus.com` (cartes Stripe test 4242). Switch production = changement infra | P1 |
+| Cache Unsplash et AirLabs non distribues | Dict in-memory par worker ; en multi-instance chaque worker refait les requetes. Migrer sur Redis avec le pattern `idempotency_cache` | P2 |
+| Pas de logs persistes Amadeus | Modele `AmadeusApiLog` cree mais aucun appel n'ecrit dedans ; pas de tracabilite cross-restart des quotas consommes | P2 |
+| Monitoring webhooks Stripe | Les erreurs de handler sont persistees dans `StripeEvent.processing_error` mais aucune alerte n'est emise — risque de drift silencieux sur les downgrades Premium | P2 |
+| LLM router : pas de cache resultats | Pas d'option de cache LLM (semantic ou exact-match) ; les nodes IA paient le full cost a chaque relance | P2 |
+| Pas de health probe externe | Aucun endpoint `/health/integrations` qui ping chaque provider. Diagnostic se fait en reactif sur erreur upstream | P3 |

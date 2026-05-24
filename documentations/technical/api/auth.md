@@ -1,304 +1,237 @@
-# Authentification & Autorisation
+# Authentification & Autorisation - Internals techniques
 
-> Derniere mise a jour : 2026-03-26
+> Derniere mise a jour : 2026-05-23
 
 ## Vue d'ensemble
 
-L'API BagTrip utilise un systeme d'authentification multi-methode : email/password classique et OAuth (Google, Apple). L'authentification repose sur des **JWT** (JSON Web Tokens) signes en HS256, avec un mecanisme de **refresh token rotation** pour la securite. L'autorisation s'appuie sur un systeme de **roles** (Owner/Viewer pour les trips) et de **plans** (FREE/PREMIUM/ADMIN) pour le gating des features.
+Ce document decrit les **internals techniques** du sous-systeme auth de l'API BagTrip : format JWT, rotation des refresh tokens, cookies, dependencies FastAPI, verifiers OAuth, rate limiting. Le pendant metier (parcours utilisateur, regles de validation, schemas exposes) est documente dans `documentations/functional/authentication.md` - les deux fichiers se completent et ne se recouvrent pas.
 
-## Methodes d'authentification
+La surface d'attaque couverte ici est :
+- vol d'access token -> mitigation par expiration courte + JWT signe
+- vol de refresh token -> mitigation par rotation systematique + revoke chain sur reuse detecte
+- vol de cookies -> mitigation par httpOnly, `Secure`, `SameSite=Lax`, path scoping
+- credential stuffing -> rate limit Redis 5 req/min par IP sur tous les endpoints sensibles
+- tampering du token (forge, alg=none) -> verification stricte HS256 avec secret, ou RS256 + JWKS pour les ID tokens OAuth
+- escalade de privilege cross-trip -> dependency `TripAccess` qui renvoie 404 (jamais 403) pour ne pas leaker l'existence d'un trip
 
-### 1. Email / Password
+Stack auth : `python-jose` (JWT), `bcrypt` (passwords), `secrets.token_urlsafe(64)` (refresh tokens opaques), `redis` (rate limit + counters), `cachetools.TTLCache` (fallback in-memory).
 
-**Routes** : `POST /v1/auth/register` et `POST /v1/auth/login`
+## JWT internals
 
-**Inscription** :
-1. Verification qu'aucun utilisateur n'existe avec cet email
-2. Hash du mot de passe avec **bcrypt** (`bcrypt.hashpw` + `gensalt`)
-3. Creation du user en DB
-4. Creation d'un client Stripe (graceful si echec)
-5. Generation de l'access token + refresh token
-6. Set des cookies httpOnly + retour JSON
-
-**Connexion** :
-1. Recherche du user par email
-2. Verification du mot de passe avec `bcrypt.checkpw`
-3. Generation de l'access token + refresh token
-4. Set des cookies httpOnly + retour JSON
-
-**Validation** : mot de passe minimum 6 caracteres, email valide (`EmailStr` Pydantic).
-
-### 2. Google Sign-In
-
-**Route** : `POST /v1/auth/google`
-**Fichier verifier** : `api/src/api/auth/google_token_verifier.py`
-
-**Fonctionnement** :
-1. Reception d'un `idToken` (Firebase ID token ou Google OAuth token)
-2. Verification du token :
-   - **Dev** : decode sans verification de signature, verifie juste l'issuer
-   - **Production** : verification complete RS256 via les cles publiques Google
-3. Extraction de l'email et du nom depuis les claims
-4. Recherche ou creation de l'utilisateur
-5. Pour les nouveaux utilisateurs sociaux : mot de passe factice hashe (jamais utilise)
-
-**Issuers acceptes** :
-- Firebase : `https://securetoken.google.com/{PROJECT_ID}` (audience = project_id)
-- Google OAuth : `https://accounts.google.com` (audience = `GOOGLE_OAUTH_CLIENT_ID`)
-
-**Cache des cles publiques** : les cles Google sont cachees 1 heure (`_google_public_keys_cache`).
-
-### 3. Apple Sign-In
-
-**Route** : `POST /v1/auth/apple`
-**Fichier verifier** : `api/src/api/auth/apple_token_verifier.py`
-
-**Fonctionnement** :
-1. Reception d'un `idToken` (Apple ID token)
-2. Verification du token :
-   - **Dev** : decode sans verification de signature, verifie l'issuer (`https://appleid.apple.com`)
-   - **Production** : verification complete RS256 via Apple JWKS
-3. Extraction de l'email (peut etre masque → fallback `{sub}@privaterelay.appleid.com`)
-4. Recherche ou creation de l'utilisateur
-
-**JWKS Apple** : telechargees depuis `https://appleid.apple.com/auth/keys`, cachees 1 heure.
-
-**Audience production** : `APPLE_BUNDLE_ID`
-
-## Tokens JWT
-
-### Access Token
-
-**Fichier** : `api/src/api/auth/routes.py` (`create_access_token`)
+### Format et signature
 
 | Champ | Valeur |
 |-------|--------|
-| Algorithme | HS256 |
-| Secret | `JWT_SECRET` (env) |
-| Payload | `{userId, exp, type: "access"}` |
-| Expiration | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` (defaut: 60 min) |
-| Format | `Bearer` token dans le header `Authorization` |
+| Algorithme | `HS256` (HMAC-SHA256, symetrique) |
+| Secret | `settings.JWT_SECRET` (env, charge au boot) |
+| Lib | `jose.jwt.encode` / `jose.jwt.decode` |
+| Payload | `{"userId": str(uuid), "exp": datetime, "type": "access"}` |
+| Expiration access | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` (defaut 60 min) |
 
-### Refresh Token
+Construit dans `api/src/api/auth/routes.py::create_access_token` :
 
-**Fichier** : `api/src/api/auth/routes.py` (`create_refresh_token`)
+```python
+expire = datetime.now(UTC) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+payload = {"userId": str(user_id), "exp": expire, "type": "access"}
+token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+```
 
-| Champ | Valeur |
-|-------|--------|
-| Format | `secrets.token_urlsafe(64)` (opaque, pas un JWT) |
-| Stockage | Table `RefreshToken` en DB (user_id, token, expires_at, revoked) |
-| Expiration | `JWT_REFRESH_TOKEN_EXPIRE_DAYS` (defaut: 30 jours) |
+### Verification (`api/src/api/auth/middleware.py::verify_jwt_token`)
 
-### Rotation de tokens
+1. `jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])` - la liste explicite empeche l'attaque `alg=none` ou la confusion HS256/RS256.
+2. Verification du champ `type` : si present, doit valoir `"access"`. Si absent, accepte pour retrocompatibilite avec d'anciens tokens emis avant l'ajout du champ.
+3. Retour de `payload["userId"]` ou `None` sur `JWTError` (signature invalide, token expire, format casse).
 
-**Route** : `POST /v1/auth/refresh`
+La signature symetrique HS256 est volontaire : pas de besoin de cle publique cote client, les tokens ne sont jamais valides par un tiers. Si l'API devait federer son auth (ex : passer le token a un microservice externe), une migration vers RS256 + JWKS serait necessaire.
 
-1. Verification du refresh token en DB (non revoque, non expire)
-2. **Revocation** de l'ancien token (`revoked = True`)
-3. Generation d'un nouveau access token + nouveau refresh token
-4. Mise a jour des cookies
+## Refresh token rotation
 
-Ce mecanisme empeche la reutilisation d'un refresh token vole : chaque refresh genere un nouveau pair de tokens.
+### Format
 
-### Cookies
+Le refresh token **n'est pas un JWT** : c'est une chaine opaque generee via `secrets.token_urlsafe(64)` (~86 caracteres URL-safe, ~512 bits d'entropie). Elle est stockee en clair (TODO : sha256 en DB - voir "Ce qu'il manque") dans la table `refresh_tokens` :
 
-**Fichier** : `api/src/utils/cookies.py`
+| Colonne | Type | Role |
+|---------|------|------|
+| `id` | `UUID` | PK |
+| `user_id` | `UUID FK users.id` | Owner |
+| `token` | `String UNIQUE INDEX` | Valeur opaque |
+| `expires_at` | `DateTime(tz)` | Maintenant + `JWT_REFRESH_TOKEN_EXPIRE_DAYS` (defaut 30j) |
+| `revoked` | `Boolean` | Flag de revocation |
+| `created_at` | `DateTime(tz)` | `server_default=now()` |
 
-Trois cookies sont definis a chaque authentification :
+Fichier modele : `api/src/models/refresh_token.py`.
 
-| Cookie | httpOnly | Path | Max-Age | Usage |
-|--------|----------|------|---------|-------|
-| `access_token` | Oui | `/` | `expires_in` | Admin panel (Next.js) |
-| `refresh_token` | Oui | `/v1/auth` | 30 jours | Refresh uniquement |
-| `auth-status` | Non | `/` | `expires_in` | Front JS (detecter si connecte) |
+### Endpoint `POST /v1/auth/refresh`
 
-Parametres configures : `COOKIE_SECURE` (HTTPS), `COOKIE_DOMAIN`, `samesite=lax`.
+Sequence (`api/src/api/auth/routes.py::refresh`) :
 
-## Middleware JWT (`api/src/api/auth/middleware.py`)
+1. Query DB : `RefreshToken.token == req.refresh_token AND revoked == False`.
+2. Si introuvable OU `expires_at < now()` -> `401 Invalid or expired refresh token`.
+3. **Revocation immediate** de l'ancien token : `stored.revoked = True`.
+4. Generation d'un nouveau pair access + refresh (`create_access_token` + `create_refresh_token`).
+5. `db.commit()` atomique sur la revocation + insertion du nouveau token.
+6. `set_auth_cookies(response, access_token, new_refresh, expires_in)` re-set les 3 cookies.
+7. Retour `AuthResponse` complet (mobile lit le body, Next.js lit les cookies).
 
-### `verify_jwt_token(token) -> str | None`
+### Detection de reuse
 
-Decode et verifie un token JWT. Retourne le `userId` ou `None` si invalide/expire.
+Le contrat est : un refresh token n'est valide qu'**une seule fois**. Si un attaquant vole un refresh token et l'utilise avant la victime, la victime se retrouve avec un token marque `revoked = True`. Lors du prochain refresh legitime, la query du step 1 renvoie `None` -> 401 -> le client est forcement deconnecte et redirige vers login.
 
-Verification :
-- Decode avec `settings.JWT_SECRET`, algorithme `HS256`
-- Verifie que `type` est `"access"` (ou absent pour retro-compatibilite)
-- Retourne `payload["userId"]`
+L'implementation actuelle **n'implemente pas encore le revoke-chain** : sur reuse detecte (refresh d'un token deja revoque), la specification de securite voudrait revoquer **tous** les tokens actifs de cet utilisateur (`logout-all` automatique) pour casser la session de l'attaquant. Aujourd'hui, le 401 protege la victime mais l'attaquant garde son access token jusqu'a son expiration naturelle (60 min). Voir "Ce qu'il manque".
 
-### `get_current_user` (FastAPI Dependency)
+### Logout
 
-Mode dual : accepte le JWT depuis un cookie OU un header Bearer.
+- `POST /v1/auth/logout` : revoque le refresh token courant (lu depuis le body ou le cookie `refresh_token`). Garde les autres sessions actives.
+- `POST /v1/auth/logout-all` : `UPDATE refresh_tokens SET revoked = True WHERE user_id = ? AND revoked = False`. Tue toutes les sessions.
 
-Ordre de priorite :
-1. **Cookie** `access_token` (pour l'admin panel Next.js)
-2. **Header** `Authorization: Bearer <token>` (pour l'app mobile)
+Les deux endpoints terminent par `clear_auth_cookies(response)`.
 
-Enchainement :
-1. Extraction du token
-2. `verify_jwt_token(token)` → userId
-3. Query DB `User.id == userId`
-4. Retourne l'objet `User` ou leve `401 Unauthorized`
+## Cookies
 
-## Guards (Dependencies FastAPI)
+Trois cookies definis dans `api/src/utils/cookies.py::set_auth_cookies`. Le prefixe `COOKIE_NAME_PREFIX` permet de partitionner les environnements (dev / preprod / prod) sur le meme domaine.
 
-### Admin Guard (`api/src/api/auth/admin_guard.py`)
+| Cookie | httpOnly | Secure | SameSite | Path | Max-Age | Role |
+|--------|----------|--------|----------|------|---------|------|
+| `{prefix}access_token` | Oui | `COOKIE_SECURE` | `lax` | `/` | `expires_in` (3600s) | JWT access pour le admin panel Next.js (SSR) |
+| `{prefix}refresh_token` | Oui | `COOKIE_SECURE` | `lax` | `/v1/auth` | 30j fixe | Rotation token, jamais envoye sur les autres routes |
+| `{prefix}auth-status` | **Non** | `COOKIE_SECURE` | `lax` | `/` | `expires_in` | Sentinelle lisible par le JS du front pour afficher la UI connectee sans deballer le JWT |
+
+Points cles :
+- `httpOnly` sur les deux tokens : JavaScript ne peut pas les lire -> mitige le vol par XSS.
+- `path="/v1/auth"` sur le refresh : il n'est envoye automatiquement que sur les endpoints d'auth, jamais sur les routes metier -> reduit la surface de leak (logs proxy, services tiers).
+- `auth-status=authenticated` est intentionnellement public : c'est un flag UI, pas un token. Sa presence ne donne aucun droit cote serveur.
+- `domain` configurable via `COOKIE_DOMAIN` pour partager les cookies entre `api.bagtrip.app` et `admin.bagtrip.app`.
+
+Suppression : `clear_auth_cookies` doit reutiliser le **meme `path`** que le `set_cookie` pour effectivement supprimer le cookie (browsers matchent name + path).
+
+## Middleware `get_current_user`
+
+Fichier : `api/src/api/auth/middleware.py`. Dependency FastAPI utilisee partout pour resoudre l'utilisateur courant.
+
+Le middleware est **dual-mode** : il accepte le token soit depuis un cookie, soit depuis un header `Authorization: Bearer`. Ordre de priorite :
+
+1. **Cookie** `{prefix}access_token` (admin panel Next.js, fetch SSR / Server Actions).
+2. **Header** `Authorization: Bearer <token>` (app mobile Flutter, qui ne gere pas les cookies cross-origin).
+
+Sequence :
+
+```python
+token = request.cookies.get(access_cookie_name()) or (credentials and credentials.credentials)
+if not token: raise 401
+user_id = verify_jwt_token(token)
+if not user_id: raise 401
+user = db.query(User).filter(User.id == user_id).first()
+if not user: raise 404 User not found
+return user
+```
+
+Note : le 404 sur `User not found` est volontaire et distinct du 401 sur token invalide. Cela permet de detecter un user supprime tout en gardant un access token techniquement valide (cas edge : suppression admin + token encore en cache cote client).
+
+`HTTPBearer(auto_error=False)` permet aux deux modes de coexister : sans header, FastAPI ne raise pas immediatement, on tombe sur la branche cookie.
+
+## Guards
+
+### `AdminGuard` (`api/src/api/auth/admin_guard.py`)
 
 ```python
 async def require_admin(current_user = Depends(get_current_user)) -> User:
-    if current_user.plan != "ADMIN":
+    if getattr(current_user, "plan", None) != "ADMIN":
         raise AppError("FORBIDDEN", 403, "Admin access required")
     return current_user
 ```
 
-Utilise par toutes les routes `/admin/*`.
+Utilisee par toutes les routes `/admin/*` (back-office Next.js). Le check est purement sur `user.plan == "ADMIN"`, pas de role table dedie.
 
-### Plan Guard (`api/src/api/auth/plan_guard.py`)
+### `PlanGuard` (`api/src/api/auth/plan_guard.py`)
 
-#### `require_ai_quota`
+Deux dependencies :
 
-Verifie que l'utilisateur a encore du quota IA pour le mois courant :
+- **`require_ai_quota`** : appelle `PlanService.check_ai_generation_quota(db, user)`. Le service reconcilie d'abord avec Stripe (`reconcile_plan_with_stripe`) pour eviter de bloquer un user PREMIUM dont le webhook `customer.subscription.created` est en retard, puis verifie le compteur mensuel. Leve `AppError("AI_QUOTA_EXCEEDED", 402)`. Utilisee sur : plan-trip stream, activity suggestions, baggage suggestions, post-trip suggestion.
+- **`require_premium`** : `PlanService.reconcile_plan_with_stripe(db, user)` -> si plan resolu == `FREE`, leve `AppError("UPGRADE_REQUIRED", 402, "Premium feature - upgrade your plan.")`. Utilisee sur les features premium-only (post-trip suggester).
 
-1. Determine le plan de l'utilisateur
-2. Recupere la limite mensuelle (`ai_generations_per_month`)
-3. Auto-reset si changement de mois
-4. Leve `AppError("AI_QUOTA_EXCEEDED", 402)` si quota epuise
+Le `402 Payment Required` est volontaire (semantique HTTP) et permet au client mobile de declencher le paywall sans confusion avec 401/403.
 
-Limites :
-- FREE : 3 generations/mois
-- PREMIUM/ADMIN : illimite
+### `TripAccess` (`api/src/api/auth/trip_access.py`)
 
-Utilise par : suggestions d'activites, suggestions de bagages, plan-trip stream, post-trip suggestion.
+Trois dependencies, toutes basees sur `_resolve_trip_access(db, trip_id, user_id)` :
 
-#### `require_premium`
+| Dependency | Roles autorises | Usage |
+|------------|-----------------|-------|
+| `get_trip_access` | OWNER, EDITOR, VIEWER | GET (lecture) |
+| `get_trip_editor_access` | OWNER, EDITOR | POST/PATCH/DELETE collaboratifs |
+| `get_trip_owner_access` | OWNER | Operations destructives (delete trip, share, plan settings) |
 
-Verifie que l'utilisateur a un plan PREMIUM ou ADMIN :
-```python
-if PlanService.get_plan(current_user).value == "FREE":
-    raise AppError("UPGRADE_REQUIRED", 402, "Premium feature — upgrade your plan.")
-```
+Resolution :
 
-Utilise par : post-trip suggestion.
+1. `Trip.query(id=tripId)`. Si introuvable -> `404 TRIP_NOT_FOUND`.
+2. Si `trip.user_id == current_user.id` -> `TripRole.OWNER`.
+3. Sinon, lookup `TripShare(trip_id, user_id)` -> role declare (`OWNER` / `EDITOR` / `VIEWER`).
+4. Sinon -> `404 TRIP_NOT_FOUND` **et pas 403**. Le 404 masque l'existence du trip a un attaquant qui tenterait d'enumerer les UUIDs.
 
-### Trip Access Guards (`api/src/api/auth/trip_access.py`)
+Le retour est un dataclass `TripAccess(trip, role)`, ce qui evite une seconde query DB cote route et permet aux handlers d'appliquer le redact role-aware (`redact_for_viewer(response, access.role)`).
 
-Systeme de roles Owner/Viewer pour les trips partages.
+## OAuth verifiers dev vs prod
 
-#### `TripAccess` dataclass
+Deux verifiers, meme philosophie : permissif en dev pour faciliter le travail sur simulateur sans configuration complete, strict en prod.
 
-```python
-@dataclass
-class TripAccess:
-    trip: Trip
-    role: TripRole  # OWNER ou VIEWER
-```
+### Google (`api/src/api/auth/google_token_verifier.py`)
 
-#### `get_trip_access` (lecture)
+**Dev (`NODE_ENV != "production"`)** :
+- `jwt.get_unverified_claims(id_token)` : decode du payload sans verification de signature.
+- Verifie uniquement que `iss` est dans la liste : `https://securetoken.google.com/{GOOGLE_FIREBASE_PROJECT_ID}`, `https://accounts.google.com`, `accounts.google.com`. Sinon, simple `logger.warning` - le token est quand meme accepte.
 
-1. Cherche le trip par `tripId`
-2. Si `trip.user_id == current_user.id` → `OWNER`
-3. Sinon, cherche dans `TripShare` → `VIEWER`
-4. Si pas d'acces → `AppError("TRIP_NOT_FOUND", 404)` (masque l'existence du trip)
+**Prod** :
+- Fetch des cles publiques Google : `https://www.googleapis.com/oauth2/v1/certs`, cachees 1h en process (`_google_public_keys_cache`).
+- Lookup `kid` dans le header non verifie -> selection de la cle.
+- Premier essai : decode avec `algorithms=["RS256"]`, audience = `GOOGLE_FIREBASE_PROJECT_ID`, issuer = `https://securetoken.google.com/{project_id}` (token Firebase, cas device reel).
+- Fallback : audience = `GOOGLE_OAUTH_CLIENT_ID`, issuer = `https://accounts.google.com` (token OAuth Google direct, cas simulateur).
+- Si les deux echouent -> `JWTError("Google token verification failed for all known audiences")`.
 
-Utilise pour les endpoints de lecture (GET).
+### Apple (`api/src/api/auth/apple_token_verifier.py`)
 
-#### `get_trip_owner_access` (ecriture)
+**Dev** :
+- `jwt.get_unverified_claims(id_token)`, verifie `iss == "https://appleid.apple.com"` avec simple warning si KO.
 
-Comme `get_trip_access` mais leve `AppError("FORBIDDEN", 403)` si le role n'est pas `OWNER`.
+**Prod** :
+- Fetch JWKS Apple : `https://appleid.apple.com/auth/keys`, cache 1h.
+- Lookup `kid` dans la liste des cles -> `jwk.construct(matching_key)` pour reconstituer la cle RSA.
+- `jwt.decode(id_token, public_key, algorithms=["RS256"], audience=APPLE_BUNDLE_ID, issuer="https://appleid.apple.com")`.
+- Si `APPLE_BUNDLE_ID` n'est pas configure -> raise immediat (refus de marcher en mode degrade en prod).
 
-Utilise pour les endpoints d'ecriture (POST, PUT, PATCH, DELETE).
+Le cache JWKS partage entre processus n'existe pas (variable globale par worker). Acceptable car le TTL est court (1h) et le cold-start cost est negligeable (~50ms).
 
-#### Masquage des donnees pour les viewers
+## Rate limit auth
 
-Les routes appliquent le masquage cote serveur pour les viewers :
-
-| Ressource | Champs masques pour VIEWER |
-|-----------|---------------------------|
-| Activities | `estimatedCost = None` |
-| Accommodations | `pricePerNight, currency, bookingReference = None` |
-| Budget Items | Liste vide retournee |
-| Budget Summary | `total_spent = 0, remaining = 0, by_category = {}` |
-| Flight Offers | Prix masques dans offer_json |
-| Flight Orders | `paymentId = None` |
-| Trip Home | `totalExpenses = 0` dans les stats |
-
-## Logout
-
-### `POST /v1/auth/logout`
-
-1. Recupere le refresh token depuis le body ou le cookie
-2. Marque le token comme revoque en DB
-3. Supprime les cookies d'authentification
-
-### `POST /v1/auth/logout-all`
-
-1. Marque **tous** les refresh tokens de l'utilisateur comme revoques
-2. Supprime les cookies d'authentification
-
-## Rate Limiting sur les endpoints auth
-
-**Fichier** : `api/src/middleware/rate_limit.py`
-
-Rate limiter per-IP sur les endpoints d'authentification :
-- **Limite** : 5 requetes/minute
-- **Endpoints** : `/v1/auth/login`, `/register`, `/google`, `/apple`, `/refresh`
-- **Implementation** : `TTLCache` (cachetools) avec maxsize 10000
-- **Reponse 429** : `{"detail": "Too many requests. Please try again later.", "retry_after": 60}`
-
-## Schemas (`api/src/api/auth/schemas.py`)
-
-| Schema | Champs |
-|--------|--------|
-| `SignupRequest` | email (EmailStr), password (min 6), fullName?, phone? |
-| `LoginRequest` | email (EmailStr), password |
-| `GoogleSignInRequest` | idToken |
-| `AppleSignInRequest` | idToken |
-| `RefreshTokenRequest` | refresh_token |
-| `LogoutRequest` | refresh_token? |
-| `UpdateUserRequest` | fullName?, phone? |
-| `UserResponse` | id, email, fullName, phone, createdAt, updatedAt, isProfileCompleted, plan, aiGenerationsRemaining, planExpiresAt |
-| `AuthResponse` | access_token, refresh_token, expires_in, token_type, user |
-
-## Flux complet d'authentification
+Fichier : `api/src/middleware/rate_limit.py`. Middleware ASGI applique a tous les `POST` sur :
 
 ```
-Client                          API
-  |                              |
-  |-- POST /v1/auth/register --> |
-  |                              |-- Hash password (bcrypt)
-  |                              |-- Create User in DB
-  |                              |-- Create Stripe Customer
-  |                              |-- create_access_token() → JWT HS256
-  |                              |-- create_refresh_token() → opaque, stored in DB
-  |                              |-- set_auth_cookies()
-  | <-- 201 AuthResponse ------- |
-  |                              |
-  |-- GET /v1/auth/me ---------> |
-  |   (Bearer: <access_token>)   |-- verify_jwt_token()
-  |                              |-- Query User by userId
-  | <-- 200 UserResponse ------- |
-  |                              |
-  |-- POST /v1/auth/refresh ---> |
-  |   {refresh_token: "..."}     |-- Find token in DB (non-revoked)
-  |                              |-- Revoke old token
-  |                              |-- Create new access + refresh tokens
-  | <-- 200 AuthResponse ------- |
-  |                              |
-  |-- POST /v1/auth/logout ----> |
-  |   {refresh_token: "..."}     |-- Revoke token in DB
-  |                              |-- clear_auth_cookies()
-  | <-- 204 ------------------- |
+/v1/auth/login
+/v1/auth/register
+/v1/auth/google
+/v1/auth/apple
+/v1/auth/refresh
 ```
+
+Parametres :
+
+- **Limite** : 5 requetes / 60 secondes par IP (`_AUTH_RATE_LIMIT_MAX = 5`).
+- **Cle** : `auth:{ip}`, ou `ip` provient de `X-Forwarded-For` (premier element, le proxy front est trusted) avec fallback sur `request.client.host`.
+- **Backend** : Redis (`INCR` + `EXPIRE` dans un pipeline atomique) si `REDIS_URL` configure, sinon `cachetools.TTLCache(maxsize=10000, ttl=60)` en process.
+- **Reponse 429** : `{"detail": "Too many requests. Please try again later.", "retry_after": 60}` + header `Retry-After: 60`.
+
+Le backend Redis est obligatoire en multi-worker prod (uvicorn -w 4) : la TTLCache in-memory n'est pas partagee entre workers, le rate limit s'effondre des 4 IPs distinctes par worker. Le fallback memoire reste utile en local et garantit que le service ne tombe pas si Redis est indisponible (mode degrade explicite logge).
+
+Le meme `_CounterStore` est reutilise par `ai_rate_limiter` (per-user, 5/min sur les endpoints IA) et `agent_chat_rate_limiter` (10/min) - l'abstraction Redis/memoire est unifiee.
 
 ## Ce qu'il manque
 
 | Element | Description | Priorite |
 |---------|-------------|----------|
-| JWT_SECRET par defaut en production | La valeur par defaut est `"dev-secret-key-change-in-production"`. Pas de validation forcee pour empecher son utilisation en production. Fichier : `api/src/config/env.py` ligne 50 | P0 |
-| Pas de password reset | Aucun endpoint pour la reinitialisation de mot de passe (forgot password, reset via email). Fichier : `api/src/api/auth/routes.py` | P1 |
-| Pas de verification d'email | Les emails ne sont pas verifies lors de l'inscription. Pas d'endpoint de confirmation. Fichier : `api/src/api/auth/routes.py` | P1 |
-| Pas de changement de mot de passe | Aucun endpoint pour changer le mot de passe (necessiterait la verification de l'ancien mot de passe). Fichier : `api/src/api/auth/routes.py` | P1 |
-| Pas de suppression de compte | Aucun endpoint pour supprimer son compte utilisateur (RGPD). Fichier : `api/src/api/auth/routes.py` | P1 |
-| Refresh token cleanup | Les refresh tokens revoques ou expires ne sont jamais nettoyes de la DB. Pas de job de purge. Fichier : `api/src/models/refresh_token.py` | P2 |
-| Apple Sign-In dev mode trop permissif | En dev mode, le token Apple est decode sans aucune verification de signature, seulement un warning si l'issuer ne correspond pas. Fichier : `api/src/api/auth/apple_token_verifier.py` lignes 39-48 | P2 |
-| Pas de brute-force protection avancee | Le rate limiter auth est per-IP (5/min) mais pas de lockout apres N tentatives echouees sur un compte. Fichier : `api/src/middleware/rate_limit.py` | P2 |
-| Pas de logging des connexions | Les connexions reussies/echouees ne sont pas loguees de maniere structuree (IP, user-agent, etc.) pour l'audit. Fichier : `api/src/api/auth/routes.py` | P2 |
+| Reuse-chain revoke | Sur reutilisation d'un refresh token deja revoque, ne pas se contenter de renvoyer 401 : revoquer tous les tokens actifs de l'utilisateur (logout-all automatique) et idealement notifier le user par email. Aujourd'hui l'attaquant garde son access token jusqu'a son expiration. Fichier : `api/src/api/auth/routes.py::refresh` lignes 525-538 | P0 |
+| Refresh token hashe en DB | Le token est stocke en clair dans `refresh_tokens.token`. Un dump DB leak des sessions valides. Stocker `sha256(token)` et comparer par hash. Fichier : `api/src/models/refresh_token.py` + `api/src/api/auth/routes.py::create_refresh_token` | P0 |
+| JWT_SECRET non valide en prod | La valeur par defaut `"dev-secret-key-change-in-production"` est acceptee en prod sans erreur de boot. Ajouter une assertion dans `src/config/env.py` si `NODE_ENV == "production"`. Fichier : `api/src/config/env.py` | P0 |
+| Apple dev mode trop permissif | En dev, signature non verifiee, issuer mismatch ne donne qu'un warning. Acceptable mais risque d'utiliser le mode dev en preprod par erreur. Forcer une verification minimum sur la dependence `NODE_ENV in ("staging", "production")`. Fichier : `api/src/api/auth/apple_token_verifier.py` lignes 39-48 | P1 |
+| Cleanup refresh tokens expires | Aucun job de purge. La table grossit lineairement avec les sessions (revoked + expires_at < now()). Cron daily qui DELETE WHERE revoked = True OR expires_at < now() - 7 days. | P1 |
+| Lockout par compte | Le rate limit est per-IP. Un attaquant avec un pool d'IPs peut bruteforce un compte specifique. Ajouter un compteur per-email avec lockout temporaire apres N echecs. Fichier : `api/src/api/auth/routes.py::login` | P2 |
+| Logs structures auth | Connexions reussies/echouees pas loggees de maniere exploitable (IP, user-agent, latence, raison de l'echec). Bloque l'audit et la detection d'anomalies. | P2 |
+| Token introspection endpoint | Pas de `/v1/auth/introspect` pour qu'un service tiers (admin panel SSR) verifie un token sans dupliquer la logique. Acceptable tant que tout passe par `get_current_user`, mais limite si on ouvre une seconde surface. | P3 |
