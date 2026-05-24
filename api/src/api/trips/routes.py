@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -24,12 +24,14 @@ from src.config.database import get_db
 from src.enums import NotificationType, TripStatus
 from src.models.flight_order import FlightOrder
 from src.models.user import User
+from src.services.cover_image.service import cover_image_service
 from src.services.device_token_service import DeviceTokenService
 from src.services.notification_messages import untitled_trip
 from src.services.notification_service import NotificationService
 from src.services.trips_service import TripsService
 from src.services.weather_service import WeatherService
 from src.utils.errors import AppError, create_http_exception
+from src.utils.locale import normalize_locale
 
 router = APIRouter(prefix="/v1/trips", tags=["Trips"])
 
@@ -54,19 +56,33 @@ def _enrich_with_completion(
 )
 async def create_trip(
     request: TripCreateRequest,
+    raw_request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
     """Créer un nouveau trip."""
     try:
-        # Auto-fetch cover image from Unsplash if not provided
+        # SMP-330 — pick a cover image via the no-API-key pipeline
+        # (Wikipedia → Wikidata → Commons → LLM rank → local re-host).
+        # If the caller already supplied a URL we honour it as-is.
         cover_url = request.coverImageUrl
+        cover_source: str | None = "user_selected" if cover_url else None
+        cover_candidates: list[dict] | None = None
         if not cover_url and request.destinationName:
-            from src.integrations.unsplash import unsplash_client
-
-            cover_url = await unsplash_client.fetch_cover_image(request.destinationName)
-            if not cover_url:
-                cover_url = unsplash_client.get_fallback_url(request.destinationName)
+            locale = normalize_locale(raw_request.headers.get("accept-language"))
+            result = await cover_image_service.pick_cover(request.destinationName, locale=locale)
+            if result is not None:
+                cover_url = result.primary_url
+                cover_source = result.primary_source
+                cover_candidates = [
+                    {
+                        "url": c.url,
+                        "source": c.source,
+                        "title": c.title,
+                        "attribution": c.attribution,
+                    }
+                    for c in result.candidates
+                ]
 
         trip = TripsService.create_trip(
             db=db,
@@ -80,6 +96,8 @@ async def create_trip(
             destination_name=request.destinationName,
             nb_travelers=request.nbTravelers,
             cover_image_url=cover_url,
+            cover_image_source=cover_source,
+            cover_image_candidates=cover_candidates,
             budget_target=request.budgetTarget,
             origin=request.origin,
             date_mode=request.dateMode,
@@ -260,6 +278,74 @@ async def update_trip(
             budget_target=request.budgetTarget,
             date_mode=request.dateMode,
         )
+        resp = TripResponse.model_validate(trip)
+        resp.role = "OWNER"
+        _enrich_with_completion(db, [trip], [resp])
+        return resp
+    except AppError as e:
+        raise create_http_exception(e) from e
+
+
+@router.post(
+    "/{tripId}/cover/refresh",
+    response_model=TripResponse,
+    summary="Refresh trip cover candidates",
+    description=(
+        "Re-pick the cover image and alternatives for the trip's destination. "
+        "URLs already in the current candidates list are excluded so the user "
+        "gets fresh options each time. Honours Accept-Language for locale. "
+        "Idempotent: same destination + same exclusion set yields the same "
+        "result thanks to the cover image cache."
+    ),
+)
+async def refresh_trip_cover(
+    raw_request: Request,
+    access: Annotated[TripAccess, Depends(get_trip_owner_access)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Re-pick a cover image without consuming options the user already saw."""
+    try:
+        trip = access.trip
+        destination = trip.destination_name or trip.destination_iata
+        if not destination:
+            raise AppError(
+                "TRIP_DESTINATION_MISSING",
+                400,
+                "Trip has no destination_name or destination_iata to base a cover on.",
+            )
+        existing_urls: set[str] = set()
+        if trip.cover_image_url:
+            existing_urls.add(trip.cover_image_url)
+        for cand in trip.cover_image_candidates or []:
+            url = cand.get("url") if isinstance(cand, dict) else None
+            if url:
+                existing_urls.add(url)
+
+        locale = normalize_locale(raw_request.headers.get("accept-language"))
+        result = await cover_image_service.refresh_cover(
+            destination, locale=locale, exclude_urls=existing_urls
+        )
+        if result is None:
+            raise AppError(
+                "COVER_NO_CANDIDATES",
+                404,
+                "No fresh cover candidates available for this destination.",
+            )
+
+        trip.cover_image_url = result.primary_url
+        trip.cover_image_source = result.primary_source
+        trip.cover_image_candidates = [
+            {
+                "url": c.url,
+                "source": c.source,
+                "title": c.title,
+                "attribution": c.attribution,
+            }
+            for c in result.candidates
+        ]
+        db.commit()
+        db.refresh(trip)
+
         resp = TripResponse.model_validate(trip)
         resp.role = "OWNER"
         _enrich_with_completion(db, [trip], [resp])

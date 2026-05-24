@@ -1839,5 +1839,10 @@
   "activitiesPanelTabRecos": "Recos",
   "activitiesPanelEmptyRecos": "No restaurant or transport recommendations for this trip.",
   "activitiesPanelSectionRestaurants": "Restaurants",
-  "activitiesPanelSectionTransports": "Transports"
+  "activitiesPanelSectionTransports": "Transports",
+  "coverPickerTitle": "Change cover photo",
+  "coverPickerEmpty": "No alternatives available — tap \"Find more\" to refresh.",
+  "coverPickerFindMore": "Find more photos",
+  "coverPickerCurrentBadge": "Current",
+  "coverChangeButton": "Change photo"
 }

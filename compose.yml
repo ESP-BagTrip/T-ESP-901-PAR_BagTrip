@@ -46,6 +46,10 @@ services:
       - ./api/uv.lock:/app/uv.lock
       - ./api/alembic:/app/alembic
       - ./api/alembic.ini:/app/alembic.ini
+      # SMP-330 — cover image store (rehosted Wikipedia/Commons photos).
+      # Named volume so it survives ``docker compose down`` and is
+      # shared with the (future) dev static server.
+      - covers_data:/var/lib/bagtrip/covers
     environment:
       # Python path for alembic & src imports
       - PYTHONPATH=/app
@@ -60,6 +64,11 @@ services:
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
       - REDIS_URL=redis://redis:6379/0
+      # SMP-330 — local cover store config; the dev public URL points at
+      # the dev API host so curl/browser tests work without going through
+      # Caddy. Override in .env if you front the dev stack with a proxy.
+      - COVERS_STORAGE_DIR=/var/lib/bagtrip/covers
+      - COVERS_PUBLIC_URL_BASE=${COVERS_PUBLIC_URL_BASE:-http://localhost:3000/covers}
     command: >
       sh -c "
         uv sync &&
@@ -121,6 +130,7 @@ volumes:
   postgres_data:
   redis_data:
   admin_node_modules:
+  covers_data:
   # sonarqube_data:
   # sonarqube_extensions:
   # sonarqube_logs:

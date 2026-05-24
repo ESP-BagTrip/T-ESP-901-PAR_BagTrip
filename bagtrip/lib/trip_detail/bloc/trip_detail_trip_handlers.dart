@@ -170,4 +170,55 @@ extension _TripDetailTripHandlers on TripDetailBloc {
       emit(loaded.copyWith(clearOperationError: true));
     }
   }
+
+  /// SMP-330 — POST /trips/{id}/cover/refresh.
+  ///
+  /// No optimistic update: until the backend responds we can't surface a
+  /// new URL or the new candidates list, so we just await the call and
+  /// merge the freshly built trip object into the loaded state.
+  Future<void> _onRefreshTripCoverFromDetail(
+    RefreshTripCoverFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final result = await _tripRepository.refreshTripCover(_tripId!);
+    if (isClosed) return;
+
+    switch (result) {
+      case Success(:final data):
+        emit(loaded.copyWith(trip: data));
+      case Failure(:final error):
+        emit(loaded.copyWith(operationError: error));
+        emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
+
+  /// SMP-330 — user picked one of the alternative covers. Optimistic UI
+  /// rolls back on failure.
+  Future<void> _onSelectTripCoverFromDetail(
+    SelectTripCoverFromDetail event,
+    Emitter<TripDetailState> emit,
+  ) async {
+    if (state is! TripDetailLoaded || _tripId == null) return;
+    final loaded = state as TripDetailLoaded;
+
+    final updatedTrip = loaded.trip.copyWith(
+      coverImageUrl: event.coverImageUrl,
+      coverImageSource: 'user_selected',
+    );
+    emit(loaded.copyWith(trip: updatedTrip));
+
+    final result = await _tripRepository.updateTrip(_tripId!, {
+      'coverImageUrl': event.coverImageUrl,
+    });
+
+    if (isClosed) return;
+
+    if (result case Failure(:final error)) {
+      emit(loaded.copyWith(trip: loaded.trip, operationError: error));
+      emit(loaded.copyWith(clearOperationError: true));
+    }
+  }
 }

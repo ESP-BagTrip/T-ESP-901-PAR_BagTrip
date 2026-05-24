@@ -23,9 +23,20 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from src.integrations.cover_image.types import CoverCandidate
+from src.services.cover_image.service import CoverResult
 from src.services.inspire_orchestrator import InspireOrchestrator, InspireRequest
 from src.services.llm_router import LLMRouter
 from src.utils.errors import AppError
+
+
+def _cover_result(url: str) -> CoverResult:
+    """Build a CoverResult that mimics the new no-key pipeline output."""
+    return CoverResult(
+        primary_url=url,
+        primary_source="wikipedia",
+        candidates=[CoverCandidate(url=url, source="wikipedia")],
+    )
 
 # ── Fixtures ──────────────────────────────────────────────────────────
 
@@ -125,8 +136,8 @@ async def test_full_path_amadeus_then_llm_ranker(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value="https://images.unsplash.com/some.jpg"),
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=_cover_result("https://images.unsplash.com/some.jpg")),
     )
 
     llm_picks = {
@@ -195,12 +206,8 @@ async def test_llm_hallucinates_iata_outside_candidate_set(monkeypatch):
         AsyncMock(return_value={"avg_temp_c": 25, "description": "warm"}),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
         AsyncMock(return_value=None),
-    )
-    monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.get_fallback_url",
-        MagicMock(return_value="https://fallback"),
     )
 
     # LLM returns one valid IATA and one fake one — only the valid one survives.
@@ -244,8 +251,8 @@ async def test_amadeus_failure_falls_back_to_llm_only(monkeypatch):
         AsyncMock(side_effect=AppError("UPSTREAM_ERROR", 502, "boom")),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value="https://img"),
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=_cover_result("https://img")),
     )
     # The fallback uses ``destination_quick``: the LLM ships an IATA code
     # per destination as the resolution key plus English city/country.
@@ -313,12 +320,8 @@ async def test_inspire_returns_only_unknown_iatas_falls_back(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
         AsyncMock(return_value=None),
-    )
-    monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.get_fallback_url",
-        MagicMock(return_value="https://fallback"),
     )
     monkeypatch.setattr(
         LLMRouter,
@@ -362,12 +365,8 @@ async def test_fallback_city_search_when_iata_unknown(monkeypatch):
         AsyncMock(side_effect=AppError("UPSTREAM_ERROR", 502, "down")),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
         AsyncMock(return_value=None),
-    )
-    monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.get_fallback_url",
-        MagicMock(return_value="https://fallback"),
     )
     monkeypatch.setattr(
         LLMRouter,
@@ -411,8 +410,8 @@ async def test_fallback_french_locale_returns_full_list(monkeypatch):
         AsyncMock(side_effect=AppError("UPSTREAM_ERROR", 404, "Resource not found")),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value="https://img"),
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=_cover_result("https://img")),
     )
     monkeypatch.setattr(
         LLMRouter,
@@ -475,8 +474,8 @@ async def test_fallback_overfetch_compensates_unresolvable(monkeypatch):
         AsyncMock(side_effect=AppError("UPSTREAM_ERROR", 502, "down")),
     )
     monkeypatch.setattr(
-        "src.services.inspire_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value="https://img"),
+        "src.services.inspire_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=_cover_result("https://img")),
     )
     # 4 suggestions (pick_count + FALLBACK_OVERFETCH): two unresolvable,
     # two valid — the final list must still hold pick_count cards.

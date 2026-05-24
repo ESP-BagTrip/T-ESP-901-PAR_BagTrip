@@ -6698,6 +6698,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Transports'**
   String get activitiesPanelSectionTransports;
+
+  /// No description provided for @coverPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer la photo de couverture'**
+  String get coverPickerTitle;
+
+  /// No description provided for @coverPickerEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune alternative disponible — appuyez sur « Trouver d\'autres photos » pour relancer.'**
+  String get coverPickerEmpty;
+
+  /// No description provided for @coverPickerFindMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver d\'autres photos'**
+  String get coverPickerFindMore;
+
+  /// No description provided for @coverPickerCurrentBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actuelle'**
+  String get coverPickerCurrentBadge;
+
+  /// No description provided for @coverChangeButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer la photo'**
+  String get coverChangeButton;
 }
 
 class _AppLocalizationsDelegate

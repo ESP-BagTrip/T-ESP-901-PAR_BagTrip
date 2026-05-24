@@ -5,6 +5,7 @@ import traceback
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.config.database import engine
@@ -105,6 +106,19 @@ if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
 
 # Inclusion des routes - toutes sous /v1 (ordre préservé dans router_registry)
 register_routers(app)
+
+# SMP-330 — local cover-image static mount. In prod the request never
+# reaches FastAPI because Caddy intercepts ``/covers/*`` first (see
+# Caddyfile + compose.prod.yml volume mount). In dev there is no Caddy
+# in front, so FastAPI itself serves the rehosted Wikipedia/Commons
+# photos at the same URL shape, keeping the client config identical.
+# ``check_dir=False`` means we don't fail to start when the directory
+# does not exist yet — the LocalCoverStore creates it on first write.
+app.mount(
+    "/covers",
+    StaticFiles(directory=settings.COVERS_STORAGE_DIR, check_dir=False),
+    name="covers",
+)
 
 
 # Gestion globale des erreurs

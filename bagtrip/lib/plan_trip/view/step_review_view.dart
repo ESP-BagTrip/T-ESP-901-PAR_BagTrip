@@ -15,7 +15,6 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/helpers/budget_breakdown.dart';
-import 'package:bagtrip/plan_trip/helpers/destination_cover.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
@@ -134,12 +133,13 @@ class StepReviewView extends StatelessWidget {
   }
 
   String _resolveCoverUrl(TripPlan plan, PlanTripState state) {
+    // SMP-330 — the backend's no-API-key cover pipeline already populates
+    // ``imageUrl`` for every AI destination, so the client doesn't keep a
+    // parallel continent-keyword fallback anymore. Empty string lets the
+    // hero render its gradient placeholder if the backend was unreachable.
     final aiImage = state.selectedAiDestination?.imageUrl;
     if (aiImage != null && aiImage.isNotEmpty) return aiImage;
-    return destinationCoverUrl(
-      city: plan.destinationCity,
-      country: plan.destinationCountry,
-    );
+    return '';
   }
 
   // --------------------------------------------------------------------------

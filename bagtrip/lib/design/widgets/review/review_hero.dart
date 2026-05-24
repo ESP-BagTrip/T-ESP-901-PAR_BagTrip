@@ -28,6 +28,7 @@ class ReviewHero extends StatelessWidget {
     this.onBack,
     this.onClose,
     this.onOverflow,
+    this.onChangeCover,
     this.trailing,
     this.statusBadge,
   });
@@ -45,6 +46,10 @@ class ReviewHero extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onClose;
   final VoidCallback? onOverflow;
+
+  /// SMP-330 — opens the "Change cover" bottom sheet. When null, no
+  /// camera button is rendered in the hero's nav row.
+  final VoidCallback? onChangeCover;
 
   /// Slot rendered next to the metadata column, under the nav row.
   /// Typical usage: completion ring in edit mode.
@@ -64,6 +69,13 @@ class ReviewHero extends StatelessWidget {
       ],
       if (onClose != null) ...[
         HeroNavButton(icon: Icons.close_rounded, onPressed: onClose!),
+        const SizedBox(width: AppSpacing.space8),
+      ],
+      if (onChangeCover != null) ...[
+        HeroNavButton(
+          icon: Icons.photo_camera_outlined,
+          onPressed: onChangeCover!,
+        ),
         const SizedBox(width: AppSpacing.space8),
       ],
       if (onOverflow != null)

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID as _UUID
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -61,6 +61,12 @@ class Trip(Base):
     )
     origin: Mapped[str | None] = mapped_column(String, nullable=True, default="MANUAL")
     cover_image_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    # SMP-330 — track which no-API-key source produced the active cover image
+    # (wikipedia, wikidata, commons_geo, osm_map, user_selected, unsplash_legacy)
+    # and stash the alternative candidates surfaced during the pick so the
+    # "Change cover" UI can swap without re-querying every source.
+    cover_image_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    cover_image_candidates: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
     destination_name: Mapped[str | None] = mapped_column(String, nullable=True)
     destination_timezone: Mapped[str | None] = mapped_column(String, nullable=True)
     nb_travelers: Mapped[int | None] = mapped_column(Integer, nullable=True, default=1)
