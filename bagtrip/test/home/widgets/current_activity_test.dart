@@ -75,19 +75,18 @@ void main() {
     testWidgets('shows current activity with Now badge in hero panel', (
       tester,
     ) async {
+      // Use startTime '00:00' with no endTime so the widget classifies it as
+      // the current activity at any wall-clock time. The previous arithmetic
+      // (now.minute - 1, now.hour + 1) broke when now.minute == 0 and near
+      // midnight; the CI runner hitting 12:00:51 UTC triggered the failure.
       final now = DateTime.now();
-      final hourStr =
-          '${now.hour.toString().padLeft(2, '0')}:${(now.minute - 1).abs().toString().padLeft(2, '0')}';
-      final endStr =
-          '${(now.hour + 1).toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-
       final activities = [
         makeActivity(
           id: 'curr',
           title: 'Current Activity',
           date: DateTime(now.year, now.month, now.day),
-          startTime: hourStr,
-        ).copyWith(endTime: endStr),
+          startTime: '00:00',
+        ),
       ];
 
       final state = makeActiveState(allActivities: activities);
