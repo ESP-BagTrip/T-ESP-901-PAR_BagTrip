@@ -3,7 +3,7 @@ import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/recent_booking.dart';
-import 'package:bagtrip/profile/widgets/profile_section_card.dart';
+import 'package:bagtrip/profile/widgets/profile_menu_group_card.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -23,58 +23,75 @@ class RecentBookingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProfileSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
+
+    return ProfileMenuGroupCard(
+      children: [
+        Padding(
+          padding: AppSpacing.allEdgeInsetSpace16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.flight_outlined,
-                color: ColorName.secondary,
-                size: 20,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.flight_outlined,
+                    color: ColorName.secondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.space8),
+                  Text(
+                    l10n.recentBookingsTitle,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.space8),
-              Text(
-                AppLocalizations.of(context)!.recentBookingsTitle,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
+              if (recentBookings.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.space16),
+                  child: Text(
+                    l10n.noRecentBookings,
+                    style: TextStyle(fontSize: 14, color: mutedColor),
+                  ),
+                )
+              else
+                ...recentBookings.map(
+                  (booking) => Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.space16),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onLongPress: onLongPressBooking == null
+                          ? null
+                          : () => onLongPressBooking!(booking),
+                      child: _buildBookingRow(
+                        booking,
+                        context,
+                        titleColor: titleColor,
+                        mutedColor: mutedColor,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-          if (recentBookings.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.space16),
-              child: Text(
-                AppLocalizations.of(context)!.noRecentBookings,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
-                ),
-              ),
-            )
-          else
-            ...recentBookings.map(
-              (booking) => Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.space16),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onLongPress: onLongPressBooking == null
-                      ? null
-                      : () => onLongPressBooking!(booking),
-                  child: _buildBookingRow(booking, context),
-                ),
-              ),
-            ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildBookingRow(RecentBooking booking, BuildContext context) {
+  Widget _buildBookingRow(
+    RecentBooking booking,
+    BuildContext context, {
+    required Color titleColor,
+    required Color mutedColor,
+  }) {
     final localizations = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
     final localizedStatus = _getLocalizedStatus(booking.status, localizations);
@@ -108,19 +125,16 @@ class RecentBookingsSection extends StatelessWidget {
             children: [
               Text(
                 localizations.bookingLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: ColorName.primaryTrueDark,
+                  color: titleColor,
                 ),
               ),
               const SizedBox(height: AppSpacing.space4),
               Text(
                 booking.details,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
-                ),
+                style: TextStyle(fontSize: 12, color: mutedColor),
               ),
               const SizedBox(height: AppSpacing.space8),
               Row(
@@ -128,15 +142,12 @@ class RecentBookingsSection extends StatelessWidget {
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 14,
-                    color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
+                    color: mutedColor,
                   ),
                   const SizedBox(width: AppSpacing.space4),
                   Text(
                     formattedDate,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.6),
-                    ),
+                    style: TextStyle(fontSize: 12, color: mutedColor),
                   ),
                   const SizedBox(width: AppSpacing.space8),
                   Container(
@@ -144,7 +155,7 @@ class RecentBookingsSection extends StatelessWidget {
                     height: 4,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.3),
+                      color: mutedColor.withValues(alpha: 0.5),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.space8),
@@ -153,7 +164,7 @@ class RecentBookingsSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: ColorName.primaryTrueDark.withValues(alpha: 0.8),
+                      color: titleColor.withValues(alpha: 0.85),
                     ),
                   ),
                 ],

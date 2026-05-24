@@ -293,6 +293,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get profileSectionMyAccount => 'MON COMPTE';
+
+  @override
+  String get profileSectionSession => 'SESSION';
+
+  @override
+  String get deleteAccountIrreversible => 'Action irréversible';
+
+  @override
   String memberSinceText(String date) {
     return 'Membre depuis $date';
   }

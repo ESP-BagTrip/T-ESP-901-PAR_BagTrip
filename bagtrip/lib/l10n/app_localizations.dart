@@ -602,6 +602,24 @@ abstract class AppLocalizations {
   /// **'Version {version} · © {year} Vol Airlines'**
   String profileFooterText(String version, int year);
 
+  /// No description provided for @profileSectionMyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'MON COMPTE'**
+  String get profileSectionMyAccount;
+
+  /// No description provided for @profileSectionSession.
+  ///
+  /// In fr, this message translates to:
+  /// **'SESSION'**
+  String get profileSectionSession;
+
+  /// No description provided for @deleteAccountIrreversible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action irréversible'**
+  String get deleteAccountIrreversible;
+
   /// No description provided for @memberSinceText.
   ///
   /// In fr, this message translates to:

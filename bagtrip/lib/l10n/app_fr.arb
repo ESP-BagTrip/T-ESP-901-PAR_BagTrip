@@ -142,6 +142,9 @@
       }
     }
   },
+  "profileSectionMyAccount": "MON COMPTE",
+  "profileSectionSession": "SESSION",
+  "deleteAccountIrreversible": "Action irréversible",
   "memberSinceText": "Membre depuis {date}",
   "@memberSinceText": {
     "placeholders": {
