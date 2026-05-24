@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Response, status
 from sqlalchemy.orm import Session
 
 from src.api.auth.middleware import get_current_user
@@ -11,11 +11,14 @@ from src.api.common.error_handler import handle_app_errors
 from src.api.common.pagination import PaginationParams
 from src.api.notifications.schemas import (
     NotificationListResponse,
+    NotificationPreferenceResponse,
+    NotificationPreferenceUpdate,
     NotificationResponse,
     UnreadCountResponse,
 )
 from src.config.database import get_db
 from src.models.user import User
+from src.services.notification_preference_service import NotificationPreferenceService
 from src.services.notification_service import NotificationService
 from src.utils.errors import AppError
 
@@ -68,6 +71,20 @@ async def mark_notification_read(
     return NotificationResponse.model_validate(notif)
 
 
+@router.delete("/{notificationId}", status_code=status.HTTP_204_NO_CONTENT)
+@handle_app_errors
+async def delete_notification(
+    notificationId: Annotated[UUID, Path(..., description="Notification ID")],
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Supprimer une notification de l'utilisateur."""
+    deleted = NotificationService.delete(db, notificationId, current_user.id)
+    if not deleted:
+        raise AppError("NOTIFICATION_NOT_FOUND", 404, "Notification not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post("/read-all")
 @handle_app_errors
 async def mark_all_read(
@@ -77,3 +94,35 @@ async def mark_all_read(
     """Marquer toutes les notifications comme lues."""
     count = NotificationService.mark_all_as_read(db, current_user.id)
     return {"updated": count}
+
+
+@router.get("/preferences", response_model=NotificationPreferenceResponse)
+@handle_app_errors
+async def get_notification_preferences(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Préférences de notifications de l'utilisateur (défauts si absentes)."""
+    pref = NotificationPreferenceService.get_or_create(db, current_user.id)
+    return NotificationPreferenceResponse.model_validate(pref)
+
+
+@router.patch("/preferences", response_model=NotificationPreferenceResponse)
+@handle_app_errors
+async def update_notification_preferences(
+    payload: NotificationPreferenceUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Mise à jour partielle des préférences de notifications."""
+    pref = NotificationPreferenceService.update(
+        db,
+        current_user.id,
+        push_enabled=payload.pushEnabled,
+        flight_reminders=payload.flightReminders,
+        activity_reminders=payload.activityReminders,
+        trip_updates=payload.tripUpdates,
+        budget_alerts=payload.budgetAlerts,
+        social=payload.social,
+    )
+    return NotificationPreferenceResponse.model_validate(pref)

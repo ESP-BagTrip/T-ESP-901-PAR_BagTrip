@@ -11,6 +11,7 @@ import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -488,6 +489,76 @@ void main() {
             .having((s) => s.isManualFlow, 'manual', true)
             .having((s) => s.searchResults, 'cleared', isEmpty),
       ],
+    );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // applyPrefill — seed wizard from an external entry point (post-trip CTA)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  group('applyPrefill', () {
+    const lisbon = LocationResult(
+      name: 'Lisbon',
+      iataCode: '',
+      city: 'Lisbon',
+      countryName: 'Portugal',
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'pre-fills destination, duration preset and budget preset',
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.applyPrefill(
+          PlanTripPrefill(
+            destination: lisbon,
+            durationDays: 7,
+            budgetEur: 1500,
+          ),
+        ),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.selectedManualDestination?.city, 'Lisbon');
+        expect(bloc.state.isManualFlow, true);
+        expect(bloc.state.dateMode, DateMode.flexible);
+        expect(bloc.state.flexibleDuration, DurationPreset.oneWeek);
+        expect(bloc.state.budgetPreset, BudgetPreset.comfortable);
+        // duration resolved → numeric target derived from the preset.
+        expect(bloc.state.targetBudget, isNotNull);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'maps a short stay to the weekend preset and a high budget to noLimit',
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.applyPrefill(
+          PlanTripPrefill(
+            destination: lisbon,
+            durationDays: 2,
+            budgetEur: 6000,
+          ),
+        ),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.flexibleDuration, DurationPreset.weekend);
+        expect(bloc.state.budgetPreset, BudgetPreset.noLimit);
+      },
+    );
+
+    blocTest<PlanTripBloc, PlanTripState>(
+      'applies destination only when duration and budget are null',
+      build: buildBloc,
+      act: (bloc) => bloc.add(
+        const PlanTripEvent.applyPrefill(PlanTripPrefill(destination: lisbon)),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.selectedManualDestination?.city, 'Lisbon');
+        expect(bloc.state.isManualFlow, true);
+        // Untouched defaults preserved.
+        expect(bloc.state.dateMode, DateMode.exact);
+        expect(bloc.state.flexibleDuration, isNull);
+        expect(bloc.state.budgetPreset, isNull);
+      },
     );
   });
 

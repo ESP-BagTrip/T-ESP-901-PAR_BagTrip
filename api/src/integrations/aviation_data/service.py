@@ -428,6 +428,16 @@ class AviationDataService:
             return None
         return self._to_location(code, data)
 
+    def timezone_for_iata(self, iata_code: str | None) -> str | None:
+        """Return the IANA timezone (e.g. 'Europe/Paris') for an airport, or None."""
+        if not iata_code:
+            return None
+        data = self._airports.get(iata_code.strip().upper())
+        if data is None:
+            return None
+        tz = data.get("tz")
+        return tz or None
+
     def search_nearest(self, latitude: float, longitude: float, limit: int = 10) -> list[Location]:
         """Find the nearest airports to a given coordinate (haversine)."""
         distances: list[tuple[float, str, dict]] = []

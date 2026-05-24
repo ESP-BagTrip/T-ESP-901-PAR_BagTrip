@@ -10,6 +10,7 @@ import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/models/step_status.dart';
 import 'package:bagtrip/plan_trip/models/trip_plan.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
@@ -68,6 +69,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     // Step 2 — Destination
     on<PlanTripSearchDestination>(_onSearchDestination);
     on<PlanTripSelectManualDestination>(_onSelectManualDestination);
+    on<PlanTripApplyPrefill>(_onApplyPrefill);
     on<PlanTripRequestAiSuggestions>(_onRequestAiSuggestions);
     on<PlanTripSelectAiDestination>(_onSelectAiDestination);
     // Step 3 — Proposals
@@ -380,6 +382,67 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
         selectedAiDestination: null,
       ),
     );
+  }
+
+  /// Seed the wizard from an external entry point (e.g. the post-trip
+  /// "Create this trip" CTA). Applies destination + a flexible-duration
+  /// preset + the closest budget preset, keeping every field editable. The
+  /// dates step is switched to flexible mode so the suggested duration shows
+  /// up immediately without inventing arbitrary calendar dates.
+  void _onApplyPrefill(
+    PlanTripApplyPrefill event,
+    Emitter<PlanTripState> emit,
+  ) {
+    final prefill = event.prefill;
+
+    emit(
+      state.copyWith(
+        selectedManualDestination: prefill.destination,
+        selectedAiDestination: null,
+        isManualFlow: true,
+        searchResults: [],
+      ),
+    );
+
+    final duration = prefill.durationDays;
+    if (duration != null && duration > 0) {
+      emit(
+        state.copyWith(
+          dateMode: DateMode.flexible,
+          flexibleDuration: _durationPresetFromDays(duration),
+        ),
+      );
+    }
+
+    final budget = prefill.budgetEur;
+    if (budget != null && budget > 0) {
+      final preset = _budgetPresetFromEur(budget);
+      double? targetBudget;
+      if (state.tripDurationDays != null) {
+        targetBudget = estimateBudget(
+          preset: preset,
+          nbTravelers: state.nbTravelers,
+          days: state.tripDurationDays!,
+        ).max;
+      }
+      emit(state.copyWith(budgetPreset: preset, targetBudget: targetBudget));
+    }
+  }
+
+  /// Map a raw day count to the closest [DurationPreset].
+  static DurationPreset _durationPresetFromDays(int days) {
+    if (days <= 3) return DurationPreset.weekend;
+    if (days <= 10) return DurationPreset.oneWeek;
+    if (days <= 17) return DurationPreset.twoWeeks;
+    return DurationPreset.threeWeeks;
+  }
+
+  /// Map a total EUR budget to the closest [BudgetPreset] band.
+  static BudgetPreset _budgetPresetFromEur(double eur) {
+    if (eur < 800) return BudgetPreset.backpacker;
+    if (eur < 2000) return BudgetPreset.comfortable;
+    if (eur < 4000) return BudgetPreset.premium;
+    return BudgetPreset.noLimit;
   }
 
   Future<void> _onRequestAiSuggestions(

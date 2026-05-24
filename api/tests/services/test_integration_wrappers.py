@@ -108,25 +108,29 @@ class TestAmadeusService:
 
 
 class TestAirLabsService:
-    def test_lookup_flight_delegates(self):
+    @pytest.mark.asyncio
+    async def test_lookup_flight_delegates(self):
         from src.services.airlabs_service import AirLabsService
 
         with patch(
             "src.services.airlabs_service.airlabs_client.lookup_flight",
+            new_callable=AsyncMock,
             return_value={"flight_iata": "AF1234"},
         ) as mock:
-            result = AirLabsService.lookup_flight("AF1234")
-        mock.assert_called_once_with("AF1234")
+            result = await AirLabsService.lookup_flight("AF1234")
+        mock.assert_awaited_once_with("AF1234")
         assert result == {"flight_iata": "AF1234"}
 
-    def test_lookup_flight_none_pass_through(self):
+    @pytest.mark.asyncio
+    async def test_lookup_flight_none_pass_through(self):
         from src.services.airlabs_service import AirLabsService
 
         with patch(
             "src.services.airlabs_service.airlabs_client.lookup_flight",
+            new_callable=AsyncMock,
             return_value=None,
         ):
-            result = AirLabsService.lookup_flight("XX9999")
+            result = await AirLabsService.lookup_flight("XX9999")
         assert result is None
 
 

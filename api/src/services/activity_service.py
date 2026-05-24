@@ -4,15 +4,17 @@ from datetime import date, time
 from math import ceil
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
-from src.api.activities.schemas import ActivityUpdateRequest
+from src.api.activities.schemas import ActivityUpdateRequest, SuggestedActivity
 from src.enums import TripStatus
 from src.models.activity import Activity
 from src.models.trip import Trip
 from src.utils.errors import AppError
 from src.utils.logger import logger
+from src.utils.unit_of_work import unit_of_work
 
 _ACTIVITY_SUGGEST_LABELS: dict[str, dict[str, str]] = {
     "en": {
@@ -176,30 +178,33 @@ class ActivityService:
         """Apply the same partial update to multiple activities in one transaction."""
         ActivityService._check_trip_not_completed(trip)
         results = []
-        for aid in activity_ids:
-            activity = ActivityService.get_by_id(db, aid, trip.id)
-            if updates.title is not None:
-                activity.title = updates.title
-            if updates.description is not None:
-                activity.description = updates.description
-            if updates.date is not None:
-                activity.date = updates.date
-            if updates.startTime is not None:
-                activity.start_time = updates.startTime
-            if updates.endTime is not None:
-                activity.end_time = updates.endTime
-            if updates.location is not None:
-                activity.location = updates.location
-            if updates.category is not None:
-                activity.category = updates.category
-            if updates.estimatedCost is not None:
-                activity.estimated_cost = updates.estimatedCost
-            if updates.isBooked is not None:
-                activity.is_booked = updates.isBooked
-            if updates.validationStatus is not None:
-                activity.validation_status = updates.validationStatus
-            results.append(activity)
-        db.commit()
+        # Atomic: if get_by_id raises ACTIVITY_NOT_FOUND mid-loop, unit_of_work
+        # rolls back so the activities already mutated in this session are not
+        # left dirty (and can't leak into a later flush).
+        with unit_of_work(db):
+            for aid in activity_ids:
+                activity = ActivityService.get_by_id(db, aid, trip.id)
+                if updates.title is not None:
+                    activity.title = updates.title
+                if updates.description is not None:
+                    activity.description = updates.description
+                if updates.date is not None:
+                    activity.date = updates.date
+                if updates.startTime is not None:
+                    activity.start_time = updates.startTime
+                if updates.endTime is not None:
+                    activity.end_time = updates.endTime
+                if updates.location is not None:
+                    activity.location = updates.location
+                if updates.category is not None:
+                    activity.category = updates.category
+                if updates.estimatedCost is not None:
+                    activity.estimated_cost = updates.estimatedCost
+                if updates.isBooked is not None:
+                    activity.is_booked = updates.isBooked
+                if updates.validationStatus is not None:
+                    activity.validation_status = updates.validationStatus
+                results.append(activity)
         for a in results:
             db.refresh(a)
         return results
@@ -210,7 +215,7 @@ class ActivityService:
         trip: Trip,
         day: int | None = None,
         locale: str | None = None,
-    ) -> list[dict]:
+    ) -> list[SuggestedActivity]:
         """Generate AI activity suggestions for a trip (optionally for a specific day)."""
         from src.agent.prompts import render as render_prompt
         from src.services.llm_service import LLMService
@@ -243,4 +248,15 @@ class ActivityService:
             logger.error("Activity suggest LLM call failed", {"error": str(e)})
             activities = []
 
-        return activities
+        # Validate each raw LLM dict into a typed SuggestedActivity. Malformed
+        # items (e.g. missing title) are skipped and logged rather than crashing
+        # the whole suggestion or leaking an untyped dict to the client.
+        suggestions: list[SuggestedActivity] = []
+        for item in activities:
+            if not isinstance(item, dict):
+                continue
+            try:
+                suggestions.append(SuggestedActivity.model_validate(item))
+            except ValidationError as e:
+                logger.warn("Skipping malformed activity suggestion", {"error": str(e)})
+        return suggestions

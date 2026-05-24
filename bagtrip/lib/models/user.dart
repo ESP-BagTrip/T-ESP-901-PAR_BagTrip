@@ -16,6 +16,7 @@ abstract class User with _$User {
     @JsonKey(name: 'isProfileCompleted')
     @Default(false)
     bool isProfileCompleted,
+    @JsonKey(name: 'emailVerified') @Default(false) bool emailVerified,
     @JsonKey(name: 'createdAt') DateTime? createdAt,
     @JsonKey(name: 'updatedAt') DateTime? updatedAt,
     @Default('FREE') String plan,

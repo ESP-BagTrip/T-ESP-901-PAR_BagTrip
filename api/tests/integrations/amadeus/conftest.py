@@ -10,6 +10,22 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+import src.integrations.amadeus.breaker as breaker_module
+from src.integrations.circuit_breaker import CircuitBreaker
+
+
+@pytest.fixture(autouse=True)
+def _reset_amadeus_breaker():
+    """Give every amadeus test a pristine shared breaker.
+
+    The breaker is a module-level singleton, so a test that trips it OPEN would
+    otherwise leak fail-fast behaviour into unrelated tests.
+    """
+    original = breaker_module._breaker
+    breaker_module._breaker = CircuitBreaker("amadeus")
+    yield
+    breaker_module._breaker = original
+
 
 @pytest.fixture
 def mock_http_client():

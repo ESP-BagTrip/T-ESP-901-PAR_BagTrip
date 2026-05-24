@@ -34,6 +34,7 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     updated_at: datetime | None = Field(None, alias="updatedAt")
     is_profile_completed: bool = Field(False, alias="isProfileCompleted")
+    email_verified: bool = Field(False, alias="emailVerified")
     plan: str = Field("FREE")
     ai_generations_remaining: int | None = Field(None, alias="aiGenerationsRemaining")
     plan_expires_at: datetime | None = Field(None, alias="planExpiresAt")
@@ -86,6 +87,9 @@ class ForgotPasswordRequest(BagtripRequestModel):
     """Requête de réinitialisation de mot de passe."""
 
     email: EmailStr
+    # Optional: the app passes its current locale so the reset email matches the
+    # UI language even on a fresh device with no registered FCM token yet.
+    locale: str | None = None
 
 
 class ResetPasswordRequest(BagtripRequestModel):
@@ -93,3 +97,16 @@ class ResetPasswordRequest(BagtripRequestModel):
 
     token: str
     new_password: str = Field(..., min_length=6)
+
+
+class ChangePasswordRequest(BagtripRequestModel):
+    """Changement de mot de passe par un utilisateur authentifié."""
+
+    current_password: str = Field(..., alias="currentPassword")
+    new_password: str = Field(..., min_length=6, alias="newPassword")
+
+
+class VerifyEmailRequest(BagtripRequestModel):
+    """Requête de vérification d'email via token (public, soft)."""
+
+    token: str

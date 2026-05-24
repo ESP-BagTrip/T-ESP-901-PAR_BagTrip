@@ -4,10 +4,10 @@ import uuid
 from datetime import datetime
 from uuid import UUID as _UUID
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
+from sqlalchemy.sql import false, func
 
 from src.config.database import Base
 
@@ -32,6 +32,11 @@ class User(Base):
     )
     password_reset_token: Mapped[str | None] = mapped_column(String, nullable=True)
     password_reset_expires: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=false())
+    email_verification_token: Mapped[str | None] = mapped_column(String, nullable=True)
+    email_verification_expires: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     banned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -19,7 +19,7 @@ class Booking(Base):
 
     id: Mapped[_UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[_UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
     )
     amadeus_order_id: Mapped[str] = mapped_column(String, nullable=False)
     flight_offers: Mapped[dict] = mapped_column(JSON, nullable=False)

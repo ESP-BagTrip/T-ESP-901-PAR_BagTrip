@@ -48,6 +48,22 @@ void main() {
       expect(result, isNull);
     });
 
+    test('get with ttl: null bypasses expiry entirely', () async {
+      await cacheService.put('test_box', 'key1', {'v': 1});
+
+      // Duration.zero always expires (and deletes) the entry...
+      expect(
+        await cacheService.get('test_box', 'key1', ttl: Duration.zero),
+        isNull,
+      );
+
+      // ...but ttl: null must keep it regardless of age.
+      await cacheService.put('test_box', 'key1', {'v': 1});
+      final result = await cacheService.get('test_box', 'key1', ttl: null);
+      expect(result, isNotNull);
+      expect(result!['v'], 1);
+    });
+
     test('get returns data within TTL', () async {
       final data = {'name': 'Fresh Data'};
       await cacheService.put('test_box', 'key1', data);

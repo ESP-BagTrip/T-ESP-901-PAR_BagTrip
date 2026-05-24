@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:ui';
 
+import 'package:app_links/app_links.dart';
 import 'package:bagtrip/auth/bloc/auth_bloc.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
 import 'package:bagtrip/auth/widgets/auth_listener.dart';
@@ -10,10 +11,14 @@ import 'package:bagtrip/booking/bloc/booking_bloc.dart';
 import 'package:bagtrip/components/snack_bar_scope.dart';
 import 'package:bagtrip/config/app_config.dart';
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/utils/error_display.dart';
 import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/firebase_options.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/app_router.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/notifications/bloc/notification_bloc.dart';
 import 'package:bagtrip/notifications/cubit/notification_count_cubit.dart';
 import 'package:bagtrip/notifications/notification_deep_link.dart';
@@ -28,6 +33,7 @@ import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
 import 'package:bagtrip/core/cache/connectivity_bloc.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/app_lifecycle_observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -103,6 +109,8 @@ void main() async {
   // Offline cache
   await CacheService.initialize();
   await getIt<ConnectivityService>().initialize();
+  // Replay queued offline writes automatically when connectivity returns.
+  getIt<OfflineWriteQueue>().startListening();
 
   runApp(const MyApp());
 }
@@ -143,6 +151,8 @@ class _MyAppState extends State<MyApp> {
   late final StreamSubscription<RemoteMessage> _onMessageSub;
   late final StreamSubscription<RemoteMessage> _onMessageOpenedSub;
   late final StreamSubscription<String> _onTokenRefreshSub;
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _appLinkSub;
   late final HomeBloc _homeBloc;
   late final NotificationCountCubit _countCubit;
   late final AppLifecycleObserver _lifecycleObserver;
@@ -162,6 +172,19 @@ class _MyAppState extends State<MyApp> {
     );
     _lifecycleObserver.initialize();
     _setupFCMListeners();
+    _setupDeepLinks();
+  }
+
+  /// Listens for `bagtrip://` custom-scheme deep links. Only the
+  /// `reset-password` link is consumed here; every other URI (Stripe's
+  /// `bagtrip://payment/result`, etc.) is left untouched so its own handler
+  /// keeps working.
+  void _setupDeepLinks() {
+    _appLinks.getInitialLink().then(_handleDeepLink);
+    _appLinkSub = _appLinks.uriLinkStream.listen(
+      _handleDeepLink,
+      onError: (Object e) => dev.log('Deep link stream error: $e'),
+    );
   }
 
   @override
@@ -172,6 +195,7 @@ class _MyAppState extends State<MyApp> {
     _onMessageSub.cancel();
     _onMessageOpenedSub.cancel();
     _onTokenRefreshSub.cancel();
+    _appLinkSub?.cancel();
     getIt<ConnectivityService>().dispose();
     super.dispose();
   }
@@ -214,6 +238,76 @@ class _MyAppState extends State<MyApp> {
         locale: PlatformDispatcher.instance.locale.languageCode,
       );
     });
+  }
+
+  /// Handles `bagtrip://` custom-scheme deep links. Custom-scheme URIs surface
+  /// the segment as either the host (empty path) or a path segment depending
+  /// on the platform, so both are checked. Non-matching URIs (Stripe's
+  /// `bagtrip://payment/result`, etc.) are ignored.
+  ///
+  /// Two links are consumed:
+  ///   - `reset-password?token=…` → navigates to the reset-password screen.
+  ///   - `verify-email?token=…`   → confirms email verification in the
+  ///     background. SOFT flow: no navigation, no blocking — on success the
+  ///     current user is refreshed (so the verify banner collapses) and a
+  ///     toast is shown when a navigator context is available.
+  void _handleDeepLink(Uri? uri) {
+    if (uri == null) return;
+
+    bool matches(String segment) =>
+        uri.host == segment || uri.pathSegments.contains(segment);
+
+    if (matches('reset-password')) {
+      final token = uri.queryParameters['token'] ?? '';
+      appRouter.go(ResetPasswordRoute(token: token).location);
+      return;
+    }
+
+    if (matches('verify-email')) {
+      _handleVerifyEmailLink(uri.queryParameters['token'] ?? '');
+      return;
+    }
+  }
+
+  /// Confirms an email-verification deep link out of band. Never navigates and
+  /// never blocks — failures are only surfaced as feedback.
+  Future<void> _handleVerifyEmailLink(String token) async {
+    if (token.isEmpty) {
+      dev.log('verify-email deep link missing token');
+      return;
+    }
+
+    final result = await getIt<AuthRepository>().verifyEmail(token);
+    final context = appRouter.routerDelegate.navigatorKey.currentContext;
+
+    switch (result) {
+      case Success():
+        dev.log('Email verified via deep link');
+        // Refresh the current user so the soft banner collapses.
+        if (context != null && context.mounted) {
+          context.read<UserProfileBloc>().add(LoadUserProfile());
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            SnackBarScope.of(context).show(
+              context,
+              message: l10n.emailVerifiedSuccess,
+              type: SnackBarType.success,
+            );
+          }
+        }
+      case Failure(:final error):
+        dev.log('Email verification deep link failed: $error');
+        if (context != null && context.mounted) {
+          final l10n = AppLocalizations.of(context);
+          if (l10n != null) {
+            SnackBarScope.of(context).show(
+              context,
+              message: toUserFriendlyMessage(error, l10n),
+              type: SnackBarType.error,
+            );
+          }
+        }
+    }
   }
 
   @override

@@ -554,6 +554,18 @@ abstract class AppLocalizations {
   /// **'LANGUE'**
   String get languageLabel;
 
+  /// No description provided for @languageFrench.
+  ///
+  /// In fr, this message translates to:
+  /// **'Français'**
+  String get languageFrench;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anglais'**
+  String get languageEnglish;
+
   /// No description provided for @themeLabel.
   ///
   /// In fr, this message translates to:
@@ -1040,6 +1052,30 @@ abstract class AppLocalizations {
   /// **'Par an'**
   String get personalizationStepSubtitleFrequency;
 
+  /// No description provided for @personalizationStepTitleConstraints.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contraintes'**
+  String get personalizationStepTitleConstraints;
+
+  /// No description provided for @personalizationStepSubtitleConstraints.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des restrictions ou contraintes pour votre voyage ?'**
+  String get personalizationStepSubtitleConstraints;
+
+  /// No description provided for @personalizationStepTitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre style de voyage'**
+  String get personalizationStepTitleTravelStyle;
+
+  /// No description provided for @personalizationStepSubtitleTravelStyle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment aimez-vous organiser vos voyages ?'**
+  String get personalizationStepSubtitleTravelStyle;
+
   /// No description provided for @personalizationBudgetComfort.
   ///
   /// In fr, this message translates to:
@@ -1406,6 +1442,30 @@ abstract class AppLocalizations {
   /// **'Profil'**
   String get tabProfile;
 
+  /// No description provided for @emailVerificationBannerText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiez votre adresse e-mail pour sécuriser votre compte.'**
+  String get emailVerificationBannerText;
+
+  /// No description provided for @emailVerificationResend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer'**
+  String get emailVerificationResend;
+
+  /// No description provided for @emailVerificationSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail de vérification envoyé. Consultez votre boîte de réception.'**
+  String get emailVerificationSent;
+
+  /// No description provided for @emailVerifiedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre adresse e-mail a été vérifiée.'**
+  String get emailVerifiedSuccess;
+
   /// No description provided for @notificationsTitle.
   ///
   /// In fr, this message translates to:
@@ -1417,6 +1477,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tout marquer lu'**
   String get notificationsMarkAllRead;
+
+  /// No description provided for @notificationsDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get notificationsDelete;
 
   /// No description provided for @notificationsEmpty.
   ///
@@ -2233,6 +2299,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réglages'**
   String get settingsTitle;
+
+  /// No description provided for @notificationPrefsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get notificationPrefsTitle;
+
+  /// No description provided for @notificationPrefsPush.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications push'**
+  String get notificationPrefsPush;
+
+  /// No description provided for @notificationPrefsFlightReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels de vol'**
+  String get notificationPrefsFlightReminders;
+
+  /// No description provided for @notificationPrefsActivityReminders.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'activité'**
+  String get notificationPrefsActivityReminders;
+
+  /// No description provided for @notificationPrefsTripUpdates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mises à jour du voyage'**
+  String get notificationPrefsTripUpdates;
+
+  /// No description provided for @notificationPrefsBudgetAlerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alertes budget'**
+  String get notificationPrefsBudgetAlerts;
+
+  /// No description provided for @notificationPrefsSocial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Social'**
+  String get notificationPrefsSocial;
+
+  /// No description provided for @notificationPrefsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger vos préférences de notification.'**
+  String get notificationPrefsLoadError;
 
   /// No description provided for @personalInfoPageTitle.
   ///
@@ -5240,6 +5354,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.'**
   String get forgotPasswordSuccess;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @resetPasswordSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un nouveau mot de passe pour votre compte.'**
+  String get resetPasswordSubtitle;
+
+  /// No description provided for @resetPasswordNewLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get resetPasswordNewLabel;
+
+  /// No description provided for @resetPasswordConfirmLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get resetPasswordConfirmLabel;
+
+  /// No description provided for @resetPasswordSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser le mot de passe'**
+  String get resetPasswordSubmit;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.'**
+  String get resetPasswordSuccess;
+
+  /// No description provided for @resetPasswordMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas.'**
+  String get resetPasswordMismatch;
+
+  /// No description provided for @resetPasswordTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe doit contenir au moins 6 caractères.'**
+  String get resetPasswordTooShort;
 
   /// No description provided for @deleteAccountButton.
   ///

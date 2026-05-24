@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import bcrypt
 import pytest
@@ -90,12 +90,18 @@ class TestRegister:
             "phone": "+1234567890",
         }
 
-        response = client.post("/v1/auth/register", json=payload)
+        with patch(
+            "src.api.auth.routes.MailerService.send_email_verification",
+            new=AsyncMock(return_value=False),
+        ):
+            response = client.post("/v1/auth/register", json=payload)
 
         assert response.status_code == 201
         data = response.json()
         assert "access_token" in data
         assert data["user"]["email"] == "newuser@example.com"
+        # A freshly registered user starts unverified (soft verification).
+        assert data["user"]["emailVerified"] is False
 
         # Verify DB interactions
         assert mock_db_session.add.called
@@ -214,6 +220,52 @@ class TestLogin:
 
         assert response.status_code == 401
         assert response.json()["detail"] == "Invalid credentials"
+
+    def test_login_locks_account_after_repeated_failures(
+        self, client, override_get_db, mock_db_session
+    ):
+        """After enough wrong-password attempts the account is locked (429)."""
+        from src.services.auth_lockout_service import MAX_FAILURES, AuthLockoutService
+
+        # Distinct email so the process-shared counter doesn't bleed into other tests.
+        email = f"lockme-{uuid.uuid4().hex}@example.com"
+        AuthLockoutService.reset(email)
+        hashed = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode("utf-8")
+        user = User(id=uuid.uuid4(), email=email, password_hash=hashed)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+
+        wrong = {"email": email, "password": "nope"}
+        for _ in range(MAX_FAILURES):
+            assert client.post("/v1/auth/login", json=wrong).status_code == 401
+
+        # The next attempt is locked out, even with the correct password.
+        locked = client.post("/v1/auth/login", json={"email": email, "password": "password123"})
+        assert locked.status_code == 429
+        assert "Retry-After" in locked.headers
+        AuthLockoutService.reset(email)
+
+    def test_login_success_resets_lockout_counter(
+        self, client, override_get_db, mock_db_session
+    ):
+        """A successful login clears prior failures so the user isn't locked next time."""
+        from src.services.auth_lockout_service import AuthLockoutService
+
+        email = f"reset-{uuid.uuid4().hex}@example.com"
+        password = "password123"
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            password_hash=hashed,
+            created_at=datetime.utcnow(),
+            updated_at=None,
+        )
+        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+
+        AuthLockoutService.record_failure(email)
+        AuthLockoutService.record_failure(email)
+        assert client.post("/v1/auth/login", json={"email": email, "password": password}).status_code == 200
+        assert AuthLockoutService.is_locked(email)[0] is False
 
 
 class TestMe:
@@ -360,6 +412,82 @@ class TestRefresh:
         assert response.json()["detail"] == "Invalid or expired refresh token"
 
 
+class TestRefreshTokenHashing:
+    """Refresh tokens must be stored hashed, never in clear text."""
+
+    def test_hash_is_deterministic_sha256(self):
+        """The hash helper is a stable 64-char SHA-256 hex digest."""
+        from src.api.auth.routes import _hash_refresh_token
+
+        digest = _hash_refresh_token("some-raw-token")
+        assert digest == _hash_refresh_token("some-raw-token")
+        assert len(digest) == 64
+        assert digest != "some-raw-token"
+
+    def test_create_refresh_token_persists_hash_not_raw(self):
+        """create_refresh_token stores the hash but returns the raw token."""
+        from src.api.auth.routes import _hash_refresh_token, create_refresh_token
+
+        db = MagicMock()
+        raw = create_refresh_token(str(uuid.uuid4()), db)
+
+        added = db.add.call_args[0][0]
+        assert added.token == _hash_refresh_token(raw)
+        assert added.token != raw
+
+    def test_refresh_hashes_presented_token_before_lookup(
+        self, client, override_get_db, mock_db_session
+    ):
+        """The handler hashes the incoming raw token before querying the DB."""
+        from datetime import UTC, timedelta
+
+        from src.api.auth import routes as auth_routes
+
+        user_id = uuid.uuid4()
+        user = User(id=user_id, email="user@example.com", created_at=datetime.utcnow())
+        stored = MagicMock()
+        stored.revoked = False
+        stored.expires_at = datetime.now(UTC) + timedelta(days=30)
+        stored.user_id = user_id
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [stored, user]
+
+        with patch.object(
+            auth_routes,
+            "_hash_refresh_token",
+            wraps=auth_routes._hash_refresh_token,
+        ) as spy:
+            response = client.post("/v1/auth/refresh", json={"refresh_token": "raw-token"})
+
+        assert response.status_code == 200
+        spy.assert_any_call("raw-token")
+
+
+class TestRefreshReuseDetection:
+    """Presenting an already-revoked refresh token is a theft signal."""
+
+    def test_reused_revoked_token_revokes_all_and_401(
+        self, client, override_get_db, mock_db_session
+    ):
+        """A revoked token replayed -> revoke the whole chain + 401."""
+        from datetime import UTC, timedelta
+
+        stored = MagicMock()
+        stored.revoked = True  # already rotated away
+        stored.expires_at = datetime.now(UTC) + timedelta(days=30)
+        stored.user_id = uuid.uuid4()
+        mock_db_session.query.return_value.filter.return_value.first.return_value = stored
+
+        response = client.post("/v1/auth/refresh", json={"refresh_token": "stolen"})
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid or expired refresh token"
+        # The chain-revoke bulk update must have fired.
+        mock_db_session.query.return_value.filter.return_value.update.assert_called_with(
+            {"revoked": True}
+        )
+        assert mock_db_session.commit.called
+
+
 class TestLogout:
     """Test suite for POST /v1/auth/logout and /logout-all."""
 
@@ -405,3 +533,221 @@ class TestLogout:
         assert response.status_code == 204
         mock_db_session.commit.assert_called()
         app.dependency_overrides = {}
+
+
+class TestRegisterEmailVerification:
+    """Registration issues an email-verification token and sends the email."""
+
+    def test_register_sends_verification_email(
+        self, client, override_get_db, mock_db_session, mock_stripe_client
+    ):
+        """A fresh signup persists a hashed verification token and emails it."""
+        created: dict = {}
+
+        def refresh_side_effect(instance):
+            instance.id = uuid.uuid4()
+            instance.created_at = datetime.utcnow()
+            instance.updated_at = datetime.utcnow()
+            created["user"] = instance
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        mock_db_session.refresh.side_effect = refresh_side_effect
+
+        with patch(
+            "src.api.auth.routes.MailerService.send_email_verification",
+            new=AsyncMock(return_value=True),
+        ) as send:
+            response = client.post(
+                "/v1/auth/register",
+                json={"email": "verify@example.com", "password": "password123"},
+            )
+
+        assert response.status_code == 201
+        send.assert_awaited_once()
+        # The verification email targets the new address, never logging the raw token.
+        assert send.await_args.args[0] == "verify@example.com"
+        # A hashed token + expiry were stamped on the user before sending.
+        user = created["user"]
+        assert user.email_verification_token is not None
+        assert user.email_verification_token != send.await_args.args[1]
+        assert user.email_verification_expires is not None
+
+
+class TestVerifyEmail:
+    """Test suite for POST /v1/auth/verify-email."""
+
+    def test_verify_email_success(self, client, override_get_db, mock_db_session):
+        """A valid token flips email_verified and clears the token + expiry."""
+        import hashlib
+        from datetime import UTC, timedelta
+
+        now = datetime.now(UTC)
+        user = User(
+            id=uuid.uuid4(),
+            email="user@example.com",
+            email_verified=False,
+            email_verification_token=hashlib.sha256(b"valid-token").hexdigest(),
+            email_verification_expires=now + timedelta(hours=24),
+        )
+        mock_db_session.query.return_value.filter.return_value.first.return_value = user
+
+        response = client.post("/v1/auth/verify-email", json={"token": "valid-token"})
+
+        assert response.status_code == 200
+        assert response.json()["message"] == "Email verified successfully."
+        assert user.email_verified is True
+        assert user.email_verification_token is None
+        assert user.email_verification_expires is None
+        assert mock_db_session.commit.called
+
+    def test_verify_email_invalid_token(self, client, override_get_db, mock_db_session):
+        """An unknown token returns 400."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        response = client.post("/v1/auth/verify-email", json={"token": "nope"})
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Invalid or expired verification token"
+
+    def test_verify_email_expired_token(self, client, override_get_db, mock_db_session):
+        """An expired token is filtered out by the query -> 400."""
+        # The route filters by email_verification_expires > now(), so an expired
+        # token means the query returns None.
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        response = client.post("/v1/auth/verify-email", json={"token": "expired"})
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Invalid or expired verification token"
+
+
+class TestResendVerification:
+    """Test suite for POST /v1/auth/resend-verification."""
+
+    def test_resend_when_unverified_reissues_and_sends(
+        self, client, override_get_db, mock_db_session
+    ):
+        """An unverified user gets a fresh token and a new email."""
+        user = User(
+            id=uuid.uuid4(),
+            email="user@example.com",
+            email_verified=False,
+            email_verification_token=None,
+            email_verification_expires=None,
+        )
+        app.dependency_overrides[get_current_user] = lambda: user
+        # DeviceTokenService.get_locale_for_user queries DeviceToken -> None.
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.first.return_value = None  # noqa: E501
+
+        with patch(
+            "src.api.auth.routes.MailerService.send_email_verification",
+            new=AsyncMock(return_value=True),
+        ) as send:
+            response = client.post("/v1/auth/resend-verification")
+
+        assert response.status_code == 200
+        assert response.json()["message"] == "Verification email sent."
+        assert user.email_verification_token is not None
+        assert user.email_verification_expires is not None
+        send.assert_awaited_once()
+        assert send.await_args.args[0] == "user@example.com"
+        assert mock_db_session.commit.called
+        app.dependency_overrides = {}
+
+    def test_resend_when_already_verified_is_noop(self, client, override_get_db, mock_db_session):
+        """An already-verified user gets a 200 no-op without sending mail."""
+        user = User(id=uuid.uuid4(), email="user@example.com", email_verified=True)
+        app.dependency_overrides[get_current_user] = lambda: user
+
+        with patch(
+            "src.api.auth.routes.MailerService.send_email_verification",
+            new=AsyncMock(return_value=True),
+        ) as send:
+            response = client.post("/v1/auth/resend-verification")
+
+        assert response.status_code == 200
+        assert response.json()["message"] == "Email already verified."
+        send.assert_not_awaited()
+        app.dependency_overrides = {}
+
+
+class TestMeExposesEmailVerified:
+    """GET /v1/auth/me surfaces the emailVerified flag (mobile banner)."""
+
+    def test_me_returns_email_verified(self, client):
+        """The /me payload exposes emailVerified mirroring the user column."""
+        user = User(
+            id=uuid.uuid4(),
+            email="me@example.com",
+            email_verified=True,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        def _get_db():
+            yield mock_db
+
+        app.dependency_overrides[get_current_user] = lambda: user
+        app.dependency_overrides[get_db] = _get_db
+
+        response = client.get("/v1/auth/me")
+
+        assert response.status_code == 200
+        assert response.json()["emailVerified"] is True
+        app.dependency_overrides = {}
+
+
+class TestOAuthMarksEmailVerified:
+    """Google / Apple sign-in mark the email as provider-verified."""
+
+    def test_google_sign_in_sets_email_verified(
+        self, client, override_get_db, mock_db_session, mock_stripe_client
+    ):
+        """A new Google user is created with email_verified flipped to True."""
+        created: dict = {}
+
+        def refresh_side_effect(instance):
+            instance.id = uuid.uuid4()
+            instance.created_at = datetime.utcnow()
+            instance.updated_at = datetime.utcnow()
+            created["user"] = instance
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        mock_db_session.refresh.side_effect = refresh_side_effect
+
+        with patch(
+            "src.api.auth.routes.verify_google_id_token",
+            new=AsyncMock(return_value={"email": "g@example.com", "name": "G User"}),
+        ):
+            response = client.post("/v1/auth/google", json={"idToken": "tok"})
+
+        assert response.status_code == 200
+        assert response.json()["user"]["emailVerified"] is True
+        assert created["user"].email_verified is True
+
+    def test_apple_sign_in_sets_email_verified(
+        self, client, override_get_db, mock_db_session, mock_stripe_client
+    ):
+        """A new Apple user is created with email_verified flipped to True."""
+        created: dict = {}
+
+        def refresh_side_effect(instance):
+            instance.id = uuid.uuid4()
+            instance.created_at = datetime.utcnow()
+            instance.updated_at = datetime.utcnow()
+            created["user"] = instance
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        mock_db_session.refresh.side_effect = refresh_side_effect
+
+        with patch(
+            "src.api.auth.routes.verify_apple_id_token",
+            new=AsyncMock(return_value={"email": "a@example.com", "sub": "sub123"}),
+        ):
+            response = client.post("/v1/auth/apple", json={"idToken": "tok"})
+
+        assert response.status_code == 200
+        assert response.json()["user"]["emailVerified"] is True
+        assert created["user"].email_verified is True

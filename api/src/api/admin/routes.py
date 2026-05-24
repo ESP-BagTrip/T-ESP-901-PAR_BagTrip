@@ -794,6 +794,27 @@ async def archive_trip(
         ) from e
 
 
+@router.patch(
+    "/trips/{tripId}/unarchive",
+    summary="Unarchive trip (admin)",
+)
+async def unarchive_trip(
+    tripId: UUID,
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Reverse a soft-archive by clearing archived_at. Sub-entities are intact."""
+    try:
+        AdminService.unarchive_trip(db, tripId)
+        return {"message": "Trip unarchived", "trip_id": str(tripId)}
+    except AppError as e:
+        raise create_http_exception(e) from e
+    except Exception as e:
+        raise create_http_exception(
+            AppError("INTERNAL_ERROR", 500, "Failed to unarchive trip")
+        ) from e
+
+
 # ──────────────────────── Booking Management ────────────────────────
 
 

@@ -1,5 +1,5 @@
 import 'package:bagtrip/core/app_error.dart';
-import 'package:bagtrip/core/paginated_response.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/models/trip.dart';
@@ -10,97 +10,81 @@ import 'package:mocktail/mocktail.dart';
 import '../helpers/mock_repositories.dart';
 import '../helpers/test_fixtures.dart';
 
+class _FakePendingWriteOperation extends Fake
+    implements PendingWriteOperation {}
+
 void main() {
+  late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
-  late MockAuthRepository mockAuthRepo;
-  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivityService;
-  late MockWeatherRepository mockWeatherRepo;
   late MockPostTripDismissalStorage mockDismissalStorage;
+  late MockOfflineWriteQueue mockOfflineWriteQueue;
 
   setUpAll(() {
     registerFallbackValue(makeTrip());
     registerFallbackValue(PreferIdleHomeOverview());
     registerFallbackValue(ResumeActiveTripHome());
     registerFallbackValue(CompleteActiveTrip());
+    registerFallbackValue(_FakePendingWriteOperation());
+    registerFallbackValue((Map<String, dynamic> _) async => true);
   });
 
   setUp(() {
+    mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
-    mockAuthRepo = MockAuthRepository();
-    mockActivityRepo = MockActivityRepository();
     mockConnectivityService = MockConnectivityService();
-    mockWeatherRepo = MockWeatherRepository();
     mockDismissalStorage = MockPostTripDismissalStorage();
+    mockOfflineWriteQueue = MockOfflineWriteQueue();
 
     when(() => mockConnectivityService.isOnline).thenReturn(true);
     when(
       () => mockConnectivityService.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
     when(
-      () => mockWeatherRepo.getWeather(any()),
-    ).thenAnswer((_) async => const Failure(NetworkError('not available')));
-    when(
       () => mockDismissalStorage.wasDismissedRecently(any()),
     ).thenAnswer((_) async => false);
+    when(
+      () => mockOfflineWriteQueue.registerHandler(any(), any()),
+    ).thenReturn(null);
+    when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
   });
 
-  // Helper to stub all trip calls as success with given data
-  void stubTrips({
-    PaginatedResponse<Trip>? ongoing,
-    PaginatedResponse<Trip>? planned,
-    PaginatedResponse<Trip>? completed,
+  /// Stub the aggregated `/home` read with the given grouped payload.
+  void stubHome({
+    List<Trip>? ongoing,
+    List<Trip>? planned,
+    List<Trip>? completed,
+    List<dynamic>? activeTripActivities,
+    dynamic activeTripWeather,
   }) {
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
-    ).thenAnswer(
-      (_) async =>
-          Success(ongoing ?? makePaginatedResponse<Trip>(items: [], total: 0)),
-    );
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
-    ).thenAnswer(
-      (_) async =>
-          Success(planned ?? makePaginatedResponse<Trip>(items: [], total: 0)),
-    );
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
-    ).thenAnswer(
+    when(() => mockHomeRepo.getHome()).thenAnswer(
       (_) async => Success(
-        completed ?? makePaginatedResponse<Trip>(items: [], total: 0),
+        makeHomeSummary(
+          ongoingTrips: ongoing,
+          plannedTrips: planned,
+          completedTrips: completed,
+          activeTripActivities: activeTripActivities?.cast(),
+          activeTripWeather: activeTripWeather,
+        ),
       ),
     );
   }
 
-  void stubUserSuccess() {
-    when(
-      () => mockAuthRepo.getCurrentUser(),
-    ).thenAnswer((_) async => Success(makeUser()));
-  }
-
-  void stubActivities() {
-    when(
-      () => mockActivityRepo.getActivities(any()),
-    ).thenAnswer((_) async => const Success([]));
-  }
-
   HomeBloc buildBloc() => HomeBloc(
+    homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
-    authRepository: mockAuthRepo,
-    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivityService,
-    weatherRepository: mockWeatherRepo,
     dismissalStorage: mockDismissalStorage,
+    offlineWriteQueue: mockOfflineWriteQueue,
   );
 
   group('HomeBloc', () {
     // ── Test 1: New user — 0 trips → HomeIdle ────────────────────
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeIdle] when totalTrips is 0',
+      'emits [HomeLoading, HomeIdle] when there are no trips',
       build: () {
-        stubUserSuccess();
-        stubTrips();
+        stubHome();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -119,28 +103,19 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'emits [HomeLoading, HomeActiveTrip] with todayActivities when ongoing trip exists',
       build: () {
-        stubUserSuccess();
         final trip = makeTrip(
           id: 'trip-ongoing',
           status: TripStatus.ongoing,
           startDate: DateTime.now().subtract(const Duration(days: 1)),
           endDate: DateTime.now().add(const Duration(days: 5)),
         );
-        stubTrips(
-          ongoing: makePaginatedResponse(items: [trip]),
-          planned: makePaginatedResponse<Trip>(items: [], total: 2),
-          completed: makePaginatedResponse<Trip>(items: [], total: 3),
-        );
-        // Return an activity for today
         final todayActivity = makeActivity(
           id: 'act-today',
           tripId: 'trip-ongoing',
           date: DateTime.now(),
           startTime: '10:00',
         );
-        when(
-          () => mockActivityRepo.getActivities('trip-ongoing'),
-        ).thenAnswer((_) async => Success([todayActivity]));
+        stubHome(ongoing: [trip], activeTripActivities: [todayActivity]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -156,19 +131,47 @@ void main() {
       ],
     );
 
+    // ── Test 2b: weather from aggregated payload is mapped ──────────
+
+    blocTest<HomeBloc, HomeState>(
+      'maps activeTripWeather from /home into weatherData/weatherSummary',
+      build: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        stubHome(
+          ongoing: [trip],
+          activeTripWeather: makeWeatherSummary(avgTempC: 21.0),
+        );
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(LoadHome()),
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeActiveTrip>()
+            .having(
+              (s) => s.weatherData?.avgTempC,
+              'weatherData.avgTempC',
+              21.0,
+            )
+            .having((s) => s.weatherSummary, 'weatherSummary', '21°C · Sunny'),
+      ],
+    );
+
     // ── Test 3: Trip manager planned — no ongoing, planned exists ───
 
     blocTest<HomeBloc, HomeState>(
       'emits [HomeLoading, HomeIdle] with nextTrip when only planned trips exist',
       build: () {
-        stubUserSuccess();
-        stubActivities();
         final plannedTrip = makeTrip(
           id: 'planned-1',
           status: TripStatus.planned,
           startDate: DateTime.now().add(const Duration(days: 10)),
         );
-        stubTrips(planned: makePaginatedResponse(items: [plannedTrip]));
+        stubHome(planned: [plannedTrip]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -189,13 +192,11 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'emits [HomeLoading, HomeIdle] with nextTrip == null when only completed trips exist',
       build: () {
-        stubUserSuccess();
-        stubActivities();
         final completedTrip = makeTrip(
           id: 'completed-1',
           status: TripStatus.completed,
         );
-        stubTrips(completed: makePaginatedResponse(items: [completedTrip]));
+        stubHome(completed: [completedTrip]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -208,20 +209,13 @@ void main() {
       ],
     );
 
-    // ── Test 5: Error — all calls fail → HomeError ──────────────────
+    // ── Test 5: Error — aggregated read fails → HomeError ───────────
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeError] when all trip calls fail',
+      'emits [HomeLoading, HomeError] when /home fails',
       build: () {
-        stubUserSuccess();
         when(
-          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
-        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
-        when(
-          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
-        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
-        when(
-          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
+          () => mockHomeRepo.getHome(),
         ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
         return buildBloc();
       },
@@ -234,8 +228,7 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'RefreshHome emits contextual state without HomeLoading',
       build: () {
-        stubUserSuccess();
-        stubTrips();
+        stubHome();
         return buildBloc();
       },
       act: (bloc) => bloc.add(RefreshHome()),
@@ -245,59 +238,30 @@ void main() {
     // ── Test 7: Auth failure → HomeError ────────────────────────────
 
     blocTest<HomeBloc, HomeState>(
-      'emits [HomeLoading, HomeError] when auth fails with AuthenticationError',
+      'emits [HomeLoading, HomeError] when /home fails with AuthenticationError',
       build: () {
-        when(() => mockAuthRepo.getCurrentUser()).thenAnswer(
+        when(() => mockHomeRepo.getHome()).thenAnswer(
           (_) async => const Failure(AuthenticationError('Session expired')),
         );
-        stubTrips();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       expect: () => [isA<HomeLoading>(), isA<HomeError>()],
     );
 
-    // ── Test 8: Graceful degradation (1 call fails, 2 OK) ──────────
-
-    blocTest<HomeBloc, HomeState>(
-      'emits loaded state with graceful degradation when 1 trip call fails',
-      build: () {
-        stubUserSuccess();
-        stubActivities();
-        when(
-          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
-        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
-        when(
-          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
-        ).thenAnswer(
-          (_) async =>
-              Success(makePaginatedResponse<Trip>(items: [], total: 2)),
-        );
-        when(
-          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
-        ).thenAnswer(
-          (_) async => Success(makePaginatedResponse<Trip>(items: [])),
-        );
-        return buildBloc();
-      },
-      act: (bloc) => bloc.add(LoadHome()),
-      expect: () => [isA<HomeLoading>(), isA<HomeIdle>()],
-    );
-
-    // ── Test 9: Retry after error ───────────────────────────────────
+    // ── Test 8: Retry after error ───────────────────────────────────
 
     blocTest<HomeBloc, HomeState>(
       'retry after HomeError succeeds',
       build: () {
         var callCount = 0;
-        when(() => mockAuthRepo.getCurrentUser()).thenAnswer((_) async {
+        when(() => mockHomeRepo.getHome()).thenAnswer((_) async {
           callCount++;
           if (callCount == 1) {
             return const Failure(AuthenticationError('expired'));
           }
-          return Success(makeUser());
+          return Success(makeHomeSummary());
         });
-        stubTrips();
         return buildBloc();
       },
       act: (bloc) async {
@@ -313,21 +277,17 @@ void main() {
       ],
     );
 
-    // ── Test 10: Fetch activities fails → HomeActiveTrip with empty list
+    // ── Test 9: No activities in payload → empty todayActivities ────
 
     blocTest<HomeBloc, HomeState>(
-      'emits HomeActiveTrip with empty todayActivities when getActivities fails',
+      'emits HomeActiveTrip with empty todayActivities when payload has none',
       build: () {
-        stubUserSuccess();
         final trip = makeTrip(
           id: 'trip-ongoing',
           status: TripStatus.ongoing,
           startDate: DateTime.now(),
         );
-        stubTrips(ongoing: makePaginatedResponse(items: [trip]));
-        when(
-          () => mockActivityRepo.getActivities('trip-ongoing'),
-        ).thenAnswer((_) async => const Failure(NetworkError('timeout')));
+        stubHome(ongoing: [trip]);
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -341,49 +301,33 @@ void main() {
       ],
     );
 
-    // ── Test 11: Calls each endpoint exactly once ───────────────────
+    // ── Test 10: Single aggregated call (no fan-out) ────────────────
 
     blocTest<HomeBloc, HomeState>(
-      'calls each endpoint exactly once (no duplicates)',
+      'loads home with a single getHome() call (no fan-out)',
       build: () {
-        stubUserSuccess();
-        stubTrips();
+        stubHome();
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
       verify: (_) {
-        verify(() => mockAuthRepo.getCurrentUser()).called(1);
-        verify(
-          () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
-        ).called(1);
-        verify(
-          () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
-        ).called(1);
-        verify(
-          () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
-        ).called(1);
-        verifyNoMoreInteractions(mockTripRepo);
+        verify(() => mockHomeRepo.getHome()).called(1);
+        verifyNoMoreInteractions(mockHomeRepo);
+        // No per-status paginated reads anymore.
+        verifyNever(() => mockTripRepo.getTripsPaginated());
       },
     );
 
     blocTest<HomeBloc, HomeState>(
       'PreferIdleHomeOverview emits HomeIdle with backgroundOngoingTrip',
       build: () {
-        stubUserSuccess();
-        stubActivities();
         final trip = makeTrip(
           id: 'trip-ongoing',
           status: TripStatus.ongoing,
           startDate: DateTime.now().subtract(const Duration(days: 1)),
           endDate: DateTime.now().add(const Duration(days: 5)),
         );
-        stubTrips(
-          ongoing: makePaginatedResponse(items: [trip]),
-          planned: makePaginatedResponse<Trip>(items: [], total: 0),
-        );
-        when(
-          () => mockActivityRepo.getActivities('trip-ongoing'),
-        ).thenAnswer((_) async => const Success([]));
+        stubHome(ongoing: [trip]);
         return buildBloc();
       },
       seed: () {
@@ -408,18 +352,13 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'ResumeActiveTripHome emits HomeActiveTrip when ongoing exists',
       build: () {
-        stubUserSuccess();
-        stubActivities();
         final trip = makeTrip(
           id: 'trip-og',
           status: TripStatus.ongoing,
           startDate: DateTime.now().subtract(const Duration(days: 1)),
           endDate: DateTime.now().add(const Duration(days: 3)),
         );
-        stubTrips(ongoing: makePaginatedResponse(items: [trip]));
-        when(
-          () => mockActivityRepo.getActivities('trip-og'),
-        ).thenAnswer((_) async => const Success([]));
+        stubHome(ongoing: [trip]);
         return buildBloc();
       },
       seed: () {
@@ -444,8 +383,6 @@ void main() {
     blocTest<HomeBloc, HomeState>(
       'CompleteActiveTrip calls updateTripStatus',
       build: () {
-        stubUserSuccess();
-        stubActivities();
         final trip = makeTrip(
           id: 'trip-end',
           status: TripStatus.ongoing,
@@ -455,11 +392,7 @@ void main() {
         when(
           () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
         ).thenAnswer((_) async => Success(trip));
-        stubTrips(
-          ongoing: makePaginatedResponse<Trip>(items: [], total: 0),
-          planned: makePaginatedResponse<Trip>(items: [], total: 0),
-          completed: makePaginatedResponse<Trip>(items: [], total: 0),
-        );
+        stubHome();
         return buildBloc();
       },
       seed: () {
@@ -483,6 +416,175 @@ void main() {
         verify(
           () => mockTripRepo.updateTripStatus('trip-end', 'completed'),
         ).called(1);
+      },
+    );
+
+    // ── ConfirmTripCompletion sets completedTripId for navigation ───
+
+    blocTest<HomeBloc, HomeState>(
+      'ConfirmTripCompletion emits HomeActiveTrip with completedTripId then refreshes',
+      build: () {
+        when(
+          () => mockTripRepo.updateTripStatus('trip-done', 'completed'),
+        ).thenAnswer((_) async => Success(makeTrip(id: 'trip-done')));
+        when(
+          () => mockDismissalStorage.clearDismissal(any()),
+        ).thenAnswer((_) async {});
+        stubHome();
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-done',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 3)),
+          endDate: DateTime.now().subtract(const Duration(days: 1)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(ConfirmTripCompletion(tripId: 'trip-done')),
+      expect: () => [
+        isA<HomeActiveTrip>().having(
+          (s) => s.completedTripId,
+          'completedTripId',
+          'trip-done',
+        ),
+        // RefreshHome → idle (no trips left in stubbed payload).
+        isA<HomeIdle>(),
+      ],
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTripStatus('trip-done', 'completed'),
+        ).called(1);
+      },
+    );
+
+    // ── Offline persistence: registers replay handler at init ───────
+
+    test('registers trip:updateTripStatus replay handler on init', () {
+      stubHome();
+      buildBloc();
+      verify(
+        () => mockOfflineWriteQueue.registerHandler(
+          kHomeTripStatusReplayKey,
+          any(),
+        ),
+      ).called(1);
+    });
+
+    // ── Offline persistence: enqueues PendingWriteOperation ─────────
+
+    blocTest<HomeBloc, HomeState>(
+      'offline PLANNED→ONGOING transition enqueues a PendingWriteOperation',
+      build: () {
+        when(() => mockConnectivityService.isOnline).thenReturn(false);
+        final plannedNow = makeTrip(
+          id: 'planned-now',
+          status: TripStatus.planned,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        stubHome(planned: [plannedNow]);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(LoadHome()),
+      verify: (_) {
+        final captured = verify(
+          () => mockOfflineWriteQueue.enqueue(captureAny()),
+        ).captured;
+        expect(captured.length, 1);
+        final op = captured.first as PendingWriteOperation;
+        expect(op.repository, 'trip');
+        expect(op.method, 'updateTripStatus');
+        expect(op.arguments['tripId'], 'planned-now');
+        expect(op.arguments['status'], 'ongoing');
+        // The deferred PATCH must NOT run inline while offline — only the
+        // queue replay does it later. updateTripStatus is never called here.
+        verifyNever(() => mockTripRepo.updateTripStatus(any(), any()));
+      },
+    );
+
+    // ── Online PLANNED→ONGOING transition PATCHes immediately ───────
+
+    blocTest<HomeBloc, HomeState>(
+      'online PLANNED→ONGOING transition calls updateTripStatus directly',
+      build: () {
+        final plannedNow = makeTrip(
+          id: 'planned-now',
+          status: TripStatus.planned,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        when(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).thenAnswer((_) async => Success(plannedNow));
+        stubHome(planned: [plannedNow]);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(LoadHome()),
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).called(1);
+        verifyNever(() => mockOfflineWriteQueue.enqueue(any()));
+      },
+    );
+
+    // ── Offline persistence: replay handler calls updateTripStatus ──
+
+    test(
+      'registered replay handler calls updateTripStatus and returns success',
+      () async {
+        ReplayHandler? capturedHandler;
+        when(
+          () => mockOfflineWriteQueue.registerHandler(
+            kHomeTripStatusReplayKey,
+            any(),
+          ),
+        ).thenAnswer((invocation) {
+          capturedHandler = invocation.positionalArguments[1] as ReplayHandler;
+        });
+        when(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).thenAnswer((_) async => Success(makeTrip(id: 'planned-now')));
+
+        buildBloc();
+
+        expect(capturedHandler, isNotNull);
+        final ok = await capturedHandler!({
+          'tripId': 'planned-now',
+          'status': 'ongoing',
+        });
+        expect(ok, isTrue);
+        verify(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).called(1);
+      },
+    );
+
+    test(
+      'replay handler returns false when updateTripStatus fails (keeps op queued)',
+      () async {
+        ReplayHandler? capturedHandler;
+        when(
+          () => mockOfflineWriteQueue.registerHandler(
+            kHomeTripStatusReplayKey,
+            any(),
+          ),
+        ).thenAnswer((invocation) {
+          capturedHandler = invocation.positionalArguments[1] as ReplayHandler;
+        });
+        when(
+          () => mockTripRepo.updateTripStatus('planned-now', 'ongoing'),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
+
+        buildBloc();
+
+        final ok = await capturedHandler!({
+          'tripId': 'planned-now',
+          'status': 'ongoing',
+        });
+        expect(ok, isFalse);
       },
     );
   });

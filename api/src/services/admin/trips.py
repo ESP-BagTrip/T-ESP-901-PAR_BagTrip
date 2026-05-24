@@ -243,10 +243,26 @@ class AdminTripsService:
 
     @staticmethod
     def archive_trip(db: Session, trip_id) -> None:
+        # Soft-archive: only stamps ``archived_at``. Sub-entities (activities,
+        # accommodations, baggage, flights, budget items, shares, ...) stay
+        # linked — the ``cascade="all, delete-orphan"`` relationships only fire
+        # on a real ``db.delete(trip)`` (the RGPD hard-delete path), never here.
+        # This is what makes archiving reversible via ``unarchive_trip``.
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
         if not trip:
             raise AppError("NOT_FOUND", 404, "Trip not found")
         trip.archived_at = func.now()
+        db.commit()
+
+    @staticmethod
+    def unarchive_trip(db: Session, trip_id) -> None:
+        # Reverse of ``archive_trip``: clears ``archived_at`` so the trip
+        # reappears in listings. All sub-entities are intact because archiving
+        # never deletes them.
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if not trip:
+            raise AppError("NOT_FOUND", 404, "Trip not found")
+        trip.archived_at = None
         db.commit()
 
     @staticmethod

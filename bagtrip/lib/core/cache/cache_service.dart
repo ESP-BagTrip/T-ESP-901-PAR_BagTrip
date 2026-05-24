@@ -19,10 +19,13 @@ class CacheService {
     });
   }
 
+  /// Read a cached entry. Pass [ttl] `null` to disable expiry entirely — used
+  /// by the offline write queue, whose pending mutations must survive arbitrary
+  /// offline durations and must never be silently dropped by the cache TTL.
   Future<Map<String, dynamic>?> get(
     String boxName,
     String key, {
-    Duration ttl = const Duration(minutes: 15),
+    Duration? ttl = const Duration(minutes: 15),
   }) async {
     final box = await _openBox(boxName);
     final raw = box.get(key);
@@ -32,7 +35,7 @@ class CacheService {
     final cachedAt = entry['cachedAt'] as int;
     final age = DateTime.now().millisecondsSinceEpoch - cachedAt;
 
-    if (ttl.inMilliseconds == 0 || age > ttl.inMilliseconds) {
+    if (ttl != null && (ttl.inMilliseconds == 0 || age > ttl.inMilliseconds)) {
       await box.delete(key);
       return null;
     }

@@ -75,6 +75,25 @@ void main() {
     });
   });
 
+  group('getPending', () {
+    test('loads operations with TTL disabled (ttl: null)', () async {
+      when(
+        () => mockCache.get(any(), any(), ttl: any(named: 'ttl')),
+      ).thenAnswer((_) async => null);
+
+      await queue.getPending();
+
+      // Pending writes must never be dropped by the 15 min cache TTL.
+      verify(
+        () => mockCache.get(
+          'offline_write_queue',
+          'pending_operations',
+          ttl: null,
+        ),
+      ).called(1);
+    });
+  });
+
   group('replay', () {
     test('replays operations in FIFO order and clears on success', () async {
       final op1 = makeOp();

@@ -28,6 +28,7 @@ class PackItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     // Wrap in Material so the InkWell has an ancestor for ripple rendering.
     // Callers (e.g. essentials_panel) embed us inside a Container with a
     // BoxDecoration, which does not provide Material on its own.
@@ -48,7 +49,7 @@ class PackItem extends StatelessWidget {
                 size: 18,
                 color: checked
                     ? ColorName.secondary
-                    : AppColors.reviewUnchecked,
+                    : AppColors.reviewUncheckedOf(brightness),
               ),
               const SizedBox(width: AppSpacing.space8),
               Expanded(

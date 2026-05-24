@@ -136,9 +136,55 @@ class AppColors {
   static const Color warningIcon = Color(0xFFF57C00); // orange.shade700
   static const Color warningText = Color(0xFFE65100); // orange.shade900
 
+  // --- Alert banner (dark) ---
+  // Dark surfaces sit around #0E2135 / #1F4772 / #2A2F3D. The light tints
+  // (orange.50 / red.50) are far too light there and the dark text becomes
+  // invisible, so we flip to a translucent-feeling dark amber/red fill with a
+  // light border/icon/text. Foreground tones are amber.200 / red.200 which
+  // clear WCAG AA (>= 4.5:1) on the chosen dark fills.
+  static const Color dangerBgDark = Color(0xFF3A1A1A); // deep desaturated red
+  static const Color dangerBorderDark = Color(0xFF8E3B3B); // muted red border
+  static const Color dangerIconDark = Color(0xFFEF9A9A); // red.shade200
+  static const Color dangerTextDark = Color(0xFFFFCDD2); // red.shade100
+  static const Color warningBgDark = Color(
+    0xFF3A2A12,
+  ); // deep desaturated amber
+  static const Color warningBorderDark = Color(
+    0xFF8A5E22,
+  ); // muted amber border
+  static const Color warningIconDark = Color(0xFFFFCC80); // orange.shade200
+  static const Color warningTextDark = Color(0xFFFFE0B2); // orange.shade100
+
+  // --- Alert banner resolvers (brightness-aware) ---
+  static Color dangerBgOf(Brightness b) =>
+      b == Brightness.dark ? dangerBgDark : dangerBg;
+  static Color dangerBorderOf(Brightness b) =>
+      b == Brightness.dark ? dangerBorderDark : dangerBorder;
+  static Color dangerIconOf(Brightness b) =>
+      b == Brightness.dark ? dangerIconDark : dangerIcon;
+  static Color dangerTextOf(Brightness b) =>
+      b == Brightness.dark ? dangerTextDark : dangerText;
+  static Color warningBgOf(Brightness b) =>
+      b == Brightness.dark ? warningBgDark : warningBg;
+  static Color warningBorderOf(Brightness b) =>
+      b == Brightness.dark ? warningBorderDark : warningBorder;
+  static Color warningIconOf(Brightness b) =>
+      b == Brightness.dark ? warningIconDark : warningIcon;
+  static Color warningTextOf(Brightness b) =>
+      b == Brightness.dark ? warningTextDark : warningText;
+
   // --- Error feedback (light) ---
   static const Color errorBg = Color(0xFFFFEBEE); // red.shade50
   static const Color errorText = Color(0xFFD32F2F); // red.shade700
+
+  // --- Error feedback (dark) ---
+  static const Color errorBgDark = Color(0xFF3A1A1A); // deep desaturated red
+  static const Color errorTextDark = Color(0xFFEF9A9A); // red.shade200
+
+  static Color errorBgOf(Brightness b) =>
+      b == Brightness.dark ? errorBgDark : errorBg;
+  static Color errorTextOf(Brightness b) =>
+      b == Brightness.dark ? errorTextDark : errorText;
 
   // --- Review step (neutral warm grays used by step_review_view) ---
   static const Color reviewMuted = Color(0xFF8D8B86);
@@ -151,15 +197,77 @@ class AppColors {
   static const Color reviewDividerFaint = Color(0x12000000);
   static const Color reviewHeroDark = Color(0xCC0D3055);
 
+  // --- Review step (dark) ---
+  // The review neutrals are warm grays tuned for white surfaces; the inks
+  // (#171513) and warm grays disappear on dark surfaces. On dark we use light
+  // warm grays for text and white-alpha overlays for dividers/borders so they
+  // remain visible against #0E2135 / #2A2F3D.
+  static const Color reviewMutedDark = Color(0xFFB5B2AC);
+  static const Color reviewSubtleDark = Color(0xFFB0ADA7);
+  static const Color reviewFaintDark = Color(0xFF9E9B96);
+  static const Color reviewInkDark = Color(0xFFEDEAE4); // primary ink on dark
+  static const Color reviewUncheckedDark = Color(0xFF5C5A55);
+  static const Color reviewDividerDark = Color(0x33FFFFFF);
+  static const Color reviewBorderLightDark = Color(0x26FFFFFF);
+  static const Color reviewDividerFaintDark = Color(0x1AFFFFFF);
+
+  // --- Review step resolvers (brightness-aware) ---
+  static Color reviewMutedOf(Brightness b) =>
+      b == Brightness.dark ? reviewMutedDark : reviewMuted;
+  static Color reviewSubtleOf(Brightness b) =>
+      b == Brightness.dark ? reviewSubtleDark : reviewSubtle;
+  static Color reviewFaintOf(Brightness b) =>
+      b == Brightness.dark ? reviewFaintDark : reviewFaint;
+  static Color reviewInkOf(Brightness b) =>
+      b == Brightness.dark ? reviewInkDark : reviewInk;
+  static Color reviewUncheckedOf(Brightness b) =>
+      b == Brightness.dark ? reviewUncheckedDark : reviewUnchecked;
+  static Color reviewDividerOf(Brightness b) =>
+      b == Brightness.dark ? reviewDividerDark : reviewDivider;
+  static Color reviewBorderLightOf(Brightness b) =>
+      b == Brightness.dark ? reviewBorderLightDark : reviewBorderLight;
+  static Color reviewDividerFaintOf(Brightness b) =>
+      b == Brightness.dark ? reviewDividerFaintDark : reviewDividerFaint;
+
   // --- Budget breakdown (review panel pastel ring chart) ---
   static const Color budgetTransport = Color(0xFFE8A4B8);
   static const Color budgetDefault = Color(0xFF8B8882);
+
+  // --- Budget breakdown (dark) ---
+  // Pastel pink / warm gray are low-contrast on dark surfaces; deepen +
+  // brighten slightly so the ring segments stay distinguishable on #1F4772.
+  static const Color budgetTransportDark = Color(0xFFD17A95);
+  static const Color budgetDefaultDark = Color(0xFFB0ADA7);
+
+  static Color budgetTransportOf(Brightness b) =>
+      b == Brightness.dark ? budgetTransportDark : budgetTransport;
+  static Color budgetDefaultOf(Brightness b) =>
+      b == Brightness.dark ? budgetDefaultDark : budgetDefault;
 
   // --- AI destination card chips ---
   static const Color chipWeatherBackground = Color(0xFFE3F5F4);
   static const Color chipWeatherForeground = Color(0xFF0B7F80);
   static const Color chipActivityBackground = Color(0xFFF0F2F6);
   static const Color chipActivityForeground = Color(0xFF58617A);
+
+  // --- AI destination card chips (dark) ---
+  // Light teal / gray chip fills wash out on dark; use translucent-feeling
+  // dark fills with bright teal / light gray foregrounds (>= 4.5:1).
+  static const Color chipWeatherBackgroundDark = Color(0xFF12333A);
+  static const Color chipWeatherForegroundDark = Color(0xFF4DD0C5);
+  static const Color chipActivityBackgroundDark = Color(0xFF2A3142);
+  static const Color chipActivityForegroundDark = Color(0xFFB6BECF);
+
+  static Color chipWeatherBackgroundOf(Brightness b) =>
+      b == Brightness.dark ? chipWeatherBackgroundDark : chipWeatherBackground;
+  static Color chipWeatherForegroundOf(Brightness b) =>
+      b == Brightness.dark ? chipWeatherForegroundDark : chipWeatherForeground;
+  static Color chipActivityBackgroundOf(Brightness b) => b == Brightness.dark
+      ? chipActivityBackgroundDark
+      : chipActivityBackground;
+  static Color chipActivityForegroundOf(Brightness b) => b == Brightness.dark
+      ? chipActivityForegroundDark
+      : chipActivityForeground;
 
   // --- Overlays / shadows / dividers ---
   static const Color white = ColorName.surface; // #FFFFFF

@@ -13,6 +13,7 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   phone: json['phone'] as String?,
   stripeCustomerId: json['stripeCustomerId'] as String?,
   isProfileCompleted: json['isProfileCompleted'] as bool? ?? false,
+  emailVerified: json['emailVerified'] as bool? ?? false,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -33,6 +34,7 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'phone': instance.phone,
   'stripeCustomerId': instance.stripeCustomerId,
   'isProfileCompleted': instance.isProfileCompleted,
+  'emailVerified': instance.emailVerified,
   'createdAt': instance.createdAt?.toIso8601String(),
   'updatedAt': instance.updatedAt?.toIso8601String(),
   'plan': instance.plan,

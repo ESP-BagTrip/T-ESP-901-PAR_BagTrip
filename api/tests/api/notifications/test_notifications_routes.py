@@ -130,3 +130,90 @@ class TestMarkAllRead:
             response = client.post("/v1/notifications/read-all")
         assert response.status_code == 200
         assert response.json() == {"updated": 12}
+
+
+class TestDeleteNotification:
+    def test_success_returns_204(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationService.delete",
+            return_value=True,
+        ) as mock_delete:
+            response = client.delete(f"/v1/notifications/{uuid.uuid4()}")
+        assert response.status_code == 204
+        assert response.content == b""
+        mock_delete.assert_called_once()
+
+    def test_not_found_returns_404(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationService.delete",
+            return_value=False,
+        ):
+            response = client.delete(f"/v1/notifications/{uuid.uuid4()}")
+        assert response.status_code == 404
+        assert response.json()["detail"]["code"] == "NOTIFICATION_NOT_FOUND"
+
+
+def _make_pref(**overrides) -> MagicMock:
+    p = MagicMock()
+    p.push_enabled = overrides.get("push_enabled", True)
+    p.flight_reminders = overrides.get("flight_reminders", True)
+    p.activity_reminders = overrides.get("activity_reminders", True)
+    p.trip_updates = overrides.get("trip_updates", True)
+    p.budget_alerts = overrides.get("budget_alerts", True)
+    p.social = overrides.get("social", True)
+    return p
+
+
+class TestGetPreferences:
+    def test_returns_defaults(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationPreferenceService.get_or_create",
+            return_value=_make_pref(),
+        ):
+            response = client.get("/v1/notifications/preferences")
+        assert response.status_code == 200
+        body = response.json()
+        # This router serializes responses by alias (snake_case), matching the
+        # convention of the sibling NotificationResponse schema.
+        assert body["push_enabled"] is True
+        assert body["flight_reminders"] is True
+        assert body["activity_reminders"] is True
+        assert body["trip_updates"] is True
+        assert body["budget_alerts"] is True
+        assert body["social"] is True
+
+
+class TestUpdatePreferences:
+    def test_partial_update(self, client: TestClient) -> None:
+        updated = _make_pref(push_enabled=False, social=False)
+        with patch(
+            "src.api.notifications.routes.NotificationPreferenceService.update",
+            return_value=updated,
+        ) as mock_update:
+            response = client.patch(
+                "/v1/notifications/preferences",
+                json={"pushEnabled": False, "social": False},
+            )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["push_enabled"] is False
+        assert body["social"] is False
+        assert body["flight_reminders"] is True
+        kwargs = mock_update.call_args.kwargs
+        assert kwargs["push_enabled"] is False
+        assert kwargs["social"] is False
+        # Omitted fields are passed through as None (ignored by the service).
+        assert kwargs["flight_reminders"] is None
+
+    def test_accepts_snake_case_alias(self, client: TestClient) -> None:
+        with patch(
+            "src.api.notifications.routes.NotificationPreferenceService.update",
+            return_value=_make_pref(budget_alerts=False),
+        ) as mock_update:
+            response = client.patch(
+                "/v1/notifications/preferences",
+                json={"budget_alerts": False},
+            )
+        assert response.status_code == 200
+        assert response.json()["budget_alerts"] is False
+        assert mock_update.call_args.kwargs["budget_alerts"] is False

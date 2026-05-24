@@ -88,8 +88,27 @@ class NotificationsView extends StatelessWidget {
                   ),
                 ),
               ),
-              itemBuilder: (context, notif, _) =>
-                  NotificationCard(notification: notif),
+              itemBuilder: (context, notif, _) {
+                final l10n = AppLocalizations.of(context)!;
+                return Dismissible(
+                  key: ValueKey('notif-${notif.id}'),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    color: Theme.of(context).colorScheme.error,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: Theme.of(context).colorScheme.onError,
+                      semanticLabel: l10n.notificationsDelete,
+                    ),
+                  ),
+                  onDismissed: (_) => context.read<NotificationBloc>().add(
+                    DeleteNotification(notificationId: notif.id),
+                  ),
+                  child: NotificationCard(notification: notif),
+                );
+              },
             );
           }
 

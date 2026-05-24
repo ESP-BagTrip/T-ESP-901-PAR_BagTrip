@@ -17,12 +17,13 @@ import 'package:bagtrip/pages/payment/payment_success_page.dart';
 import 'package:bagtrip/pages/personalization_page.dart';
 import 'package:bagtrip/pages/planifier_manual_flight_page.dart';
 import 'package:bagtrip/pages/profile_page.dart';
+import 'package:bagtrip/pages/reset_password_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
-import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
 import 'package:bagtrip/profile/view/personal_info_page.dart';
@@ -56,6 +57,19 @@ class LoginRoute extends GoRouteData with $LoginRoute {
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       const NoTransitionPage(child: LoginPage());
+}
+
+@TypedGoRoute<ResetPasswordRoute>(path: '/reset-password')
+class ResetPasswordRoute extends GoRouteData with $ResetPasswordRoute {
+  const ResetPasswordRoute({this.token});
+
+  /// Raw reset token forwarded from the `bagtrip://reset-password?token=…`
+  /// deep link as a query parameter.
+  final String? token;
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      NoTransitionPage(child: ResetPasswordPage(token: token ?? ''));
 }
 
 @TypedGoRoute<OnboardingRoute>(path: '/onboarding')
@@ -162,13 +176,15 @@ class TripDetailShellRoute extends ShellRouteData {
 class PlanTripRoute extends GoRouteData with $PlanTripRoute {
   const PlanTripRoute({this.$extra});
 
-  final LocationResult? $extra;
+  /// Optional pre-fill bundle (destination + duration + budget) forwarded
+  /// from an external entry point such as the post-trip suggestion CTA.
+  final PlanTripPrefill? $extra;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildWizardTransitionPage<void>(
         state: state,
-        child: PlanTripFlowPage(initialDestination: $extra),
+        child: PlanTripFlowPage(initialPrefill: $extra),
       );
 }
 

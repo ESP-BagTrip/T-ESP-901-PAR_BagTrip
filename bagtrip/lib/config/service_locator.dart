@@ -28,9 +28,15 @@ import 'package:bagtrip/service/personalization_storage.dart';
 import 'package:bagtrip/service/settings_storage.dart';
 import 'package:bagtrip/service/cached_trip_repository.dart';
 import 'package:bagtrip/service/cached_weather_repository.dart';
+import 'package:bagtrip/service/cached_accommodation_repository.dart';
 import 'package:bagtrip/service/cached_activity_repository.dart';
 import 'package:bagtrip/service/cached_baggage_repository.dart';
 import 'package:bagtrip/service/cached_budget_repository.dart';
+import 'package:bagtrip/service/cached_transport_repository.dart';
+import 'package:bagtrip/service/cached_trip_share_repository.dart';
+import 'package:bagtrip/service/cached_feedback_repository.dart';
+import 'package:bagtrip/service/cached_home_repository.dart';
+import 'package:bagtrip/service/home_service.dart';
 import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/service/weather_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
@@ -112,10 +118,20 @@ void setupServiceLocator() {
     ),
   );
   getIt.registerLazySingleton<TripShareRepository>(
-    () => TripShareRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedTripShareRepository(
+      remote: TripShareRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<AccommodationRepository>(
-    () => AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedAccommodationRepository(
+      remote: AccommodationRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<BaggageRepository>(
     () => CachedBaggageRepository(
@@ -132,7 +148,12 @@ void setupServiceLocator() {
     () => AgentService(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<FeedbackRepository>(
-    () => FeedbackRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedFeedbackRepository(
+      remote: FeedbackRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<SubscriptionRepository>(
     () => SubscriptionRepositoryImpl(apiClient: getIt<ApiClient>()),
@@ -144,11 +165,23 @@ void setupServiceLocator() {
     ),
   );
   getIt.registerLazySingleton<TransportRepository>(
-    () => TransportRepositoryImpl(apiClient: getIt<ApiClient>()),
+    () => CachedTransportRepository(
+      remote: TransportRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+      queue: getIt<OfflineWriteQueue>(),
+    ),
   );
   getIt.registerLazySingleton<WeatherRepository>(
     () => CachedWeatherRepository(
       remote: WeatherRepositoryImpl(apiClient: getIt<ApiClient>()),
+      cache: getIt<CacheService>(),
+      connectivity: getIt<ConnectivityService>(),
+    ),
+  );
+  getIt.registerLazySingleton<HomeRepository>(
+    () => CachedHomeRepository(
+      remote: HomeRepositoryImpl(apiClient: getIt<ApiClient>()),
       cache: getIt<CacheService>(),
       connectivity: getIt<ConnectivityService>(),
     ),

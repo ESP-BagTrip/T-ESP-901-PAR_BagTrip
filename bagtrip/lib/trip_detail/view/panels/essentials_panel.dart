@@ -14,6 +14,7 @@ import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/baggage_item.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/widgets/section_error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -115,6 +116,15 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SectionErrorBanner(section: 'baggage'),
+        Expanded(child: _buildContent(context)),
+      ],
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     if (widget.items.isEmpty) {
       return Padding(

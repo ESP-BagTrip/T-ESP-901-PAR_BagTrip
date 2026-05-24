@@ -16,4 +16,9 @@ class MarkNotificationRead extends NotificationEvent {
 
 class MarkAllRead extends NotificationEvent {}
 
+class DeleteNotification extends NotificationEvent {
+  final String notificationId;
+  DeleteNotification({required this.notificationId});
+}
+
 class ResetNotifications extends NotificationEvent {}

@@ -265,6 +265,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageLabel => 'LANGUAGE';
 
   @override
+  String get languageFrench => 'French';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
   String get themeLabel => 'THEME';
 
   @override
@@ -522,6 +528,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get personalizationStepSubtitleFrequency => 'Per year';
 
   @override
+  String get personalizationStepTitleConstraints => 'Constraints';
+
+  @override
+  String get personalizationStepSubtitleConstraints =>
+      'Any restrictions or constraints for your trip?';
+
+  @override
+  String get personalizationStepTitleTravelStyle => 'Your travel style';
+
+  @override
+  String get personalizationStepSubtitleTravelStyle =>
+      'How do you like to organize your trips?';
+
+  @override
   String get personalizationBudgetComfort => 'Comfort';
 
   @override
@@ -716,10 +736,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabProfile => 'Profile';
 
   @override
+  String get emailVerificationBannerText =>
+      'Verify your email address to secure your account.';
+
+  @override
+  String get emailVerificationResend => 'Resend';
+
+  @override
+  String get emailVerificationSent =>
+      'Verification email sent. Check your inbox.';
+
+  @override
+  String get emailVerifiedSuccess => 'Your email address has been verified.';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override
   String get notificationsMarkAllRead => 'Mark all read';
+
+  @override
+  String get notificationsDelete => 'Delete';
 
   @override
   String get notificationsEmpty => 'No notifications';
@@ -1173,6 +1210,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get notificationPrefsTitle => 'Notifications';
+
+  @override
+  String get notificationPrefsPush => 'Push notifications';
+
+  @override
+  String get notificationPrefsFlightReminders => 'Flight reminders';
+
+  @override
+  String get notificationPrefsActivityReminders => 'Activity reminders';
+
+  @override
+  String get notificationPrefsTripUpdates => 'Trip updates';
+
+  @override
+  String get notificationPrefsBudgetAlerts => 'Budget alerts';
+
+  @override
+  String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsLoadError =>
+      'Unable to load your notification preferences.';
 
   @override
   String get personalInfoPageTitle => 'Personal information';
@@ -2880,6 +2942,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get forgotPasswordSuccess =>
       'If this email exists, a reset link has been sent. Check your inbox.';
+
+  @override
+  String get resetPasswordTitle => 'New password';
+
+  @override
+  String get resetPasswordSubtitle => 'Choose a new password for your account.';
+
+  @override
+  String get resetPasswordNewLabel => 'New password';
+
+  @override
+  String get resetPasswordConfirmLabel => 'Confirm password';
+
+  @override
+  String get resetPasswordSubmit => 'Reset password';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Your password has been reset. You can now sign in.';
+
+  @override
+  String get resetPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get resetPasswordTooShort => 'Password must be at least 6 characters.';
 
   @override
   String get deleteAccountButton => 'Delete my account';

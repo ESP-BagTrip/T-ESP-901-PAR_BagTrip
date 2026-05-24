@@ -1,14 +1,18 @@
 """Client AirLabs pour les informations de vol en temps réel."""
 
-import time
-
-import httpx
-
 from src.config.env import settings
+from src.integrations.circuit_breaker import CircuitBreaker, CircuitOpenError
+from src.integrations.distributed_cache import DistributedCache
+from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
-_CACHE: dict[str, dict] = {}
 _CACHE_TTL = 300  # 5 minutes
+# Shared across workers via Redis (falls back to per-process memory).
+_cache = DistributedCache("airlabs", ttl_seconds=_CACHE_TTL)
+
+# AirLabs is a best-effort enrichment provider: when it is down we already
+# swallow-and-warn, so the breaker just lets us skip the network round-trip.
+_breaker = CircuitBreaker("airlabs")
 
 
 class AirLabsClient:
@@ -17,7 +21,7 @@ class AirLabsClient:
     BASE_URL = "https://airlabs.co/api/v9"
 
     @staticmethod
-    def lookup_flight(flight_iata: str) -> dict | None:
+    async def lookup_flight(flight_iata: str) -> dict | None:
         """Rechercher les infos d'un vol par code IATA.
 
         Returns None if not found or API key not configured.
@@ -27,16 +31,16 @@ class AirLabsClient:
 
         code = flight_iata.upper().strip()
 
-        # Check cache
-        cached = _CACHE.get(code)
-        if cached and (time.time() - cached["fetched_at"]) < _CACHE_TTL:
-            return cached["data"]
+        cached = _cache.get(code)
+        if cached is not None:
+            return cached
 
-        try:
-            resp = httpx.get(
+        async def _fetch() -> dict | None:
+            client = get_http_client()
+            resp = await client.get(
                 f"{AirLabsClient.BASE_URL}/flight",
                 params={"flight_iata": code, "api_key": settings.AIRLABS_API_KEY},
-                timeout=10,
+                timeout=10.0,
             )
             resp.raise_for_status()
             payload = resp.json()
@@ -55,9 +59,16 @@ class AirLabsClient:
             if not data:
                 return None
 
-            # Cache
-            _CACHE[code] = {"data": data, "fetched_at": time.time()}
+            _cache.set(code, data)
             return data
+
+        try:
+            # The network call runs through the breaker so repeated AirLabs
+            # outages trip it OPEN and we stop paying the round-trip.
+            return await _breaker.call(_fetch)
+        except CircuitOpenError as e:
+            logger.warn(f"AirLabs circuit open, skipping lookup for {code}: {e}")
+            return None
         except Exception as e:
             logger.warn(f"AirLabs lookup failed for {code}: {e}")
             return None

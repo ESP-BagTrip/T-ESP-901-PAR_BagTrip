@@ -38,6 +38,7 @@ List<BudgetStripeEntry> extractBudgetEntries(
   AppLocalizations l10n,
   BudgetBreakdown breakdown, {
   bool accommodationDeferred = false,
+  Brightness brightness = Brightness.light,
 }) {
   final entries = <BudgetStripeEntry>[];
   final amounts = <String, double>{
@@ -55,7 +56,7 @@ List<BudgetStripeEntry> extractBudgetEntries(
           BudgetStripeEntry(
             label: budgetLabelForKey(key, l10n),
             amount: 0,
-            color: budgetColorForKey(key),
+            color: budgetColorForKey(key, brightness),
             displayOverride: l10n.budgetAccommodationDeferred,
             deferred: true,
           ),
@@ -67,7 +68,7 @@ List<BudgetStripeEntry> extractBudgetEntries(
       BudgetStripeEntry(
         label: budgetLabelForKey(key, l10n),
         amount: amount,
-        color: budgetColorForKey(key),
+        color: budgetColorForKey(key, brightness),
       ),
     );
   }
@@ -76,7 +77,7 @@ List<BudgetStripeEntry> extractBudgetEntries(
       BudgetStripeEntry(
         label: l10n.reviewBudgetOther,
         amount: breakdown.other,
-        color: AppColors.budgetDefault,
+        color: AppColors.budgetDefaultOf(brightness),
       ),
     );
   }
@@ -92,11 +93,14 @@ String budgetLabelForKey(String key, AppLocalizations l10n) => switch (key) {
   _ => l10n.reviewBudgetOther,
 };
 
-Color budgetColorForKey(String key) => switch (key) {
+Color budgetColorForKey(
+  String key, [
+  Brightness brightness = Brightness.light,
+]) => switch (key) {
   'flight' => ColorName.primary,
   'accommodation' => ColorName.primaryDark,
   'food' => ColorName.warning,
-  'transport' => AppColors.budgetTransport,
+  'transport' => AppColors.budgetTransportOf(brightness),
   'activity' => ColorName.secondary,
-  _ => AppColors.budgetDefault,
+  _ => AppColors.budgetDefaultOf(brightness),
 };

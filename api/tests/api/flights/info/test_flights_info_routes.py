@@ -1,6 +1,6 @@
 """Route tests for flights/info/routes.py — AirLabs forwarding + validation."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request
@@ -59,6 +59,7 @@ class TestGetFlightInfo:
             patch("src.api.flights.info.routes.settings.AIRLABS_API_KEY", "fake-key"),
             patch(
                 "src.api.flights.info.routes.AirLabsService.lookup_flight",
+                new_callable=AsyncMock,
                 return_value=payload,
             ),
         ):
@@ -86,6 +87,7 @@ class TestGetFlightInfo:
             patch("src.api.flights.info.routes.settings.AIRLABS_API_KEY", "fake-key"),
             patch(
                 "src.api.flights.info.routes.AirLabsService.lookup_flight",
+                new_callable=AsyncMock,
                 return_value=None,
             ),
         ):
@@ -98,9 +100,10 @@ class TestGetFlightInfo:
             patch("src.api.flights.info.routes.settings.AIRLABS_API_KEY", "fake-key"),
             patch(
                 "src.api.flights.info.routes.AirLabsService.lookup_flight",
+                new_callable=AsyncMock,
                 return_value={"flight_iata": "AF1234"},
             ) as lookup,
         ):
             response = client.get("/v1/travel/flights/af1234/info")
         assert response.status_code == 200
-        lookup.assert_called_once_with("AF1234")
+        lookup.assert_awaited_once_with("AF1234")

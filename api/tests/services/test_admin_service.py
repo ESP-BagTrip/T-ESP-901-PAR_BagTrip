@@ -11,6 +11,7 @@ from src.models.traveler import TripTraveler
 from src.models.trip import Trip
 from src.models.user import User
 from src.services.admin_service import AdminService
+from src.utils.errors import AppError
 
 
 @pytest.fixture
@@ -74,6 +75,41 @@ class TestAdminService:
         assert len(items) == 1
         assert items[0]["user_email"] == "test@example.com"
         assert items[0]["title"] == "Paris Trip"
+
+    def test_archive_trip_sets_archived_at(self, mock_db_session):
+        """archive_trip stamps archived_at without touching sub-entities."""
+        trip = Trip(id=uuid.uuid4(), user_id=uuid.uuid4(), archived_at=None)
+        mock_db_session.query.return_value.filter.return_value.first.return_value = trip
+
+        AdminService.archive_trip(mock_db_session, trip.id)
+
+        assert trip.archived_at is not None
+        mock_db_session.commit.assert_called_once()
+        # Soft-archive must never hard-delete the trip / sub-entities.
+        mock_db_session.delete.assert_not_called()
+
+    def test_archive_trip_not_found(self, mock_db_session):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        with pytest.raises(AppError) as exc:
+            AdminService.archive_trip(mock_db_session, uuid.uuid4())
+        assert exc.value.status_code == 404
+
+    def test_unarchive_trip_clears_archived_at(self, mock_db_session):
+        """unarchive_trip reverses the archive by clearing archived_at."""
+        trip = Trip(id=uuid.uuid4(), user_id=uuid.uuid4(), archived_at=datetime.utcnow())
+        mock_db_session.query.return_value.filter.return_value.first.return_value = trip
+
+        AdminService.unarchive_trip(mock_db_session, trip.id)
+
+        assert trip.archived_at is None
+        mock_db_session.commit.assert_called_once()
+        mock_db_session.delete.assert_not_called()
+
+    def test_unarchive_trip_not_found(self, mock_db_session):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        with pytest.raises(AppError) as exc:
+            AdminService.unarchive_trip(mock_db_session, uuid.uuid4())
+        assert exc.value.status_code == 404
 
     def test_get_all_travelers(self, mock_db_session):
         """Test retrieving all travelers."""

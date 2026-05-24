@@ -27,7 +27,7 @@ class FlightOrder(Base):
         UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False, index=True
     )
     flight_offer_id: Mapped[_UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("flight_offers.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("flight_offers.id"), nullable=False, index=True
     )
     booking_intent_id: Mapped[_UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("booking_intents.id"), nullable=True, unique=True

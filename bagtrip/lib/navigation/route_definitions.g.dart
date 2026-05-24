@@ -9,6 +9,7 @@ part of 'route_definitions.dart';
 List<RouteBase> get $appRoutes => [
   $splashRoute,
   $loginRoute,
+  $resetPasswordRoute,
   $onboardingRoute,
   $personalizationRoute,
   $deepLinkTripRoute,
@@ -56,6 +57,37 @@ mixin $LoginRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/login');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $resetPasswordRoute => GoRouteData.$route(
+  path: '/reset-password',
+  factory: $ResetPasswordRoute._fromState,
+);
+
+mixin $ResetPasswordRoute on GoRouteData {
+  static ResetPasswordRoute _fromState(GoRouterState state) =>
+      ResetPasswordRoute(token: state.uri.queryParameters['token']);
+
+  ResetPasswordRoute get _self => this as ResetPasswordRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/reset-password',
+    queryParams: {if (_self.token != null) 'token': _self.token},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -223,7 +255,7 @@ mixin $HomeRoute on GoRouteData {
 
 mixin $PlanTripRoute on GoRouteData {
   static PlanTripRoute _fromState(GoRouterState state) =>
-      PlanTripRoute($extra: state.extra as LocationResult?);
+      PlanTripRoute($extra: state.extra as PlanTripPrefill?);
 
   PlanTripRoute get _self => this as PlanTripRoute;
 

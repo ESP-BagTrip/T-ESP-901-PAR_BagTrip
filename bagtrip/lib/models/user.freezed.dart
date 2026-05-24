@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- String get id; String get email;@JsonKey(name: 'fullName') String? get fullName; String? get phone;@JsonKey(name: 'stripeCustomerId') String? get stripeCustomerId;@JsonKey(name: 'isProfileCompleted') bool get isProfileCompleted;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt; String get plan;@JsonKey(name: 'aiGenerationsRemaining') int? get aiGenerationsRemaining;@JsonKey(name: 'planExpiresAt') DateTime? get planExpiresAt;
+ String get id; String get email;@JsonKey(name: 'fullName') String? get fullName; String? get phone;@JsonKey(name: 'stripeCustomerId') String? get stripeCustomerId;@JsonKey(name: 'isProfileCompleted') bool get isProfileCompleted;@JsonKey(name: 'emailVerified') bool get emailVerified;@JsonKey(name: 'createdAt') DateTime? get createdAt;@JsonKey(name: 'updatedAt') DateTime? get updatedAt; String get plan;@JsonKey(name: 'aiGenerationsRemaining') int? get aiGenerationsRemaining;@JsonKey(name: 'planExpiresAt') DateTime? get planExpiresAt;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
+int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,emailVerified,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
+  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, emailVerified: $emailVerified, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
+ String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'emailVerified') bool emailVerified,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
 });
 
 
@@ -65,7 +65,7 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? emailVerified = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -73,6 +73,7 @@ as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: c
 as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,stripeCustomerId: freezed == stripeCustomerId ? _self.stripeCustomerId : stripeCustomerId // ignore: cast_nullable_to_non_nullable
 as String?,isProfileCompleted: null == isProfileCompleted ? _self.isProfileCompleted : isProfileCompleted // ignore: cast_nullable_to_non_nullable
+as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable
@@ -163,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'emailVerified')  bool emailVerified, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.emailVerified,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
   return orElse();
 
 }
@@ -184,10 +185,10 @@ return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCust
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'emailVerified')  bool emailVerified, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)  $default,) {final _that = this;
 switch (_that) {
 case _User():
-return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.emailVerified,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +205,10 @@ return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCust
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email, @JsonKey(name: 'fullName')  String? fullName,  String? phone, @JsonKey(name: 'stripeCustomerId')  String? stripeCustomerId, @JsonKey(name: 'isProfileCompleted')  bool isProfileCompleted, @JsonKey(name: 'emailVerified')  bool emailVerified, @JsonKey(name: 'createdAt')  DateTime? createdAt, @JsonKey(name: 'updatedAt')  DateTime? updatedAt,  String plan, @JsonKey(name: 'aiGenerationsRemaining')  int? aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt')  DateTime? planExpiresAt)?  $default,) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
+return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCustomerId,_that.isProfileCompleted,_that.emailVerified,_that.createdAt,_that.updatedAt,_that.plan,_that.aiGenerationsRemaining,_that.planExpiresAt);case _:
   return null;
 
 }
@@ -219,7 +220,7 @@ return $default(_that.id,_that.email,_that.fullName,_that.phone,_that.stripeCust
 @JsonSerializable()
 
 class _User extends User {
-  const _User({required this.id, required this.email, @JsonKey(name: 'fullName') this.fullName, this.phone, @JsonKey(name: 'stripeCustomerId') this.stripeCustomerId, @JsonKey(name: 'isProfileCompleted') this.isProfileCompleted = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt, this.plan = 'FREE', @JsonKey(name: 'aiGenerationsRemaining') this.aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt') this.planExpiresAt}): super._();
+  const _User({required this.id, required this.email, @JsonKey(name: 'fullName') this.fullName, this.phone, @JsonKey(name: 'stripeCustomerId') this.stripeCustomerId, @JsonKey(name: 'isProfileCompleted') this.isProfileCompleted = false, @JsonKey(name: 'emailVerified') this.emailVerified = false, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt, this.plan = 'FREE', @JsonKey(name: 'aiGenerationsRemaining') this.aiGenerationsRemaining, @JsonKey(name: 'planExpiresAt') this.planExpiresAt}): super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  String id;
@@ -228,6 +229,7 @@ class _User extends User {
 @override final  String? phone;
 @override@JsonKey(name: 'stripeCustomerId') final  String? stripeCustomerId;
 @override@JsonKey(name: 'isProfileCompleted') final  bool isProfileCompleted;
+@override@JsonKey(name: 'emailVerified') final  bool emailVerified;
 @override@JsonKey(name: 'createdAt') final  DateTime? createdAt;
 @override@JsonKey(name: 'updatedAt') final  DateTime? updatedAt;
 @override@JsonKey() final  String plan;
@@ -247,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.stripeCustomerId, stripeCustomerId) || other.stripeCustomerId == stripeCustomerId)&&(identical(other.isProfileCompleted, isProfileCompleted) || other.isProfileCompleted == isProfileCompleted)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.plan, plan) || other.plan == plan)&&(identical(other.aiGenerationsRemaining, aiGenerationsRemaining) || other.aiGenerationsRemaining == aiGenerationsRemaining)&&(identical(other.planExpiresAt, planExpiresAt) || other.planExpiresAt == planExpiresAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
+int get hashCode => Object.hash(runtimeType,id,email,fullName,phone,stripeCustomerId,isProfileCompleted,emailVerified,createdAt,updatedAt,plan,aiGenerationsRemaining,planExpiresAt);
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
+  return 'User(id: $id, email: $email, fullName: $fullName, phone: $phone, stripeCustomerId: $stripeCustomerId, isProfileCompleted: $isProfileCompleted, emailVerified: $emailVerified, createdAt: $createdAt, updatedAt: $updatedAt, plan: $plan, aiGenerationsRemaining: $aiGenerationsRemaining, planExpiresAt: $planExpiresAt)';
 }
 
 
@@ -267,7 +269,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
+ String id, String email,@JsonKey(name: 'fullName') String? fullName, String? phone,@JsonKey(name: 'stripeCustomerId') String? stripeCustomerId,@JsonKey(name: 'isProfileCompleted') bool isProfileCompleted,@JsonKey(name: 'emailVerified') bool emailVerified,@JsonKey(name: 'createdAt') DateTime? createdAt,@JsonKey(name: 'updatedAt') DateTime? updatedAt, String plan,@JsonKey(name: 'aiGenerationsRemaining') int? aiGenerationsRemaining,@JsonKey(name: 'planExpiresAt') DateTime? planExpiresAt
 });
 
 
@@ -284,7 +286,7 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,Object? phone = freezed,Object? stripeCustomerId = freezed,Object? isProfileCompleted = null,Object? emailVerified = null,Object? createdAt = freezed,Object? updatedAt = freezed,Object? plan = null,Object? aiGenerationsRemaining = freezed,Object? planExpiresAt = freezed,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -292,6 +294,7 @@ as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: c
 as String?,phone: freezed == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String?,stripeCustomerId: freezed == stripeCustomerId ? _self.stripeCustomerId : stripeCustomerId // ignore: cast_nullable_to_non_nullable
 as String?,isProfileCompleted: null == isProfileCompleted ? _self.isProfileCompleted : isProfileCompleted // ignore: cast_nullable_to_non_nullable
+as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,plan: null == plan ? _self.plan : plan // ignore: cast_nullable_to_non_nullable

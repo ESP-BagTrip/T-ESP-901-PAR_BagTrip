@@ -29,6 +29,11 @@ from src.utils.logger import logger
 
 _Handler = Callable[[Session, stripe.Event, StripeEvent], None]
 
+# Stable marker carried in the structured log payload when a webhook handler
+# raises. Wire a log-based alert (Grafana/Datadog) on this string so a failing
+# downgrade/subscription handler can't drift silently.
+WEBHOOK_HANDLER_FAILED_ALERT = "stripe_webhook_handler_failed"
+
 # Single source of truth for "what events we handle". Keep alphabetical so
 # diff-readers can scan it quickly.
 _DISPATCH: dict[str, _Handler] = {
@@ -91,9 +96,21 @@ class StripeWebhooksService:
                 # Persist the error so the row remains useful for debugging,
                 # but don't propagate — Stripe retries non-2xx and a handler
                 # bug shouldn't keep retrying forever.
+                #
+                # Emit a structured, stable marker (`alert`) so a log-based
+                # monitor can fire on it: a silently-failing handler on a
+                # downgrade-relevant event (charge.dispute, subscription.*)
+                # otherwise lets a Premium plan drift out of sync unnoticed.
                 logger.error(
-                    f"Webhook handler {event.type} failed: {exc}",
-                    exc_info=True,
+                    "Stripe webhook handler failed",
+                    data={
+                        "alert": WEBHOOK_HANDLER_FAILED_ALERT,
+                        "event_id": event.id,
+                        "event_type": event.type,
+                        "livemode": event.livemode,
+                        "error": str(exc),
+                        "error_type": type(exc).__name__,
+                    },
                 )
                 stripe_event.processing_error = {
                     "error": str(exc),

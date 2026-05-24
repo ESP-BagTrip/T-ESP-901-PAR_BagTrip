@@ -1,4 +1,6 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/selected_day_schedule.dart';
@@ -68,9 +70,12 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
       locale,
     ).format(selectedCalDate);
 
-    return ColoredBox(
-      color: const Color(0xFFF5F7FA),
-      child: ListView(
+    // Scaffold provides the Material ancestor every Text descendant needs —
+    // without it Flutter renders the "missing Material" debug overlay (the
+    // yellow double-underline) under every label in this view.
+    return Scaffold(
+      backgroundColor: ColorName.surfaceLight,
+      body: ListView(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.space16,
           MediaQuery.paddingOf(context).top + AppSpacing.space16,
@@ -106,7 +111,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 38,
               fontWeight: FontWeight.w400,
-              color: Color(0xFF1D2330),
+              color: ColorName.primaryTrueDark,
               height: 1.05,
             ),
             maxLines: 1,
@@ -130,7 +135,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
                   vertical: AppSpacing.space8,
                 ),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFCDEDEE),
+                  color: ColorName.secondaryLight,
                   borderRadius: AppRadius.pill,
                 ),
                 child: Text(
@@ -139,7 +144,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
                     fontFamily: FontFamily.dMSans,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF34B7A4),
+                    color: ColorName.secondary,
                   ),
                 ),
               ),
@@ -151,7 +156,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
                     fontFamily: FontFamily.dMSans,
                     fontSize: 24,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF545A67),
+                    color: AppColors.textSecondary,
                     height: 1.1,
                   ),
                   maxLines: 1,
@@ -164,7 +169,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
           if (timeline.isEmpty)
             Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: ColorName.surface,
                 borderRadius: AppRadius.large24,
               ),
               padding: const EdgeInsets.all(AppSpacing.space16),
@@ -174,7 +179,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
                   fontFamily: FontFamily.dMSans,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF545A67),
+                  color: AppColors.textSecondary,
                 ),
               ),
             )

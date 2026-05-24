@@ -202,6 +202,84 @@ class TestMarkAsRead:
         assert mock_db_session.commit.called
 
 
+class TestDelete:
+    def test_delete_success(self, mock_db_session, make_notification):
+        notif = make_notification()
+        mock_db_session.query.return_value.filter.return_value.first.return_value = notif
+        result = NotificationService.delete(mock_db_session, notif.id, notif.user_id)
+        assert result is True
+        mock_db_session.delete.assert_called_once_with(notif)
+        assert mock_db_session.commit.called
+
+    def test_delete_not_found(self, mock_db_session):
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+        result = NotificationService.delete(mock_db_session, uuid.uuid4(), uuid.uuid4())
+        assert result is False
+        assert not mock_db_session.delete.called
+        assert not mock_db_session.commit.called
+
+
+class TestRetryUnsent:
+    def _set_pending(self, mock_db_session, notifs):
+        mock_db_session.query.return_value.filter.return_value.all.return_value = notifs
+
+    def test_no_pending_returns_zero(self, mock_db_session):
+        self._set_pending(mock_db_session, [])
+        assert NotificationService.retry_unsent(mock_db_session) == 0
+        assert not mock_db_session.commit.called
+
+    def test_retries_and_stamps_sent_at_on_success(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with (
+            patch(
+                "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+                return_value={notif.user_id: ["tok-1"]},
+            ),
+            patch(
+                "src.services.notification_service.NotificationService._send_fcm",
+                return_value=True,
+            ),
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 1
+        assert notif.sent_at is not None
+        assert mock_db_session.commit.called
+
+    def test_skips_users_without_tokens(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with patch(
+            "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+            return_value={},
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 0
+        assert notif.sent_at is None
+        assert not mock_db_session.commit.called
+
+    def test_send_failure_leaves_sent_at_none(self, mock_db_session, make_notification):
+        notif = make_notification(is_read=False)
+        notif.sent_at = None
+        self._set_pending(mock_db_session, [notif])
+        with (
+            patch(
+                "src.services.device_token_service.DeviceTokenService.get_tokens_for_users",
+                return_value={notif.user_id: ["tok-1"]},
+            ),
+            patch(
+                "src.services.notification_service.NotificationService._send_fcm",
+                return_value=False,
+            ),
+        ):
+            sent = NotificationService.retry_unsent(mock_db_session)
+        assert sent == 0
+        assert notif.sent_at is None
+        assert not mock_db_session.commit.called
+
+
 # ---------------------------------------------------------------------------
 # _get_trip_recipients
 # ---------------------------------------------------------------------------
@@ -337,6 +415,10 @@ class TestSendLocalized:
     def test_resolves_locale_and_renders(self, mock_db_session):
         with (
             patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
                 "src.services.notification_service.DeviceTokenService.get_locale_for_user",
                 return_value="fr",
             ) as mock_locale,
@@ -360,6 +442,10 @@ class TestSendLocalized:
     def test_explicit_locale_skips_lookup(self, mock_db_session):
         with (
             patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
                 "src.services.notification_service.DeviceTokenService.get_locale_for_user"
             ) as mock_locale,
             patch(
@@ -378,9 +464,15 @@ class TestSendLocalized:
         assert mock_send.call_args.kwargs["title"] == "Trip complete!"
 
     def test_notif_key_overrides_type_for_catalogue_lookup(self, mock_db_session):
-        with patch(
-            "src.services.notification_service.NotificationService.create_and_send"
-        ) as mock_send:
+        with (
+            patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=True,
+            ),
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
             NotificationService.send_localized(
                 mock_db_session,
                 user_id=uuid.uuid4(),
@@ -393,3 +485,24 @@ class TestSendLocalized:
         body = mock_send.call_args.kwargs["body"]
         assert "Alice" in body
         assert "Coucou" in body
+
+    def test_disabled_preference_skips_dispatch(self, mock_db_session):
+        with (
+            patch(
+                "src.services.notification_service.NotificationPreferenceService.is_type_enabled",
+                return_value=False,
+            ),
+            patch(
+                "src.services.notification_service.NotificationService.create_and_send"
+            ) as mock_send,
+        ):
+            result = NotificationService.send_localized(
+                mock_db_session,
+                user_id=uuid.uuid4(),
+                trip_id=None,
+                notif_type=NotificationType.TRIP_STARTED,
+                context={"trip_title": "Rome"},
+                locale="fr",
+            )
+        assert result is None
+        mock_send.assert_not_called()

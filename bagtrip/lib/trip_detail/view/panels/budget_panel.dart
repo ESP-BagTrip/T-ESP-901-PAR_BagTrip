@@ -15,6 +15,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/widgets/section_error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -113,6 +114,15 @@ class BudgetPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SectionErrorBanner(section: 'budget'),
+        Expanded(child: _buildContent(context)),
+      ],
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final summary = budgetSummary;
 

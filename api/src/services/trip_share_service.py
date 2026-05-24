@@ -1,7 +1,10 @@
 """Service pour la gestion des partages de trips."""
 
+import asyncio
 import uuid as uuid_mod
+from collections.abc import Coroutine
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -14,9 +17,70 @@ from src.models.user import User
 from src.utils.errors import AppError
 from src.utils.logger import logger
 
+# Keep references to fire-and-forget invite-email tasks so the event loop does
+# not garbage-collect them mid-flight (asyncio holds only weak references).
+_background_email_tasks: set[asyncio.Task[Any]] = set()
+
 
 class TripShareService:
     """Service pour les opérations CRUD sur les partages de trips."""
+
+    @staticmethod
+    def _run_best_effort(coro: Coroutine[Any, Any, Any]) -> None:
+        """Dispatch a best-effort async side-effect from a sync service method.
+
+        When called inside the request event loop (the normal route path) the
+        coroutine is scheduled as a background task so it never blocks the
+        response. With no running loop (sync scripts, some tests) it runs to
+        completion inline. Either way it never raises into the caller.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+            return
+        task = loop.create_task(coro)
+        _background_email_tasks.add(task)
+        task.add_done_callback(_background_email_tasks.discard)
+
+    @staticmethod
+    def _send_invite_email(
+        db: Session,
+        *,
+        email: str,
+        owner: User | None,
+        trip: Trip | None,
+        token: str,
+    ) -> None:
+        """Best-effort: email the not-yet-registered invitee their accept link.
+
+        Registered users get a push notification instead; this path covers the
+        pending-invite case so the invitee can find out at all. Locale is
+        resolved from the inviter's device (the invitee has no account yet);
+        falls back to ``en``. Never blocks or raises into invite creation.
+        """
+        from src.services.mailer_service import MailerService
+        from src.services.notification_messages import untitled_trip
+
+        try:
+            inviter_name = (owner.full_name or owner.email) if owner else "A BagTrip user"
+            locale = "en"
+            if owner is not None:
+                from src.services.device_token_service import DeviceTokenService
+
+                locale = DeviceTokenService.get_locale_for_user(db, owner.id)
+            trip_title = (trip.title if trip else None) or untitled_trip(locale)
+            TripShareService._run_best_effort(
+                MailerService.send_trip_invite(
+                    to_email=email,
+                    trip_title=trip_title,
+                    inviter_name=inviter_name,
+                    invite_token=token,
+                    locale=locale,
+                )
+            )
+        except Exception as exc:
+            logger.error(f"[SHARE] Failed to dispatch trip-invite email: {exc}")
 
     @staticmethod
     def _check_trip_not_completed(db: Session, trip_id: UUID) -> None:
@@ -169,6 +233,18 @@ class TripShareService:
         db.commit()
         db.refresh(pending)
 
+        # Best-effort invite email so the not-yet-registered invitee can act on
+        # it. Push notifications only reach existing users, so without this the
+        # invitee would never learn about the share.
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        TripShareService._send_invite_email(
+            db,
+            email=email,
+            owner=owner,
+            trip=trip,
+            token=token,
+        )
+
         return {
             "id": pending.id,
             "trip_id": pending.trip_id,
@@ -241,8 +317,33 @@ class TripShareService:
         if not share:
             raise AppError("SHARE_NOT_FOUND", 404, "Share not found")
 
+        # Capture the recipient before the row is gone — they need to know the
+        # access was revoked rather than discovering it silently on next refresh.
+        revoked_user_id = share.user_id
+
         db.delete(share)
         db.commit()
+
+        # Best-effort localized push to the ex-collaborator.
+        try:
+            from src.services.device_token_service import DeviceTokenService
+            from src.services.notification_messages import untitled_trip
+            from src.services.notification_service import NotificationService
+
+            trip = db.query(Trip).filter(Trip.id == trip_id).first()
+            locale = DeviceTokenService.get_locale_for_user(db, revoked_user_id)
+            trip_title = (trip.title if trip else None) or untitled_trip(locale)
+            NotificationService.send_localized(
+                db=db,
+                user_id=revoked_user_id,
+                trip_id=trip_id,
+                notif_type=NotificationType.TRIP_UNSHARED,
+                context={"trip_title": trip_title},
+                data={"screen": "home"},
+                locale=locale,
+            )
+        except Exception as e:
+            logger.error(f"[SHARE] Failed to send TRIP_UNSHARED notification: {e}")
 
     @staticmethod
     def delete_pending_invite(db: Session, invite_id: UUID, trip_id: UUID) -> None:

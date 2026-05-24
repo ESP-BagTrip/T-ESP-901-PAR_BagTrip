@@ -29,90 +29,95 @@ class _WeatherDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.space16),
-          Text(
-            l10n.weatherSheetTitle,
-            style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: ColorName.primary,
-            ),
-          ),
-          if (destinationName != null) ...[
-            const SizedBox(height: AppSpacing.space4),
-            Text(
-              destinationName!,
-              style: TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 14,
-                color: ColorName.primary.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.space24),
-          if (weather != null) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _WeatherStat(
-                  icon: Icons.thermostat_outlined,
-                  value: '${weather!.avgTempC.round()}°C',
-                  label: l10n.weatherSheetTemperature,
+    // SMP327-044: announce the sheet title to screen readers on open.
+    return Semantics(
+      container: true,
+      label: l10n.weatherSheetTitle,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                _WeatherStat(
-                  icon: Icons.water_drop_outlined,
-                  value: '${weather!.rainProbability}%',
-                  label: l10n.weatherSheetRainProbability,
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: AppSpacing.space16),
             Text(
-              weather!.description,
+              l10n.weatherSheetTitle,
               style: const TextStyle(
                 fontFamily: FontFamily.b612,
-                fontSize: 16,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
                 color: ColorName.primary,
               ),
-              textAlign: TextAlign.center,
             ),
-          ] else
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.space24,
-              ),
-              child: Text(
-                l10n.weatherSheetUnavailable,
+            if (destinationName != null) ...[
+              const SizedBox(height: AppSpacing.space4),
+              Text(
+                destinationName!,
                 style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
                   color: ColorName.primary.withValues(alpha: 0.6),
                 ),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.space24),
+            if (weather != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _WeatherStat(
+                    icon: Icons.thermostat_outlined,
+                    value: '${weather!.avgTempC.round()}°C',
+                    label: l10n.weatherSheetTemperature,
+                  ),
+                  _WeatherStat(
+                    icon: Icons.water_drop_outlined,
+                    value: '${weather!.rainProbability}%',
+                    label: l10n.weatherSheetRainProbability,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.space16),
+              Text(
+                weather!.description,
+                style: const TextStyle(
+                  fontFamily: FontFamily.b612,
+                  fontSize: 16,
+                  color: ColorName.primary,
+                ),
                 textAlign: TextAlign.center,
               ),
-            ),
-          const SizedBox(height: AppSpacing.space32),
-        ],
+            ] else
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.space24,
+                ),
+                child: Text(
+                  l10n.weatherSheetUnavailable,
+                  style: TextStyle(
+                    fontFamily: FontFamily.b612,
+                    fontSize: 14,
+                    color: ColorName.primary.withValues(alpha: 0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            const SizedBox(height: AppSpacing.space32),
+          ],
+        ),
       ),
     );
   }

@@ -12,6 +12,15 @@ class AppSize {
   static const double iconSizeHeight24 = 24.0;
   static const double boxSize8 = 8.0;
   static const double boxSize16 = 16.0;
+
+  /// Height of the embedded OpenStreetMap on the trip locations page.
+  static const double mapEmbeddedHeight = 260.0;
+
+  /// Diameter of a categorized map marker bubble.
+  static const double mapMarker = 36.0;
+
+  /// Icon size inside a map marker bubble.
+  static const double mapMarkerIcon = 18.0;
 }
 
 class AppSpacing {

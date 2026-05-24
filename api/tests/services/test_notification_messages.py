@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from src.services.notification_messages import (
+    _MESSAGES,
+    _SUPPORTED,
     activity_location_suffix,
     baggage_status,
     flight_gate_suffix,
@@ -11,6 +13,16 @@ from src.services.notification_messages import (
     render_notification,
     untitled_trip,
 )
+
+
+class TestCatalogueCoverage:
+    """Every notification key must be translated in every supported locale —
+    a missing FR entry silently falls back to EN in front of the user."""
+
+    def test_all_keys_cover_all_supported_locales(self):
+        for key, translations in _MESSAGES.items():
+            for locale in _SUPPORTED:
+                assert translations.get(locale), f"{key} missing non-empty '{locale}'"
 
 
 class TestNormalizeLocale:
@@ -34,17 +46,13 @@ class TestNormalizeLocale:
 
 class TestRenderNotification:
     def test_french_render(self):
-        title, body = render_notification(
-            "TRIP_STARTED", "fr", trip_title="Rome"
-        )
+        title, body = render_notification("TRIP_STARTED", "fr", trip_title="Rome")
         assert title == "Bon voyage !"
         assert "Rome" in body
         assert "commence" in body
 
     def test_english_render(self):
-        title, body = render_notification(
-            "TRIP_STARTED", "en", trip_title="Rome"
-        )
+        title, body = render_notification("TRIP_STARTED", "en", trip_title="Rome")
         assert title == "Have a great trip!"
         assert "Rome" in body
 

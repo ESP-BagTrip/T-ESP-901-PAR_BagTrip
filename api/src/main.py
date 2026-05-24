@@ -1,145 +1,21 @@
 """Point d'entrée FastAPI."""
 
-import asyncio
-import contextlib
 import traceback
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.api.accommodations.routes import router as accommodations_router
-from src.api.activities.routes import router as activities_router
-from src.api.admin.routes import router as admin_router
-from src.api.ai.plan_trip_routes import router as ai_plan_trip_router
-from src.api.ai.post_trip_routes import router as ai_post_trip_router
-from src.api.auth.routes import router as auth_router
-from src.api.baggage.routes import router as baggage_router
-from src.api.booking.routes import router as booking_router
-from src.api.booking_intents.book_routes import router as booking_intents_book_router
-from src.api.booking_intents.routes import router as booking_intents_router
-from src.api.budget_items.routes import router as budget_items_router
-from src.api.device_tokens.routes import router as device_tokens_router
-from src.api.feedback.routes import router as feedback_router
-from src.api.flights.info.routes import router as flight_info_router
-from src.api.flights.manual.routes import router as manual_flights_router
-from src.api.flights.offers.routes import router as flight_offers_router
-from src.api.flights.orders.routes import router as flight_orders_router
-from src.api.flights.searches.routes import router as flight_searches_router
-from src.api.hotels.routes import router as hotel_search_router
-from src.api.invites.routes import router as invites_router
-from src.api.notifications.routes import router as notifications_router
-from src.api.payments.routes import router as payments_router
-from src.api.profile.routes import router as profile_router
-from src.api.shares.routes import router as shares_router
-from src.api.stripe.webhooks.routes import router as stripe_webhooks_router
-from src.api.subscription.routes import router as subscription_router
-from src.api.travel.routes import router as travel_router
-from src.api.travelers.routes import router as travelers_router
-from src.api.trips.routes import router as trips_router
-from src.config.database import check_database_connection, engine
+from src.config.database import engine
 from src.config.env import settings
-from src.integrations.http_client import close_http_client, init_http_client
 from src.middleware.rate_limit import auth_rate_limit_middleware, rate_limit_middleware
 from src.middleware.request_id import request_id_middleware
 from src.middleware.security_headers import security_headers_middleware
+from src.router_registry import register_routers
+from src.startup import lifespan
 from src.utils.errors import AppError
 from src.utils.logger import LogLevel, logger
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Gestion du cycle de vie de l'application."""
-    # Shared outbound HTTP client — every integration wrapper pulls from this
-    # pool instead of opening its own per-request AsyncClient.
-    await init_http_client()
-
-    # Topic 04b — currency refresh scheduler. The first tick warms the
-    # cache, then the loop re-runs every 12h (TTL-aligned). The job is
-    # Redis-locked so multi-worker deployments only hit ECB once per
-    # interval. Failure paths are handled inside the scheduler;
-    # `convert` falls back to identity rates while the cache is cold.
-
-    # Vérifier la connexion à la base de données avant de créer les tables
-    logger.info("Checking database connection...")
-    check_database_connection()
-    logger.info("Database connection successful")
-
-    # Schema managed by: alembic upgrade head
-
-    # Migrer la table trips si nécessaire
-    try:
-        from src.migrations.migrate_trips_table import migrate_trips_table
-
-        migrate_trips_table(engine)
-    except Exception as e:
-        logger.warn(f"Trips table migration failed (may already be migrated): {e}")
-
-    # Initialiser les produits Stripe
-    try:
-        from src.services.stripe_products_service import StripeProductsService
-
-        StripeProductsService.initialize_products()
-    except Exception as e:
-        logger.warn(f"Stripe products initialization failed: {e}")
-
-    # Créer l'admin par défaut
-    try:
-        from src.seeds.create_admin import create_default_admin
-
-        create_default_admin()
-    except Exception as e:
-        logger.warn(f"Default admin seed failed: {e}")
-
-    # Lancer le job de transition automatique des statuts de trips
-    from src.jobs.trip_status_job import trip_status_scheduler
-
-    scheduler_task = asyncio.create_task(trip_status_scheduler())
-
-    # Lancer le job de notifications planifiées
-    from src.jobs.notification_job import notification_scheduler
-
-    notif_scheduler_task = asyncio.create_task(notification_scheduler())
-
-    # Lancer le job d'expiration des plans Premium (downgrade auto si pas de sub active)
-    from src.jobs.plan_expiration_job import plan_expiration_scheduler
-
-    plan_expiration_task = asyncio.create_task(plan_expiration_scheduler())
-
-    # Lancer le job de cleanup des PaymentIntents AUTHORIZED stuck (> 6 jours)
-    from src.jobs.zombie_payment_intents_job import zombie_payment_intents_scheduler
-
-    zombie_pi_task = asyncio.create_task(zombie_payment_intents_scheduler())
-
-    # Lancer le scheduler de refresh des taux de change ECB (topic 04b)
-    from src.jobs.currency_refresh_job import currency_refresh_scheduler
-
-    currency_task = asyncio.create_task(currency_refresh_scheduler())
-
-    yield
-
-    # Arrêter les schedulers
-    scheduler_task.cancel()
-    notif_scheduler_task.cancel()
-    plan_expiration_task.cancel()
-    zombie_pi_task.cancel()
-    currency_task.cancel()
-    with contextlib.suppress(asyncio.CancelledError):
-        await scheduler_task
-    with contextlib.suppress(asyncio.CancelledError):
-        await notif_scheduler_task
-    with contextlib.suppress(asyncio.CancelledError):
-        await plan_expiration_task
-    with contextlib.suppress(asyncio.CancelledError):
-        await zombie_pi_task
-    with contextlib.suppress(asyncio.CancelledError):
-        await currency_task
-
-    await close_http_client()
-    logger.info("Application shutting down")
-
 
 app = FastAPI(
     title="BagTrip API",
@@ -227,44 +103,8 @@ if settings.OTEL_EXPORTER_OTLP_ENDPOINT:
     HTTPXClientInstrumentor().instrument()
     logger.info(f"OpenTelemetry tracing enabled (endpoint={settings.OTEL_EXPORTER_OTLP_ENDPOINT})")
 
-# Inclusion des routes - toutes sous /v1
-# Routes principales selon PLAN.md
-app.include_router(auth_router)  # Déjà préfixé avec /v1/auth
-app.include_router(admin_router)  # Préfixé avec /admin
-app.include_router(trips_router)  # Déjà préfixé avec /v1/trips
-app.include_router(travelers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(activities_router)  # Déjà préfixé avec /v1/trips
-app.include_router(accommodations_router)  # Déjà préfixé avec /v1/trips
-app.include_router(baggage_router)  # Déjà préfixé avec /v1/trips
-app.include_router(shares_router)  # Déjà préfixé avec /v1/trips
-app.include_router(invites_router)  # Préfixé avec /v1/invites
-app.include_router(budget_items_router)  # Déjà préfixé avec /v1/trips
-app.include_router(feedback_router)  # Déjà préfixé avec /v1/trips
-app.include_router(flight_searches_router)  # Déjà préfixé avec /v1/trips
-app.include_router(flight_offers_router)  # Déjà préfixé avec /v1/trips
-app.include_router(flight_orders_router)  # Déjà préfixé avec /v1/trips
-app.include_router(manual_flights_router)  # Déjà préfixé avec /v1/trips
-app.include_router(flight_info_router)  # Déjà préfixé avec /v1/travel/flights
-app.include_router(booking_intents_router)  # Déjà préfixé avec /v1/trips
-app.include_router(booking_intents_book_router)  # Déjà préfixé avec /v1/booking-intents
-app.include_router(payments_router)  # Déjà préfixé avec /v1/booking-intents
-app.include_router(stripe_webhooks_router)  # Déjà préfixé avec /v1/stripe
-app.include_router(subscription_router)  # Préfixé avec /v1/subscription
-app.include_router(device_tokens_router)  # Déjà préfixé avec /v1/device-tokens
-app.include_router(notifications_router)  # Déjà préfixé avec /v1/notifications
-
-# Routes utilitaires
-app.include_router(travel_router)  # Déjà préfixé avec /v1/travel (locations, inspirations)
-
-# Routes dépréciées (ancien pattern, remplacé par booking_intents)
-# Conservées pour compatibilité mais marquées comme deprecated
-app.include_router(profile_router)  # Préfixé avec /v1/profile
-app.include_router(booking_router)  # DÉPRÉCIÉ - utiliser /v1/trips/{tripId}/booking-intents
-
-# Routes IA
-app.include_router(ai_post_trip_router)
-app.include_router(ai_plan_trip_router)
-app.include_router(hotel_search_router)
+# Inclusion des routes - toutes sous /v1 (ordre préservé dans router_registry)
+register_routers(app)
 
 
 # Gestion globale des erreurs
@@ -346,12 +186,6 @@ async def general_exception_handler(request: Request, exc: Exception):
 async def root():
     """Route racine."""
     return {"message": "BagTrip API", "version": "1.0.0"}
-
-
-@app.get("/health")
-async def health():
-    """Route de santé."""
-    return {"status": "ok"}
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ from .flight_order import FlightOrder
 from .flight_search import FlightSearch
 from .manual_flight import ManualFlight
 from .notification import Notification
+from .notification_preference import NotificationPreference
 from .refresh_token import RefreshToken
 from .stripe_event import StripeEvent
 from .traveler import TripTraveler
@@ -38,6 +39,7 @@ __all__ = [
     "BookingIntent",
     "DeviceToken",
     "Notification",
+    "NotificationPreference",
     "RefreshToken",
     "StripeEvent",
     "AmadeusApiLog",

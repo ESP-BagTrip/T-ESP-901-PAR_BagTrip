@@ -149,6 +149,15 @@ _AUTH_RATE_LIMITED_PATHS = {
     "/v1/auth/google",
     "/v1/auth/apple",
     "/v1/auth/refresh",
+    # Throttle the password-reset endpoints too: forgot-password is an email
+    # enumeration / mail-bombing vector, reset-password lets an attacker
+    # brute-force the reset token. Both were previously unlimited.
+    "/v1/auth/forgot-password",
+    "/v1/auth/reset-password",
+    # Email verification (soft): verify-email lets an attacker brute-force the
+    # verification token, resend-verification is a mail-bombing vector.
+    "/v1/auth/verify-email",
+    "/v1/auth/resend-verification",
 }
 
 

@@ -145,66 +145,70 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
                         : ColorName.primarySoftLight,
                   ),
                 ),
-                child: TextField(
-                  controller: _originController,
-                  focusNode: _originFocus,
-                  onChanged: (v) {
-                    context.read<PlanTripBloc>().add(
-                      PlanTripEvent.searchOrigin(v.trim()),
-                    );
-                  },
-                  style: const TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    color: PersonalizationColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: l10n.originCityPlaceholder,
-                    hintStyle: const TextStyle(
+                child: Semantics(
+                  textField: true,
+                  label: l10n.originCityLabel,
+                  child: TextField(
+                    controller: _originController,
+                    focusNode: _originFocus,
+                    onChanged: (v) {
+                      context.read<PlanTripBloc>().add(
+                        PlanTripEvent.searchOrigin(v.trim()),
+                      );
+                    },
+                    style: const TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                      color: ColorName.hint,
+                      color: PersonalizationColors.textPrimary,
                     ),
-                    prefixIcon: const Padding(
-                      padding: EdgeInsets.only(left: 14, right: 10),
-                      child: Icon(
-                        Icons.location_city_rounded,
-                        size: 20,
+                    decoration: InputDecoration(
+                      hintText: l10n.originCityPlaceholder,
+                      hintStyle: const TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
                         color: ColorName.hint,
                       ),
-                    ),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
-                    suffixIcon: _originController.text.isNotEmpty
-                        ? GestureDetector(
-                            onTap: () {
-                              _originController.clear();
-                              context.read<PlanTripBloc>().add(
-                                const PlanTripEvent.setOriginCity(''),
-                              );
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.only(right: 12),
-                              child: Icon(
-                                Icons.close_rounded,
-                                size: 18,
-                                color: ColorName.hint,
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.only(left: 14, right: 10),
+                        child: Icon(
+                          Icons.location_city_rounded,
+                          size: 20,
+                          color: ColorName.hint,
+                        ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
+                      suffixIcon: _originController.text.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                _originController.clear();
+                                context.read<PlanTripBloc>().add(
+                                  const PlanTripEvent.setOriginCity(''),
+                                );
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 12),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  size: 18,
+                                  color: ColorName.hint,
+                                ),
                               ),
-                            ),
-                          )
-                        : null,
-                    suffixIconConstraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
+                            )
+                          : null,
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                        vertical: 14,
+                      ),
+                      border: InputBorder.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.space16,
-                      vertical: 14,
-                    ),
-                    border: InputBorder.none,
                   ),
                 ),
               ),

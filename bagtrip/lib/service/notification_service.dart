@@ -3,6 +3,7 @@ import 'package:bagtrip/core/logged_failure.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/models/notification.dart';
 import 'package:bagtrip/models/notification_page.dart';
+import 'package:bagtrip/models/notification_preferences.dart';
 import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/service/api_client.dart';
 import 'package:dio/dio.dart';
@@ -94,6 +95,24 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<Result<void>> deleteNotification(String notificationId) async {
+    try {
+      final response = await _apiClient.delete(
+        '/notifications/$notificationId',
+      );
+      final code = response.statusCode ?? 0;
+      if (code == 204 || code == 200) {
+        return const Success(null);
+      }
+      return loggedFailure(UnknownError('delete notification failed: $code'));
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<void>> registerDeviceToken(
     String fcmToken, {
     String? platform,
@@ -126,5 +145,58 @@ class NotificationRepositoryImpl implements NotificationRepository {
       }
     }
     return const Success(null);
+  }
+
+  @override
+  Future<Result<NotificationPreferences>> getNotificationPreferences() async {
+    try {
+      final response = await _apiClient.get('/notifications/preferences');
+      if (response.statusCode == 200) {
+        return Success(
+          NotificationPreferences.fromJson(
+            response.data as Map<String, dynamic>,
+          ),
+        );
+      }
+      return loggedFailure(
+        UnknownError(
+          'fetch notification preferences failed: '
+          '${response.statusCode}',
+        ),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
+  Future<Result<NotificationPreferences>> updateNotificationPreferences(
+    NotificationPreferences prefs,
+  ) async {
+    try {
+      final response = await _apiClient.patch(
+        '/notifications/preferences',
+        data: prefs.toJson(),
+      );
+      if (response.statusCode == 200) {
+        return Success(
+          NotificationPreferences.fromJson(
+            response.data as Map<String, dynamic>,
+          ),
+        );
+      }
+      return loggedFailure(
+        UnknownError(
+          'update notification preferences failed: '
+          '${response.statusCode}',
+        ),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
   }
 }

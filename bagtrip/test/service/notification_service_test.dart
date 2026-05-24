@@ -230,6 +230,37 @@ void main() {
       expect(await repository.markAllAsRead(), isA<Failure>());
     });
 
+    // ── deleteNotification ──────────────────────────────────────────────
+
+    test('deleteNotification returns Success on 204', () async {
+      when(() => mockApiClient.delete('/notifications/n-1')).thenAnswer(
+        (_) async =>
+            _response(path: '/notifications/n-1', statusCode: 204, data: null),
+      );
+      expect(await repository.deleteNotification('n-1'), isA<Success>());
+    });
+
+    test('deleteNotification returns Failure on non-2xx', () async {
+      when(() => mockApiClient.delete('/notifications/n-1')).thenAnswer(
+        (_) async => _response(
+          path: '/notifications/n-1',
+          statusCode: 404,
+          data: <String, dynamic>{},
+        ),
+      );
+      expect(await repository.deleteNotification('n-1'), isA<Failure>());
+    });
+
+    test('deleteNotification maps DioException to Failure', () async {
+      when(() => mockApiClient.delete('/notifications/n-1')).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(path: '/notifications/n-1'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+      );
+      expect(await repository.deleteNotification('n-1'), isA<Failure>());
+    });
+
     // ── device tokens (best-effort: always Success) ─────────────────────
 
     test('registerDeviceToken is best-effort', () async {

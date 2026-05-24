@@ -108,150 +108,155 @@ class _HotelSearchSheetState extends State<HotelSearchSheet> {
       maxChildSize: 0.95,
       minChildSize: 0.4,
       expand: false,
-      builder: (sheetContext, scrollController) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(sheetContext).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            // Handle bar + title
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              child: Column(
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          sheetContext,
-                        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.accommodationSearchHotels,
-                    style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(sheetContext).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            hintText: 'PAR, LON, NYC...',
-                            labelText: l10n.accommodationSearchInArea,
-                            prefixIcon: const Icon(Icons.search),
-                          ),
-                          textCapitalization: TextCapitalization.characters,
-                          onSubmitted: (_) => _search(),
+      builder: (sheetContext, scrollController) => Semantics(
+        // SMP327-044: announce the sheet title to screen readers on open.
+        container: true,
+        label: l10n.accommodationSearchHotels,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(sheetContext).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar + title
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            sheetContext,
+                          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: _search,
-                        child: const Icon(Icons.search),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.accommodationSearchHotels,
+                      style: TextStyle(
+                        fontFamily: FontFamily.b612,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(sheetContext).colorScheme.onSurface,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: 'PAR, LON, NYC...',
+                              labelText: l10n.accommodationSearchInArea,
+                              prefixIcon: const Icon(Icons.search),
+                            ),
+                            textCapitalization: TextCapitalization.characters,
+                            onSubmitted: (_) => _search(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: _search,
+                          child: const Icon(Icons.search),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
-            ),
 
-            // Results
-            Expanded(
-              child: BlocBuilder<AccommodationBloc, AccommodationState>(
-                builder: (context, state) {
-                  if (state is HotelSearchLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state is HotelSearchLoaded) {
-                    final hotels = state.hotels;
-                    if (hotels.isEmpty) {
-                      return Center(
-                        child: Text(
-                          l10n.accommodationNoResults,
-                          style: TextStyle(
-                            fontFamily: FontFamily.b612,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                      );
+              // Results
+              Expanded(
+                child: BlocBuilder<AccommodationBloc, AccommodationState>(
+                  builder: (context, state) {
+                    if (state is HotelSearchLoading) {
+                      return const Center(child: CircularProgressIndicator());
                     }
-                    return ListView.builder(
-                      controller: scrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: hotels.length,
-                      itemBuilder: (_, index) {
-                        final hotel = hotels[index];
-                        final name = hotel['name'] as String? ?? 'Hotel';
-                        final address = _buildAddress(hotel);
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: AppRadius.large16,
-                          ),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.hotel,
-                              color: ColorName.primary,
+                    if (state is HotelSearchLoaded) {
+                      final hotels = state.hotels;
+                      if (hotels.isEmpty) {
+                        return Center(
+                          child: Text(
+                            l10n.accommodationNoResults,
+                            style: TextStyle(
+                              fontFamily: FontFamily.b612,
+                              color: Theme.of(context).colorScheme.outline,
                             ),
-                            title: Text(
-                              name,
-                              style: const TextStyle(
-                                fontFamily: FontFamily.b612,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: address.isNotEmpty
-                                ? Text(
-                                    address,
-                                    style: TextStyle(
-                                      fontFamily: FontFamily.b612,
-                                      fontSize: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                  )
-                                : null,
-                            trailing: FilledButton.tonal(
-                              onPressed: () => _selectHotel(hotel),
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                              ),
-                              child: Text(
-                                l10n.accommodationSelectHotel,
-                                style: const TextStyle(
-                                  fontFamily: FontFamily.b612,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            onTap: () => _selectHotel(hotel),
                           ),
                         );
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
+                      }
+                      return ListView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: hotels.length,
+                        itemBuilder: (_, index) {
+                          final hotel = hotels[index];
+                          final name = hotel['name'] as String? ?? 'Hotel';
+                          final address = _buildAddress(hotel);
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: AppRadius.large16,
+                            ),
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.hotel,
+                                color: ColorName.primary,
+                              ),
+                              title: Text(
+                                name,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.b612,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: address.isNotEmpty
+                                  ? Text(
+                                      address,
+                                      style: TextStyle(
+                                        fontFamily: FontFamily.b612,
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                    )
+                                  : null,
+                              trailing: FilledButton.tonal(
+                                onPressed: () => _selectHotel(hotel),
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                ),
+                                child: Text(
+                                  l10n.accommodationSelectHotel,
+                                  style: const TextStyle(
+                                    fontFamily: FontFamily.b612,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              onTap: () => _selectHotel(hotel),
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

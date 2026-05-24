@@ -7,7 +7,49 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from src.jobs.notification_job import _check_morning_summary, _safe_zone
+from src.jobs.notification_job import (
+    _check_morning_summary,
+    _extract_departure_time,
+    _safe_zone,
+)
+
+
+def _offer(at: str | None, iata: str | None = "CDG") -> MagicMock:
+    """Build a FlightOffer-like stub exposing offer_json with one segment."""
+    offer = MagicMock()
+    departure: dict = {}
+    if at is not None:
+        departure["at"] = at
+    if iata is not None:
+        departure["iataCode"] = iata
+    offer.offer_json = {"itineraries": [{"segments": [{"departure": departure}]}]}
+    return offer
+
+
+class TestExtractDepartureTime:
+    """Amadeus `departure.at` is local airport time — must convert to UTC."""
+
+    def test_naive_local_time_localized_via_airport_tz(self):
+        """A naive value is interpreted in the departure airport timezone."""
+        # CDG = Europe/Paris, +02:00 in July (DST) -> 10:00 local == 08:00 UTC.
+        result = _extract_departure_time(_offer("2026-07-01T10:00:00", iata="CDG"))
+        assert result == datetime(2026, 7, 1, 8, 0, tzinfo=UTC)
+
+    def test_offset_aware_value_is_trusted(self):
+        """An explicit offset is preserved regardless of the IATA code."""
+        result = _extract_departure_time(_offer("2026-07-01T10:00:00+02:00", iata="ZZZ"))
+        assert result == datetime(2026, 7, 1, 8, 0, tzinfo=UTC)
+
+    def test_unknown_iata_falls_back_to_utc(self):
+        """An unresolvable airport timezone leaves the value as UTC."""
+        result = _extract_departure_time(_offer("2026-07-01T10:00:00", iata="ZZZ"))
+        assert result == datetime(2026, 7, 1, 10, 0, tzinfo=UTC)
+
+    def test_no_offer_returns_none(self):
+        assert _extract_departure_time(None) is None
+
+    def test_missing_at_returns_none(self):
+        assert _extract_departure_time(_offer(None)) is None
 
 
 class TestSafeZone:

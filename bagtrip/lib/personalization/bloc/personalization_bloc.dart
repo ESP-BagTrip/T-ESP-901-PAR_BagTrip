@@ -11,8 +11,9 @@ import 'package:meta/meta.dart';
 part 'personalization_event.dart';
 part 'personalization_state.dart';
 
-/// Welcome = 0, then 5 content steps: companions, budget, interests, frequency, constraints.
-const int _kTotalSteps = 6;
+/// Welcome = 0, then 6 content steps: companions, budget, interests,
+/// frequency, constraints, travel style.
+const int _kTotalSteps = 7;
 
 class PersonalizationBloc
     extends Bloc<PersonalizationEvent, PersonalizationState> {

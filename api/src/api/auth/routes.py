@@ -18,6 +18,7 @@ from src.api.auth.middleware import get_current_user
 from src.api.auth.schemas import (
     AppleSignInRequest,
     AuthResponse,
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     GoogleSignInRequest,
     LoginRequest,
@@ -27,11 +28,15 @@ from src.api.auth.schemas import (
     SignupRequest,
     UpdateUserRequest,
     UserResponse,
+    VerifyEmailRequest,
 )
 from src.config.database import get_db
 from src.config.env import settings
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
+from src.services.auth_lockout_service import AuthLockoutService
+from src.services.device_token_service import DeviceTokenService
+from src.services.mailer_service import MailerService
 from src.services.plan_service import PlanService
 from src.services.stripe_gateway_service import StripeGatewayService
 from src.services.user_creation_service import UserCreationService
@@ -46,8 +51,41 @@ from src.utils.logger import logger
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
 
+def _auth_log_context(http_request: Request, email: str) -> dict[str, str]:
+    """Build a structured, PII-free log context for an auth attempt.
+
+    The email is hashed (never logged in clear) and the user-agent is truncated
+    — enough to correlate attempts and spot anomalies without leaking PII.
+    """
+    client_ip = http_request.headers.get("x-forwarded-for", "")
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    elif http_request.client:
+        client_ip = http_request.client.host
+    return {
+        "email_hash": hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()[:16],
+        "ip": client_ip or "unknown",
+        "user_agent": http_request.headers.get("user-agent", "")[:120],
+    }
+
+
 def _hash_reset_token(token: str) -> str:
     """SHA-256 hash of a password reset token — only the hash is persisted."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _hash_verification_token(token: str) -> str:
+    """SHA-256 hash of an email-verification token — only the hash is persisted."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _hash_refresh_token(token: str) -> str:
+    """SHA-256 hash of a refresh token.
+
+    Only the hash is persisted in `refresh_tokens.token`, so a database dump
+    cannot be replayed as valid sessions. The raw token is returned to the
+    client once and never stored.
+    """
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
@@ -87,6 +125,7 @@ async def _build_auth_response(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -104,12 +143,12 @@ def create_access_token(user_id: str) -> tuple[str, int]:
 
 
 def create_refresh_token(user_id: str, db: Session) -> str:
-    """Create a refresh token, store in DB, return the raw token."""
+    """Create a refresh token, store its hash in DB, return the raw token."""
     raw_token = secrets.token_urlsafe(64)
     expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
     refresh = RefreshToken(
         user_id=user_id,
-        token=raw_token,
+        token=_hash_refresh_token(raw_token),
         expires_at=expires_at,
     )
     db.add(refresh)
@@ -174,7 +213,19 @@ async def register(
             detail="User already exists",
         ) from None
 
-    return await _build_auth_response(db, user, response)
+    # Soft email verification (SMP-327): issue a verification token and email it.
+    # Access is never gated on verification — the client just shows a banner.
+    raw_verification = secrets.token_urlsafe(32)
+    user.email_verification_token = _hash_verification_token(raw_verification)
+    user.email_verification_expires = datetime.now(UTC) + timedelta(hours=24)
+
+    auth_response = await _build_auth_response(db, user, response)
+
+    # Best-effort send (after the user is committed) — never blocks registration.
+    locale = DeviceTokenService.get_locale_for_user(db, user.id)
+    await MailerService.send_email_verification(user.email, raw_verification, locale)
+
+    return auth_response
 
 
 @router.post(
@@ -205,6 +256,7 @@ async def register(
 async def login(
     request: LoginRequest,
     response: Response,
+    http_request: Request,
     db: Annotated[Session, Depends(get_db)],
 ):
     """
@@ -215,10 +267,24 @@ async def login(
 
     Retourne un token JWT valide pendant 365 jours.
     """
+    log_ctx = _auth_log_context(http_request, request.email)
+
+    # Per-account lockout (defense-in-depth on top of the per-IP rate limiter).
+    locked, retry_after = AuthLockoutService.is_locked(request.email)
+    if locked:
+        logger.warning("Login blocked: account temporarily locked", data=log_ctx)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed attempts. Try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     # Trouver l'utilisateur
     user = db.query(User).filter(User.email == request.email).first()
 
     if not user:
+        AuthLockoutService.record_failure(request.email)
+        logger.warning("Login failed: unknown email", data=log_ctx)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -231,10 +297,15 @@ async def login(
     )
 
     if not is_valid_password:
+        AuthLockoutService.record_failure(request.email)
+        logger.warning("Login failed: wrong password", data=log_ctx)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
+
+    AuthLockoutService.reset(request.email)
+    logger.info("Login succeeded", data={**log_ctx, "user_id": str(user.id)})
 
     # Generate tokens
     access_token, expires_in = create_access_token(str(user.id))
@@ -255,6 +326,7 @@ async def login(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -306,6 +378,7 @@ async def me(
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
+        email_verified=bool(current_user.email_verified),
         plan=current_user.plan or "FREE",
         ai_generations_remaining=plan_info["ai_generations_remaining"],
         plan_expires_at=current_user.plan_expires_at,
@@ -345,6 +418,7 @@ async def update_me(
         created_at=current_user.created_at,
         updated_at=current_user.updated_at,
         is_profile_completed=is_completed,
+        email_verified=bool(current_user.email_verified),
         plan=current_user.plan or "FREE",
         ai_generations_remaining=plan_info["ai_generations_remaining"],
         plan_expires_at=current_user.plan_expires_at,
@@ -411,6 +485,12 @@ async def google_sign_in(
             user.full_name = full_name
             db.commit()
             db.refresh(user)
+
+        # The OAuth provider already verified ownership of the email address, so
+        # mark it verified (soft verification needs no further confirmation).
+        if not user.email_verified:
+            user.email_verified = True
+            db.commit()
 
         return await _build_auth_response(db, user, response)
     except AppError:
@@ -494,6 +574,12 @@ async def apple_sign_in(
                 password_hash=_dummy_password_hash(),
             )
 
+        # Apple verified the account (even with a private-relay address), so the
+        # email counts as verified for our soft-verification purposes.
+        if not user.email_verified:
+            user.email_verified = True
+            db.commit()
+
         return await _build_auth_response(db, user, response)
     except AppError:
         raise
@@ -521,17 +607,37 @@ async def refresh(
     response: Response,
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Refresh — rotate tokens."""
-    stored = (
-        db.query(RefreshToken)
-        .filter(
-            RefreshToken.token == request.refresh_token,
-            RefreshToken.revoked.is_(False),
-        )
-        .first()
-    )
+    """Refresh — rotate tokens, with refresh-token reuse detection."""
+    token_hash = _hash_refresh_token(request.refresh_token)
+    stored = db.query(RefreshToken).filter(RefreshToken.token == token_hash).first()
 
-    if not stored or stored.expires_at < datetime.now(UTC):
+    if not stored:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    # Reuse detection: a token that was already rotated away (revoked) is being
+    # presented again. This is the classic stolen-token signal — the legitimate
+    # client and the attacker now race on the same token. Burn the whole chain:
+    # revoke every active token for the user so both parties are forced to
+    # re-authenticate. We never silently accept a revoked token.
+    if stored.revoked:
+        db.query(RefreshToken).filter(
+            RefreshToken.user_id == stored.user_id,
+            RefreshToken.revoked.is_(False),
+        ).update({"revoked": True})
+        db.commit()
+        logger.warning(
+            "Refresh token reuse detected; revoked all active tokens",
+            data={"user_id": str(stored.user_id)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    if stored.expires_at < datetime.now(UTC):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired refresh token",
@@ -565,6 +671,7 @@ async def refresh(
             phone=user.phone,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            email_verified=bool(user.email_verified),
             plan=user.plan or "FREE",
             ai_generations_remaining=plan_info["ai_generations_remaining"],
             plan_expires_at=user.plan_expires_at,
@@ -595,7 +702,7 @@ async def logout(
         stored = (
             db.query(RefreshToken)
             .filter(
-                RefreshToken.token == token_value,
+                RefreshToken.token == _hash_refresh_token(token_value),
                 RefreshToken.user_id == current_user.id,
                 RefreshToken.revoked.is_(False),
             )
@@ -647,9 +754,13 @@ async def forgot_password(
         user.password_reset_token = _hash_reset_token(raw_token)
         user.password_reset_expires = datetime.now(UTC) + timedelta(hours=1)
         db.commit()
-        # Dev-only escape hatch: no mail service yet, so expose the raw token in the
-        # response when running outside production. Never log it, never persist it raw.
-        if settings.NODE_ENV != "production":
+        # Send the reset link by email (best-effort — never blocks or leaks).
+        locale = request.locale or DeviceTokenService.get_locale_for_user(db, user.id)
+        await MailerService.send_password_reset(user.email, raw_token, locale)
+        # Dev-only escape hatch: when SMTP is not configured the token would
+        # never reach the user, so expose it in the response outside production.
+        # Never log it, never persist it raw.
+        if settings.NODE_ENV != "production" and not MailerService.is_enabled():
             response_body["debug_reset_token"] = raw_token
     return response_body
 
@@ -687,6 +798,106 @@ async def reset_password(
     return {"message": "Password updated successfully."}
 
 
+@router.post(
+    "/verify-email",
+    summary="Verify an email address with a token",
+    description="Confirm an email address using a valid verification token (public, soft)",
+)
+async def verify_email(
+    request: VerifyEmailRequest,
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Verify email using a valid, non-expired token.
+
+    Soft verification: confirming the email only flips ``email_verified`` and
+    clears the token. Nothing in the app is gated on this — the client uses it
+    to dismiss a "verify your email" banner.
+    """
+    token_hash = _hash_verification_token(request.token)
+    user = (
+        db.query(User)
+        .filter(
+            User.email_verification_token == token_hash,
+            User.email_verification_expires > datetime.now(UTC),
+        )
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token",
+        )
+    user.email_verified = True
+    user.email_verification_token = None
+    user.email_verification_expires = None
+    db.commit()
+    return {"message": "Email verified successfully."}
+
+
+@router.post(
+    "/resend-verification",
+    summary="Resend the email-verification email",
+    description="Re-issue a verification token and email it to the authenticated user",
+)
+async def resend_verification(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Resend the verification email for the logged-in user.
+
+    No-op (200) if the email is already verified. Otherwise a fresh token is
+    issued, persisted, and emailed best-effort.
+    """
+    if current_user.email_verified:
+        return {"message": "Email already verified."}
+
+    raw_verification = secrets.token_urlsafe(32)
+    current_user.email_verification_token = _hash_verification_token(raw_verification)
+    current_user.email_verification_expires = datetime.now(UTC) + timedelta(hours=24)
+    db.commit()
+
+    locale = DeviceTokenService.get_locale_for_user(db, current_user.id)
+    await MailerService.send_email_verification(current_user.email, raw_verification, locale)
+    return {"message": "Verification email sent."}
+
+
+@router.patch(
+    "/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Change password (authenticated user)",
+    description="Change the password for the logged-in user, given the current one",
+)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Change password — verify the current password, then rotate it.
+
+    All refresh tokens are revoked so a password change (often a response to a
+    suspected compromise) invalidates every existing session.
+    """
+    if not current_user.password_hash or not bcrypt.checkpw(
+        request.current_password.encode("utf-8"),
+        current_user.password_hash.encode("utf-8"),
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid current password",
+        )
+
+    current_user.password_hash = bcrypt.hashpw(
+        request.new_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    current_user.updated_at = datetime.now(UTC)
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == current_user.id,
+        RefreshToken.revoked.is_(False),
+    ).update({"revoked": True})
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.delete(
     "/me",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -710,6 +921,7 @@ async def delete_me(
     from src.models.flight_search import FlightSearch
     from src.models.manual_flight import ManualFlight
     from src.models.notification import Notification
+    from src.models.notification_preference import NotificationPreference
     from src.models.traveler import TripTraveler
     from src.models.traveler_profile import TravelerProfile
     from src.models.trip import Trip
@@ -755,6 +967,9 @@ async def delete_me(
     )
     db.query(DeviceToken).filter(DeviceToken.user_id == user_id).delete(synchronize_session=False)
     db.query(Notification).filter(Notification.user_id == user_id).delete(synchronize_session=False)
+    db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).delete(
+        synchronize_session=False
+    )
     db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete(synchronize_session=False)
     db.query(TripShare).filter(TripShare.user_id == user_id).delete(synchronize_session=False)
     db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)

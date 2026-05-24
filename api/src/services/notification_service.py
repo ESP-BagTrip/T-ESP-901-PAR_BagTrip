@@ -12,6 +12,7 @@ from src.models.trip import Trip
 from src.services.budget_item_service import BudgetItemService
 from src.services.device_token_service import DeviceTokenService
 from src.services.notification_messages import render_notification, untitled_trip
+from src.services.notification_preference_service import NotificationPreferenceService
 from src.utils.logger import logger
 
 TAG = "[NOTIFICATION]"
@@ -105,7 +106,7 @@ class NotificationService:
         context: dict | None = None,
         data: dict | None = None,
         locale: str | None = None,
-    ) -> Notification:
+    ) -> Notification | None:
         """Render a localized notification for one user and dispatch it.
 
         Resolves the recipient's locale from their most recent device token
@@ -114,7 +115,12 @@ class NotificationService:
 
         ``notif_key`` defaults to ``notif_type`` — pass it explicitly only when
         the catalogue key differs from the persisted type (e.g. budget alerts).
+
+        Returns ``None`` (creating + sending nothing) when the recipient has
+        disabled this notification category in their preferences.
         """
+        if not NotificationPreferenceService.is_type_enabled(db, user_id, notif_type):
+            return None
         resolved = locale or DeviceTokenService.get_locale_for_user(db, user_id)
         title, body = render_notification(notif_key or notif_type, resolved, **(context or {}))
         return NotificationService.create_and_send(
@@ -169,6 +175,64 @@ class NotificationService:
             db.commit()
             db.refresh(notif)
         return notif
+
+    # Only retry pushes that failed recently — past this window we assume the
+    # device is genuinely unreachable (uninstalled, token rotated) and stop
+    # re-attempting so the scheduler doesn't hammer FCM forever. With a 30-min
+    # tick this bounds retries to ~4 attempts without needing a retry-count
+    # column.
+    RETRY_WINDOW_MINUTES = 120
+
+    @staticmethod
+    def retry_unsent(db: Session, window_minutes: int = RETRY_WINDOW_MINUTES) -> int:
+        """Re-attempt FCM delivery for notifications stuck with ``sent_at IS NULL``.
+
+        Picks up rows whose initial push failed (transient network/timeout) and
+        were created inside the retry window, then retries the FCM send and
+        stamps ``sent_at`` on success. Returns the number successfully sent.
+
+        FCM is at-least-once: a push that actually arrived but timed out on our
+        side may be re-sent. That's acceptable for notifications and matches the
+        provider's own retry semantics.
+        """
+        cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
+        pending = (
+            db.query(Notification)
+            .filter(Notification.sent_at.is_(None), Notification.created_at >= cutoff)
+            .all()
+        )
+        if not pending:
+            return 0
+
+        user_ids = list({n.user_id for n in pending})
+        tokens_map = DeviceTokenService.get_tokens_for_users(db, user_ids)
+
+        sent_count = 0
+        now = datetime.now(UTC)
+        for notif in pending:
+            tokens = tokens_map.get(notif.user_id, [])
+            if not tokens:
+                continue
+            if NotificationService._send_fcm(db, tokens, notif.title, notif.body, notif.data):
+                notif.sent_at = now
+                sent_count += 1
+        if sent_count:
+            db.commit()
+        return sent_count
+
+    @staticmethod
+    def delete(db: Session, notification_id: UUID, user_id: UUID) -> bool:
+        """Delete a single notification owned by the user. Returns True if removed."""
+        notif = (
+            db.query(Notification)
+            .filter(Notification.id == notification_id, Notification.user_id == user_id)
+            .first()
+        )
+        if not notif:
+            return False
+        db.delete(notif)
+        db.commit()
+        return True
 
     @staticmethod
     def mark_all_as_read(db: Session, user_id: UUID) -> int:

@@ -10,14 +10,16 @@ import 'package:bagtrip/personalization/widgets/budget_step_content.dart';
 import 'package:bagtrip/personalization/widgets/companions_step_content.dart';
 import 'package:bagtrip/personalization/widgets/constraints_step_content.dart';
 import 'package:bagtrip/personalization/widgets/travel_frequency_step_content.dart';
+import 'package:bagtrip/personalization/widgets/travel_style_step_content.dart';
 import 'package:bagtrip/personalization/widgets/travel_types_step_content.dart';
 import 'package:bagtrip/personalization/widgets/welcome_step_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// Welcome = 0, content steps 1–5 = companions, budget, interests, frequency, constraints.
-const int _kContentSteps = 5;
+/// Welcome = 0, content steps 1–6 = companions, budget, interests, frequency,
+/// constraints, travel style.
+const int _kContentSteps = 6;
 
 double _responsiveHorizontalPadding(BuildContext context) {
   final width = MediaQuery.sizeOf(context).width;
@@ -219,7 +221,9 @@ class PersonalizationView extends StatelessWidget {
       case 4:
         return l10n.personalizationStepTitleFrequency;
       case 5:
-        return 'Contraintes';
+        return l10n.personalizationStepTitleConstraints;
+      case 6:
+        return l10n.personalizationStepTitleTravelStyle;
       default:
         return '';
     }
@@ -236,7 +240,9 @@ class PersonalizationView extends StatelessWidget {
       case 4:
         return l10n.personalizationStepSubtitleFrequency;
       case 5:
-        return 'Des restrictions ou contraintes pour votre voyage ?';
+        return l10n.personalizationStepSubtitleConstraints;
+      case 6:
+        return l10n.personalizationStepSubtitleTravelStyle;
       default:
         return '';
     }
@@ -280,6 +286,11 @@ class PersonalizationView extends StatelessWidget {
         return ConstraintsStepContent(
           value: state.constraints,
           onChanged: (v) => bloc.add(SetConstraints(v.isEmpty ? null : v)),
+        );
+      case 6:
+        return TravelStyleStepContent(
+          selectedId: state.travelStyle,
+          onSelect: (id) => bloc.add(SetTravelStyle(id)),
         );
       default:
         return const SizedBox.shrink();

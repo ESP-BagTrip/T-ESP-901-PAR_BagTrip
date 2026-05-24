@@ -87,8 +87,35 @@ class TripResponse(BaseModel):
     updatedAt: datetime = Field(alias="updated_at")
     role: str | None = None
     completionPercentage: int = Field(default=0, alias="completion_percentage")
+    # SMP327-039 — destination coordinates resolved from `destinationIata`
+    # (offline aviation data) so the trip map can center + place a marker.
+    # None when the IATA code is missing or unknown (map falls back).
+    destinationLatitude: float | None = Field(default=None, alias="destination_latitude")
+    destinationLongitude: float | None = Field(default=None, alias="destination_longitude")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @model_validator(mode="after")
+    def resolve_destination_coordinates(self) -> "TripResponse":
+        """Resolve destination lat/lng from the IATA code via offline aviation data.
+
+        Single point of enrichment: every site builds the response via
+        ``TripResponse.model_validate(trip)``, so resolving here covers all of
+        them without touching call sites. No-op when coordinates were already
+        provided explicitly or when the IATA code is missing/unknown.
+        """
+        if self.destinationLatitude is not None and self.destinationLongitude is not None:
+            return self
+        if not self.destinationIata:
+            return self
+
+        from src.integrations.aviation_data import aviation_data_service
+
+        location = aviation_data_service.get_by_id(self.destinationIata)
+        if location is not None:
+            self.destinationLatitude = location.geoCode.latitude
+            self.destinationLongitude = location.geoCode.longitude
+        return self
 
 
 class TripTrackingUpdateRequest(BagtripRequestModel):

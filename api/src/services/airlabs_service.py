@@ -13,6 +13,6 @@ class AirLabsService:
     """Facade for AirLabs flight lookups used by route handlers."""
 
     @staticmethod
-    def lookup_flight(flight_iata: str) -> dict | None:
+    async def lookup_flight(flight_iata: str) -> dict | None:
         """Return real-time info for the given IATA flight code, or None."""
-        return airlabs_client.lookup_flight(flight_iata)
+        return await airlabs_client.lookup_flight(flight_iata)

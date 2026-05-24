@@ -39,7 +39,7 @@ async def get_flight_info(
             AppError("INVALID_FLIGHT_NUMBER", 400, f"Invalid IATA flight number: {flightNumber}")
         )
 
-    data = AirLabsService.lookup_flight(code)
+    data = await AirLabsService.lookup_flight(code)
     if not data:
         raise create_http_exception(
             AppError("FLIGHT_NOT_FOUND", 404, f"No flight info found for {code}")

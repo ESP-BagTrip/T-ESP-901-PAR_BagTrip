@@ -1,13 +1,13 @@
 """Client Unsplash pour les images de couverture automatiques."""
 
-import time
-
 from src.config.env import settings
+from src.integrations.distributed_cache import DistributedCache
 from src.integrations.http_client import get_http_client
 from src.utils.logger import logger
 
-_CACHE: dict[str, dict] = {}
 _CACHE_TTL = 3600  # 1 hour
+# Shared across workers via Redis (falls back to per-process memory).
+_cache = DistributedCache("unsplash", ttl_seconds=_CACHE_TTL)
 
 # Continent fallback URLs (royalty-free landscape defaults)
 _CONTINENT_FALLBACKS: dict[str, str] = {
@@ -173,10 +173,9 @@ class UnsplashClient:
 
         cache_key = destination_name.lower().strip()
 
-        # Check cache
-        cached = _CACHE.get(cache_key)
-        if cached and (time.time() - cached["fetched_at"]) < _CACHE_TTL:
-            return cached["url"]
+        cached_url = _cache.get(cache_key)
+        if cached_url:
+            return cached_url
 
         try:
             client = get_http_client()
@@ -200,7 +199,7 @@ class UnsplashClient:
                 return None
 
             url = results[0]["urls"]["regular"]
-            _CACHE[cache_key] = {"url": url, "fetched_at": time.time()}
+            _cache.set(cache_key, url)
             return url
         except Exception as e:
             logger.warn(f"Unsplash fetch failed for '{destination_name}': {e}")

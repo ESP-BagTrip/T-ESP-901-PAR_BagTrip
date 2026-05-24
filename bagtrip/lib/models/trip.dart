@@ -50,6 +50,8 @@ abstract class Trip with _$Trip {
     String? description,
     @JsonKey(name: 'destination_name') String? destinationName,
     String? destinationTimezone,
+    double? destinationLatitude,
+    double? destinationLongitude,
     int? nbTravelers,
     String? coverImageUrl,
     double? budgetTarget,

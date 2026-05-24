@@ -22,6 +22,13 @@ void main() {
     test('existing TripHomeRoute unchanged', () {
       expect(const TripHomeRoute(tripId: 'x').location, '/home/x');
     });
+
+    test('ResetPasswordRoute carries the token as a query param', () {
+      expect(
+        const ResetPasswordRoute(token: 'tok-123').location,
+        '/reset-password?token=tok-123',
+      );
+    });
   });
 
   group('Redirects', () {

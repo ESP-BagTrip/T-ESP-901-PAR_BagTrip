@@ -267,6 +267,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get languageLabel => 'LANGUE';
 
   @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get languageEnglish => 'Anglais';
+
+  @override
   String get themeLabel => 'THÈME';
 
   @override
@@ -530,6 +536,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get personalizationStepSubtitleFrequency => 'Par an';
 
   @override
+  String get personalizationStepTitleConstraints => 'Contraintes';
+
+  @override
+  String get personalizationStepSubtitleConstraints =>
+      'Des restrictions ou contraintes pour votre voyage ?';
+
+  @override
+  String get personalizationStepTitleTravelStyle => 'Votre style de voyage';
+
+  @override
+  String get personalizationStepSubtitleTravelStyle =>
+      'Comment aimez-vous organiser vos voyages ?';
+
+  @override
   String get personalizationBudgetComfort => 'Confort';
 
   @override
@@ -724,10 +744,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabProfile => 'Profil';
 
   @override
+  String get emailVerificationBannerText =>
+      'Vérifiez votre adresse e-mail pour sécuriser votre compte.';
+
+  @override
+  String get emailVerificationResend => 'Renvoyer';
+
+  @override
+  String get emailVerificationSent =>
+      'E-mail de vérification envoyé. Consultez votre boîte de réception.';
+
+  @override
+  String get emailVerifiedSuccess => 'Votre adresse e-mail a été vérifiée.';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override
   String get notificationsMarkAllRead => 'Tout marquer lu';
+
+  @override
+  String get notificationsDelete => 'Supprimer';
 
   @override
   String get notificationsEmpty => 'Aucune notification';
@@ -1183,6 +1220,31 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Réglages';
+
+  @override
+  String get notificationPrefsTitle => 'Notifications';
+
+  @override
+  String get notificationPrefsPush => 'Notifications push';
+
+  @override
+  String get notificationPrefsFlightReminders => 'Rappels de vol';
+
+  @override
+  String get notificationPrefsActivityReminders => 'Rappels d\'activité';
+
+  @override
+  String get notificationPrefsTripUpdates => 'Mises à jour du voyage';
+
+  @override
+  String get notificationPrefsBudgetAlerts => 'Alertes budget';
+
+  @override
+  String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsLoadError =>
+      'Impossible de charger vos préférences de notification.';
 
   @override
   String get personalInfoPageTitle => 'Informations personnelles';
@@ -2900,6 +2962,33 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get forgotPasswordSuccess =>
       'Si cette adresse existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.';
+
+  @override
+  String get resetPasswordTitle => 'Nouveau mot de passe';
+
+  @override
+  String get resetPasswordSubtitle =>
+      'Choisissez un nouveau mot de passe pour votre compte.';
+
+  @override
+  String get resetPasswordNewLabel => 'Nouveau mot de passe';
+
+  @override
+  String get resetPasswordConfirmLabel => 'Confirmer le mot de passe';
+
+  @override
+  String get resetPasswordSubmit => 'Réinitialiser le mot de passe';
+
+  @override
+  String get resetPasswordSuccess =>
+      'Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.';
+
+  @override
+  String get resetPasswordMismatch => 'Les mots de passe ne correspondent pas.';
+
+  @override
+  String get resetPasswordTooShort =>
+      'Le mot de passe doit contenir au moins 6 caractères.';
 
   @override
   String get deleteAccountButton => 'Supprimer mon compte';

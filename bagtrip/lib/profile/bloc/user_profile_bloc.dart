@@ -76,6 +76,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
             travelStyle: travelStyle,
             budget: budget,
             companions: companions,
+            emailVerified: user.emailVerified,
           ),
         );
       case Failure(:final error):

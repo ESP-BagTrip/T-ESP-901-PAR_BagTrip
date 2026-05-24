@@ -16,6 +16,7 @@ import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
 import 'package:bagtrip/plan_trip/models/duration_preset.dart';
 import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/view/step_ai_proposals_view.dart';
 import 'package:bagtrip/plan_trip/view/step_dates_view.dart';
 import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
@@ -27,9 +28,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class PlanTripFlowPage extends StatefulWidget {
-  const PlanTripFlowPage({super.key, this.initialDestination});
+  const PlanTripFlowPage({
+    super.key,
+    this.initialDestination,
+    this.initialPrefill,
+  });
 
+  /// Single destination pre-fill (legacy convenience entry point).
   final LocationResult? initialDestination;
+
+  /// Richer pre-fill bundle (destination + duration + budget) forwarded from
+  /// the post-trip "Create this trip" CTA. Takes precedence over
+  /// [initialDestination] when both are provided.
+  final PlanTripPrefill? initialPrefill;
 
   @override
   State<PlanTripFlowPage> createState() => _PlanTripFlowPageState();
@@ -58,7 +69,9 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
       create: (_) {
         final bloc = PlanTripBloc()
           ..add(const PlanTripEvent.loadPersonalization());
-        if (widget.initialDestination != null) {
+        if (widget.initialPrefill != null) {
+          bloc.add(PlanTripEvent.applyPrefill(widget.initialPrefill!));
+        } else if (widget.initialDestination != null) {
           bloc.add(
             PlanTripEvent.selectManualDestination(widget.initialDestination!),
           );

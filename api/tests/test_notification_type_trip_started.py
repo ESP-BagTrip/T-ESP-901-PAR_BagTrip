@@ -21,6 +21,7 @@ def test_notification_type_all_values():
         "TRIP_ENDED",
         "BUDGET_ALERT",
         "TRIP_SHARED",
+        "TRIP_UNSHARED",
         "ADMIN",
     }
     actual = {e.value for e in NotificationType}

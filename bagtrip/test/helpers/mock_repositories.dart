@@ -11,6 +11,7 @@ import 'package:bagtrip/repositories/notification_repository.dart';
 import 'package:bagtrip/repositories/booking_repository.dart';
 import 'package:bagtrip/repositories/trip_share_repository.dart';
 import 'package:bagtrip/repositories/feedback_repository.dart';
+import 'package:bagtrip/repositories/home_repository.dart';
 import 'package:bagtrip/repositories/subscription_repository.dart';
 import 'package:bagtrip/repositories/ai_repository.dart';
 import 'package:bagtrip/repositories/transport_repository.dart';
@@ -19,6 +20,7 @@ import 'package:bagtrip/service/geo_location_service.dart';
 import 'package:bagtrip/service/location_service.dart';
 import 'package:bagtrip/core/cache/cache_service.dart';
 import 'package:bagtrip/core/cache/connectivity_service.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -48,6 +50,8 @@ class MockTripShareRepository extends Mock implements TripShareRepository {}
 
 class MockFeedbackRepository extends Mock implements FeedbackRepository {}
 
+class MockHomeRepository extends Mock implements HomeRepository {}
+
 class MockSubscriptionRepository extends Mock
     implements SubscriptionRepository {}
 
@@ -58,6 +62,8 @@ class MockCrashlyticsService extends Mock implements CrashlyticsService {}
 class MockCacheService extends Mock implements CacheService {}
 
 class MockConnectivityService extends Mock implements ConnectivityService {}
+
+class MockOfflineWriteQueue extends Mock implements OfflineWriteQueue {}
 
 class MockTransportRepository extends Mock implements TransportRepository {}
 

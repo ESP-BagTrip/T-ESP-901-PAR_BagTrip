@@ -8,6 +8,7 @@ import 'package:bagtrip/models/budget_item.dart';
 import 'package:bagtrip/models/manual_flight.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/trip_share.dart';
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/repositories/accommodation_repository.dart';
 import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/baggage_repository.dart';
@@ -283,7 +284,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         accommodations: const [],
         baggageItems: const [],
         shares: const [],
-        userRole: trip.role ?? 'OWNER',
+        userRole: UserRole.fromApi(trip.role),
         completionResult: completion,
       ),
     );
@@ -405,7 +406,7 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
         budgetItems: budgetItems,
         shares: shares,
         selectedDayIndex: prevSelectedDay,
-        userRole: trip.role ?? 'OWNER',
+        userRole: UserRole.fromApi(trip.role),
         completionResult: completion,
         collapsedSections: prevCollapsedSections,
         deferredLoaded: true,

@@ -12,6 +12,7 @@ from __future__ import annotations
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.breaker import amadeus_breaker
 from src.integrations.amadeus.errors import (
     raise_amadeus_connection_error,
     raise_for_amadeus_status,
@@ -24,6 +25,7 @@ from .auth import fetch_token
 from .types import Activity, ActivitySearchQuery
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_activities(query: ActivitySearchQuery) -> list[Activity]:
     """Search bookable tours / activities within a radius of a coordinate.

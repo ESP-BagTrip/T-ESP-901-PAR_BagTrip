@@ -44,7 +44,6 @@ class TestRegister:
         mock_db_session.add.assert_not_called()
         assert mock_db_session.commit.called
 
-
     def test_register_stores_normalized_locale(self, mock_db_session):
         mock_db_session.query.return_value.filter.return_value.first.return_value = None
 

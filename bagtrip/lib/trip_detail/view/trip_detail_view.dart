@@ -35,6 +35,7 @@ import 'package:bagtrip/trips/bloc/trip_management_bloc.dart'
     show LoadTripsByStatus, TripManagementBloc;
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -167,103 +168,118 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     final trip = state.trip;
     final labels = _tabLabels(l10n);
 
+    // SMP327-044: fix VoiceOver reading order — title (hero) -> content
+    // (chips + panels) -> actions (footer CTA).
     return Column(
       children: [
-        ReviewHero(
-          city: _heroCity(trip, l10n),
-          subtitle: _heroDateSubtitle(context, trip, l10n),
-          budgetLabel: _heroBudgetLabel(),
-          coverImageUrl: _resolveCoverImage(trip),
-          onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
-          onBack: () => const HomeRoute().go(context),
-          onOverflow: () => _handleOverflow(context),
-          trailing: CompletionRing(
-            percentage: state.completionResult.percentage,
-            onTap: _canEdit
-                ? () => _showCompletionSegmentsSheet(context)
-                : null,
+        Semantics(
+          sortKey: const OrdinalSortKey(1),
+          child: ReviewHero(
+            city: _heroCity(trip, l10n),
+            subtitle: _heroDateSubtitle(context, trip, l10n),
+            budgetLabel: _heroBudgetLabel(),
+            coverImageUrl: _resolveCoverImage(trip),
+            onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
+            onBack: () => const HomeRoute().go(context),
+            onOverflow: () => _handleOverflow(context),
+            trailing: CompletionRing(
+              percentage: state.completionResult.percentage,
+              onTap: _canEdit
+                  ? () => _showCompletionSegmentsSheet(context)
+                  : null,
+            ),
+            statusBadge: _buildStatusBadge(l10n),
           ),
-          statusBadge: _buildStatusBadge(l10n),
         ),
-        PanelChipsBar(
-          labels: labels,
-          controller: _tabController,
-          incompleteFlags: _incompleteFlags(),
+        Semantics(
+          sortKey: const OrdinalSortKey(2),
+          child: PanelChipsBar(
+            labels: labels,
+            controller: _tabController,
+            incompleteFlags: _incompleteFlags(),
+          ),
         ),
         Expanded(
           child: Column(
             children: [
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<TripDetailBloc>().add(RefreshTripDetail());
-                  },
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: _footerController.handleScrollNotification,
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        ValidationBoardPanel(
-                          state: state,
-                          onJumpToTab: _tabController.animateTo,
-                        ),
-                        FlightsPanel(
-                          tripId: widget.tripId,
-                          flights: state.flights,
-                          tripStartDate: state.trip.startDate,
-                          canEdit: _canEdit,
-                          isCompleted: state.isCompleted,
-                          role: state.trip.role ?? 'OWNER',
-                          tracking: state.trip.flightsTracking,
-                        ),
-                        HotelPanel(
-                          tripId: widget.tripId,
-                          trip: state.trip,
-                          accommodations: state.accommodations,
-                          canEdit: _canEdit,
-                          isCompleted: state.isCompleted,
-                          role: state.trip.role ?? 'OWNER',
-                        ),
-                        ActivitiesPanel(
-                          tripId: widget.tripId,
-                          tripStartDate: state.trip.startDate,
-                          activities: state.activities,
-                          totalDays: state.totalDays,
-                          selectedDayIndex: state.selectedDayIndex,
-                          canEdit: _canEdit,
-                          isCompleted: state.isCompleted,
-                          role: state.trip.role ?? 'OWNER',
-                        ),
-                        EssentialsPanel(
-                          tripId: widget.tripId,
-                          items: state.baggageItems,
-                          canEdit: _canEdit,
-                          isCompleted: state.isCompleted,
-                          role: state.trip.role ?? 'OWNER',
-                        ),
-                        BudgetPanel(
-                          tripId: widget.tripId,
-                          budgetSummary: state.budgetSummary,
-                          budgetItems: state.budgetItems,
-                          activities: state.activities,
-                          totalDays: state.totalDays,
-                          canEdit: _canEdit,
-                          isCompleted: state.isCompleted,
-                          role: state.trip.role ?? 'OWNER',
-                        ),
-                        if (_hasSharesTab)
-                          SharesPanel(
+                child: Semantics(
+                  sortKey: const OrdinalSortKey(2),
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<TripDetailBloc>().add(RefreshTripDetail());
+                    },
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification:
+                          _footerController.handleScrollNotification,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          ValidationBoardPanel(
+                            state: state,
+                            onJumpToTab: _tabController.animateTo,
+                          ),
+                          FlightsPanel(
                             tripId: widget.tripId,
-                            shares: state.shares,
+                            flights: state.flights,
                             tripStartDate: state.trip.startDate,
+                            canEdit: _canEdit,
+                            isCompleted: state.isCompleted,
+                            role: state.trip.role ?? 'OWNER',
+                            tracking: state.trip.flightsTracking,
+                          ),
+                          HotelPanel(
+                            tripId: widget.tripId,
+                            trip: state.trip,
+                            accommodations: state.accommodations,
+                            canEdit: _canEdit,
+                            isCompleted: state.isCompleted,
                             role: state.trip.role ?? 'OWNER',
                           ),
-                      ],
+                          ActivitiesPanel(
+                            tripId: widget.tripId,
+                            tripStartDate: state.trip.startDate,
+                            activities: state.activities,
+                            totalDays: state.totalDays,
+                            selectedDayIndex: state.selectedDayIndex,
+                            canEdit: _canEdit,
+                            isCompleted: state.isCompleted,
+                            role: state.trip.role ?? 'OWNER',
+                          ),
+                          EssentialsPanel(
+                            tripId: widget.tripId,
+                            items: state.baggageItems,
+                            canEdit: _canEdit,
+                            isCompleted: state.isCompleted,
+                            role: state.trip.role ?? 'OWNER',
+                          ),
+                          BudgetPanel(
+                            tripId: widget.tripId,
+                            budgetSummary: state.budgetSummary,
+                            budgetItems: state.budgetItems,
+                            activities: state.activities,
+                            totalDays: state.totalDays,
+                            canEdit: _canEdit,
+                            isCompleted: state.isCompleted,
+                            role: state.trip.role ?? 'OWNER',
+                          ),
+                          if (_hasSharesTab)
+                            SharesPanel(
+                              tripId: widget.tripId,
+                              shares: state.shares,
+                              tripStartDate: state.trip.startDate,
+                              role: state.trip.role ?? 'OWNER',
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              _buildFooter(context, l10n),
+              Semantics(
+                sortKey: const OrdinalSortKey(3),
+                child: _buildFooter(context, l10n),
+              ),
             ],
           ),
         ),

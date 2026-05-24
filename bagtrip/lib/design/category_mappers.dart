@@ -1,6 +1,7 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
+import 'package:bagtrip/models/baggage_category.dart';
 import 'package:bagtrip/models/budget_item.dart';
 import 'package:flutter/material.dart';
 
@@ -69,5 +70,40 @@ extension BudgetCategoryPresentation on BudgetCategory {
     BudgetCategory.activity => l10n.reviewBudgetActivities,
     BudgetCategory.transport => l10n.reviewBudgetTransport,
     BudgetCategory.other => l10n.reviewBudgetOther,
+  };
+}
+
+/// Single source of truth for baggage category presentation — icon, color and
+/// localized label. Previously the picker only carried a label map and there
+/// was no shared icon/color, so any per-category visual lived inline.
+extension BaggageCategoryPresentation on BaggageCategory {
+  IconData get icon => switch (this) {
+    BaggageCategory.documents => Icons.description_outlined,
+    BaggageCategory.clothing => Icons.checkroom_outlined,
+    BaggageCategory.electronics => Icons.devices_outlined,
+    BaggageCategory.toiletries => Icons.clean_hands_outlined,
+    BaggageCategory.health => Icons.medical_services_outlined,
+    BaggageCategory.accessories => Icons.backpack_outlined,
+    BaggageCategory.other => Icons.category_outlined,
+  };
+
+  Color get color => switch (this) {
+    BaggageCategory.documents => AppColors.activityCulture,
+    BaggageCategory.clothing => AppColors.activityShopping,
+    BaggageCategory.electronics => AppColors.budgetTransport,
+    BaggageCategory.toiletries => AppColors.activityNature,
+    BaggageCategory.health => AppColors.activityFood,
+    BaggageCategory.accessories => AppColors.warning,
+    BaggageCategory.other => AppColors.secondary,
+  };
+
+  String label(AppLocalizations l10n) => switch (this) {
+    BaggageCategory.documents => l10n.baggageCategoryDocuments,
+    BaggageCategory.clothing => l10n.baggageCategoryClothing,
+    BaggageCategory.electronics => l10n.baggageCategoryElectronics,
+    BaggageCategory.toiletries => l10n.baggageCategoryHygiene,
+    BaggageCategory.health => l10n.baggageCategoryMedication,
+    BaggageCategory.accessories => l10n.baggageCategoryAccessories,
+    BaggageCategory.other => l10n.baggageCategoryOther,
   };
 }

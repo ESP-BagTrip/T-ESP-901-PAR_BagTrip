@@ -1,6 +1,7 @@
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -47,7 +48,7 @@ void main() {
       accommodations: const [],
       baggageItems: const [],
       shares: const [],
-      userRole: role,
+      userRole: UserRole.fromApi(role),
       completionResult: makeCompletionResult(),
     );
   }

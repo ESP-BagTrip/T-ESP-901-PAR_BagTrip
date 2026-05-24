@@ -3,6 +3,7 @@
 import httpx
 
 from src.config.env import settings
+from src.integrations.amadeus.breaker import amadeus_breaker
 from src.integrations.amadeus.errors import raise_amadeus_connection_error, raise_for_amadeus_status
 from src.integrations.amadeus.retry import amadeus_retry
 from src.integrations.http_client import get_http_client
@@ -20,6 +21,7 @@ from .types import (
 )
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
     """
@@ -97,6 +99,7 @@ async def search_hotel_list(query: HotelListSearchQuery) -> HotelListResponse:
         raise_amadeus_connection_error(error, "hotel list search")
 
 
+@amadeus_breaker
 @amadeus_retry
 async def search_hotel_offers(query: HotelOffersSearchQuery) -> HotelOffersResponse:
     """

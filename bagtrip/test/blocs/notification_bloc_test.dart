@@ -330,5 +330,106 @@ void main() {
       wait: const Duration(milliseconds: 100),
       expect: () => [isA<NotificationLoading>(), isA<NotificationsLoaded>()],
     );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'DeleteNotification removes the item and decrements unread + total',
+      build: () {
+        when(
+          () => mockNotifRepo.deleteNotification('n1'),
+        ).thenAnswer((_) async => const Success(null));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [
+          makeAppNotification(id: 'n1'),
+          makeAppNotification(id: 'n2', isRead: true),
+        ],
+        unreadCount: 1,
+        totalPages: 1,
+        currentPage: 1,
+        total: 2,
+      ),
+      act: (bloc) => bloc.add(DeleteNotification(notificationId: 'n1')),
+      expect: () => [isA<NotificationsLoaded>()],
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.notifications.map((n) => n.id), ['n2']);
+        expect(state.unreadCount, 0);
+        expect(state.total, 1);
+        verify(() => mockNotifRepo.deleteNotification('n1')).called(1);
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'DeleteNotification on a read item keeps unreadCount unchanged',
+      build: () {
+        when(
+          () => mockNotifRepo.deleteNotification('n2'),
+        ).thenAnswer((_) async => const Success(null));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [
+          makeAppNotification(id: 'n1'),
+          makeAppNotification(id: 'n2', isRead: true),
+        ],
+        unreadCount: 1,
+        totalPages: 1,
+        currentPage: 1,
+        total: 2,
+      ),
+      act: (bloc) => bloc.add(DeleteNotification(notificationId: 'n2')),
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.notifications.map((n) => n.id), ['n1']);
+        expect(state.unreadCount, 1);
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'DeleteNotification rolls back to the prior snapshot on failure',
+      build: () {
+        when(
+          () => mockNotifRepo.deleteNotification('n1'),
+        ).thenAnswer((_) async => const Failure<void>(UnknownError('boom')));
+        return NotificationBloc(notificationRepository: mockNotifRepo);
+      },
+      seed: () => NotificationsLoaded(
+        notifications: [makeAppNotification(id: 'n1')],
+        unreadCount: 1,
+        totalPages: 1,
+        currentPage: 1,
+        total: 1,
+      ),
+      // Optimistic removal, then rollback.
+      expect: () => [
+        isA<NotificationsLoaded>().having(
+          (s) => s.notifications.length,
+          'optimistic empty',
+          0,
+        ),
+        isA<NotificationsLoaded>().having(
+          (s) => s.notifications.map((n) => n.id).toList(),
+          'restored',
+          ['n1'],
+        ),
+      ],
+      act: (bloc) => bloc.add(DeleteNotification(notificationId: 'n1')),
+      verify: (bloc) {
+        final state = bloc.state as NotificationsLoaded;
+        expect(state.unreadCount, 1);
+        expect(state.total, 1);
+      },
+    );
+
+    blocTest<NotificationBloc, NotificationState>(
+      'DeleteNotification is a no-op when state is not NotificationsLoaded',
+      build: () => NotificationBloc(notificationRepository: mockNotifRepo),
+      act: (bloc) => bloc.add(DeleteNotification(notificationId: 'x')),
+      expect: () => const <NotificationState>[],
+      verify: (_) {
+        verifyNever(() => mockNotifRepo.deleteNotification(any()));
+      },
+    );
   });
 }

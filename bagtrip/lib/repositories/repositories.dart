@@ -6,6 +6,7 @@ export 'baggage_repository.dart';
 export 'booking_repository.dart';
 export 'budget_repository.dart';
 export 'feedback_repository.dart';
+export 'home_repository.dart';
 export 'notification_repository.dart';
 export 'profile_repository.dart';
 export 'subscription_repository.dart';

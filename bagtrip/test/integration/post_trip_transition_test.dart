@@ -1,9 +1,7 @@
-import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/cache/offline_write_queue.dart';
 import 'package:bagtrip/core/result.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/repositories/weather_repository.dart';
-import 'package:bagtrip/service/post_trip_dismissal_storage.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -11,69 +9,57 @@ import 'package:mocktail/mocktail.dart';
 import '../helpers/mock_repositories.dart';
 import '../helpers/test_fixtures.dart';
 
-class MockWeatherRepository extends Mock implements WeatherRepository {}
-
-class MockPostTripDismissalStorage extends Mock
-    implements PostTripDismissalStorage {}
+class _FakePendingWriteOperation extends Fake
+    implements PendingWriteOperation {}
 
 void main() {
+  late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
-  late MockAuthRepository mockAuthRepo;
-  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivity;
-  late MockWeatherRepository mockWeatherRepo;
   late MockPostTripDismissalStorage mockDismissalStorage;
+  late MockOfflineWriteQueue mockOfflineWriteQueue;
 
   setUp(() {
+    mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
-    mockAuthRepo = MockAuthRepository();
-    mockActivityRepo = MockActivityRepository();
     mockConnectivity = MockConnectivityService();
-    mockWeatherRepo = MockWeatherRepository();
     mockDismissalStorage = MockPostTripDismissalStorage();
+    mockOfflineWriteQueue = MockOfflineWriteQueue();
 
     registerFallbackValue(makeTrip());
+    registerFallbackValue(_FakePendingWriteOperation());
+    registerFallbackValue((Map<String, dynamic> _) async => true);
 
     when(() => mockConnectivity.isOnline).thenReturn(true);
     when(
       () => mockConnectivity.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
+    when(
+      () => mockOfflineWriteQueue.registerHandler(any(), any()),
+    ).thenReturn(null);
+    when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
   });
 
   HomeBloc buildBloc() => HomeBloc(
+    homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
-    authRepository: mockAuthRepo,
-    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivity,
-    weatherRepository: mockWeatherRepo,
     dismissalStorage: mockDismissalStorage,
+    offlineWriteQueue: mockOfflineWriteQueue,
   );
 
-  void stubUserAndTrips({
+  void stubHome({
     List<Trip> ongoing = const [],
     List<Trip> planned = const [],
     List<Trip> completed = const [],
   }) {
-    when(
-      () => mockAuthRepo.getCurrentUser(),
-    ).thenAnswer((_) async => Success(makeUser()));
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'ongoing', limit: 5),
-    ).thenAnswer(
-      (_) async =>
-          Success(makePaginatedResponse(items: ongoing, total: ongoing.length)),
-    );
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'planned', limit: 5),
-    ).thenAnswer(
-      (_) async =>
-          Success(makePaginatedResponse(items: planned, total: planned.length)),
-    );
-    when(
-      () => mockTripRepo.getTripsPaginated(status: 'completed', limit: 5),
-    ).thenAnswer(
+    when(() => mockHomeRepo.getHome()).thenAnswer(
       (_) async => Success(
-        makePaginatedResponse(items: completed, total: completed.length),
+        makeHomeSummary(
+          ongoingTrips: ongoing,
+          plannedTrips: planned,
+          completedTrips: completed,
+        ),
       ),
     );
   }
@@ -90,19 +76,12 @@ void main() {
           endDate: now.subtract(const Duration(days: 1)),
         );
 
-        stubUserAndTrips(ongoing: [endedTrip]);
+        stubHome(ongoing: [endedTrip]);
 
         // Dismissal storage: not recently dismissed
         when(
           () => mockDismissalStorage.wasDismissedRecently('ended-trip'),
         ).thenAnswer((_) async => false);
-
-        when(
-          () => mockActivityRepo.getActivities('ended-trip'),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockWeatherRepo.getWeather('ended-trip'),
-        ).thenAnswer((_) async => const Failure(NetworkError('no weather')));
 
         return buildBloc();
       },
@@ -127,7 +106,7 @@ void main() {
           endDate: now.subtract(const Duration(days: 1)),
         );
 
-        stubUserAndTrips(ongoing: [endedTrip]);
+        stubHome(ongoing: [endedTrip]);
 
         when(
           () => mockDismissalStorage.wasDismissedRecently('confirm-trip'),
@@ -141,13 +120,6 @@ void main() {
           (_) async =>
               Success(endedTrip.copyWith(status: TripStatus.completed)),
         );
-
-        when(
-          () => mockActivityRepo.getActivities('confirm-trip'),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockWeatherRepo.getWeather('confirm-trip'),
-        ).thenAnswer((_) async => const Failure(NetworkError('no weather')));
 
         return buildBloc();
       },
@@ -188,7 +160,7 @@ void main() {
           endDate: now.subtract(const Duration(days: 1)),
         );
 
-        stubUserAndTrips(ongoing: [endedTrip]);
+        stubHome(ongoing: [endedTrip]);
 
         when(
           () => mockDismissalStorage.wasDismissedRecently('dismiss-trip'),
@@ -196,13 +168,6 @@ void main() {
         when(
           () => mockDismissalStorage.recordDismissal('dismiss-trip'),
         ).thenAnswer((_) async {});
-
-        when(
-          () => mockActivityRepo.getActivities('dismiss-trip'),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockWeatherRepo.getWeather('dismiss-trip'),
-        ).thenAnswer((_) async => const Failure(NetworkError('no weather')));
 
         return buildBloc();
       },
@@ -240,19 +205,12 @@ void main() {
           endDate: now.subtract(const Duration(days: 1)),
         );
 
-        stubUserAndTrips(ongoing: [endedTrip]);
+        stubHome(ongoing: [endedTrip]);
 
         // Recently dismissed: skip it
         when(
           () => mockDismissalStorage.wasDismissedRecently('dismissed-trip'),
         ).thenAnswer((_) async => true);
-
-        when(
-          () => mockActivityRepo.getActivities('dismissed-trip'),
-        ).thenAnswer((_) async => const Success([]));
-        when(
-          () => mockWeatherRepo.getWeather('dismissed-trip'),
-        ).thenAnswer((_) async => const Failure(NetworkError('no weather')));
 
         return buildBloc();
       },
