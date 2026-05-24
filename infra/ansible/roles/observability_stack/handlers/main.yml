@@ -1,0 +1,34 @@
+---
+- name: Reload Prometheus configuration
+  ansible.builtin.command: docker compose -f {{ observability_root }}/compose.yml exec -T prometheus kill -HUP 1
+  changed_when: true
+  failed_when: false
+
+- name: Restart observability stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ observability_root }}"
+    state: present
+    recreate: auto
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Reload edge Caddy
+  # /opt/edge uses a directory bind mount, so Caddyfile content changes
+  # are picked up by `caddy reload` without recreating the container.
+  # If the compose definition itself changes (mount config / image bump
+  # / etc.), trigger "Recreate edge Caddy" instead.
+  ansible.builtin.command:
+    cmd: docker exec edge-caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+  changed_when: true
+
+- name: Recreate edge Caddy
+  ansible.builtin.command:
+    cmd: docker compose -f /opt/edge/compose.yml up -d --force-recreate caddy
+  changed_when: true
+
+- name: Persist iptables rules
+  ansible.builtin.command:
+    cmd: netfilter-persistent save
+  changed_when: true

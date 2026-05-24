@@ -1,0 +1,126 @@
+name: BagTrip
+
+services:
+  db:
+    image: postgres:15
+    container_name: BagTrip-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-bagtrip}
+    # No host port exposure in dev: the api container reaches the db via the
+    # compose network (`db:5432`) and host forwarding would collide with any
+    # other local Postgres the dev might run.
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: BagTrip-redis
+    restart: always
+    # No host port exposure in dev: only the api container consumes redis
+    # (cache / rate-limit / distributed lock) via the compose network
+    # (`redis:6379`). Keeps the attack surface minimal — use
+    # `docker compose exec redis redis-cli` if you need a shell.
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    container_name: BagTrip-api
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api/src:/app/src
+      - ./api/pyproject.toml:/app/pyproject.toml
+      - ./api/uv.lock:/app/uv.lock
+      - ./api/alembic:/app/alembic
+      - ./api/alembic.ini:/app/alembic.ini
+    environment:
+      # Python path for alembic & src imports
+      - PYTHONPATH=/app
+      # Docker-specific: host 'db' instead of 'localhost'
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bagtrip}
+      # Required API keys (no defaults)
+      - AMADEUS_CLIENT_ID=${AMADEUS_CLIENT_ID}
+      - AMADEUS_CLIENT_SECRET=${AMADEUS_CLIENT_SECRET}
+      - LLM_API_KEY=${LLM_API_KEY}
+      # Optional: passed only if defined in .env
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - REDIS_URL=redis://redis:6379/0
+    command: >
+      sh -c "
+        uv sync &&
+        uv run alembic upgrade head &&
+        uv run uvicorn src.main:app --host 0.0.0.0 --port 3000 --reload
+      "
+
+  admin-panel:
+    container_name: BagTrip-admin-panel
+    build:
+      context: ./admin-panel
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./admin-panel:/app
+      - admin_node_modules:/app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - WATCHPACK_POLLING=true
+
+  # mobile-web:
+  #   container_name: BagTrip-mobile-web
+  #   build:
+  #     context: ./bagtrip
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ./bagtrip:/app
+  #   environment:
+  #     - API_URL=http://localhost:3000
+
+  # sonarqube:
+  #   image: sonarqube:community
+  #   container_name: BagTrip-sonarqube
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - sonarqube_data:/opt/sonarqube/data
+  #     - sonarqube_extensions:/opt/sonarqube/extensions
+  #     - sonarqube_logs:/opt/sonarqube/logs
+  #     - ./sonar-flutter-plugin-0.5.2.jar:/opt/sonarqube/extensions/plugins/sonar-flutter-plugin-0.5.2.jar
+
+
+  # sonar-scanner:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.sonar-scanner
+  #   container_name: BagTrip-sonar-scanner
+  #   volumes:
+  #     - .:/usr/src
+  #   environment:
+  #     - SONAR_HOST_URL=http://sonarqube:9000
+  #     - SONAR_TOKEN=${SONAR_TOKEN}
+
+volumes:
+  postgres_data:
+  redis_data:
+  admin_node_modules:
+  # sonarqube_data:
+  # sonarqube_extensions:
+  # sonarqube_logs:

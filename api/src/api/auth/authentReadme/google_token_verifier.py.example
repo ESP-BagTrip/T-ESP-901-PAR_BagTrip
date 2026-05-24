@@ -1,0 +1,109 @@
+"""Exemple de vérification sécurisée des tokens Google ID pour la production.
+
+Ce fichier montre comment vérifier correctement les tokens Google ID
+avec les clés publiques. À utiliser en production au lieu de get_unverified_claims().
+"""
+
+import httpx
+from jose import jwt
+from jose.exceptions import JWTError
+
+# Cache des clés publiques Google (elles changent environ toutes les 12h)
+_google_public_keys_cache: dict[str, str] | None = None
+_cache_timestamp: float = 0
+CACHE_DURATION = 3600  # 1 heure en secondes
+
+
+async def fetch_google_public_keys() -> dict[str, str]:
+    """
+    Récupère les clés publiques Google depuis leur endpoint.
+    
+    Les clés sont mises en cache pour éviter trop de requêtes.
+    """
+    global _google_public_keys_cache, _cache_timestamp
+    import time
+    
+    current_time = time.time()
+    
+    # Utiliser le cache si disponible et récent
+    if _google_public_keys_cache and (current_time - _cache_timestamp) < CACHE_DURATION:
+        return _google_public_keys_cache
+    
+    # Récupérer les clés depuis Google
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://www.googleapis.com/oauth2/v1/certs"
+        )
+        response.raise_for_status()
+        _google_public_keys_cache = response.json()
+        _cache_timestamp = current_time
+    
+    return _google_public_keys_cache
+
+
+def verify_google_id_token(
+    id_token: str,
+    expected_audience: str,
+    expected_issuer: str = "https://securetoken.google.com",
+) -> dict:
+    """
+    Vérifie un token Google ID de manière sécurisée.
+    
+    Args:
+        id_token: Le token ID Google à vérifier
+        expected_audience: L'audience attendue (votre Firebase project ID)
+        expected_issuer: L'issuer attendu (par défaut Firebase)
+    
+    Returns:
+        dict: Les claims décodés du token
+    
+    Raises:
+        JWTError: Si le token est invalide, expiré, ou non signé par Google
+    """
+    import asyncio
+    
+    # Récupérer les clés publiques
+    public_keys = asyncio.run(fetch_google_public_keys())
+    
+    # Décoder le header pour obtenir le kid (key ID)
+    unverified_header = jwt.get_unverified_header(id_token)
+    kid = unverified_header.get("kid")
+    
+    if not kid or kid not in public_keys:
+        raise JWTError("Token key ID not found in Google public keys")
+    
+    # Récupérer la clé publique correspondante
+    public_key = public_keys[kid]
+    
+    # Vérifier le token avec la clé publique
+    decoded_token = jwt.decode(
+        id_token,
+        public_key,
+        algorithms=["RS256"],
+        audience=expected_audience,
+        issuer=f"{expected_issuer}/{expected_audience}",
+    )
+    
+    return decoded_token
+
+
+# Exemple d'utilisation dans routes.py :
+"""
+from src.api.auth.google_token_verifier import verify_google_id_token
+
+async def google_sign_in(request: GoogleSignInRequest, db: Session = Depends(get_db)):
+    try:
+        # Vérifier le token de manière sécurisée
+        decoded_token = await verify_google_id_token(
+            id_token=request.idToken,
+            expected_audience="bagtrip-7d2d8",  # Votre Firebase project ID
+        )
+        
+        email = decoded_token.get("email")
+        # ... reste du code
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Google token: {str(e)}",
+        )
+"""

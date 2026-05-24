@@ -1,0 +1,36 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class DateField extends StatelessWidget {
+  final String hint;
+  final DateTime? value;
+  final VoidCallback onTap;
+  final bool hasError;
+
+  const DateField({
+    super.key,
+    required this.hint,
+    this.value,
+    required this.onTap,
+    this.hasError = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        value != null ? DateFormat('d MMM yyyy').format(value!) : hint,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          fontFamily: FontFamily.b612,
+          color: value != null ? ColorName.primary : AppColors.hint,
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "annotations": {"list": []},
+  "description": "Synthetic monitoring (blackbox probes, TLS) and disaster-recovery posture (Restic backup freshness + restore-drill outcome). Phase 7.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "tags": ["bagtrip", "synthetic", "dr"],
+  "time": {"from": "now-7d", "to": "now"},
+  "timezone": "browser",
+  "title": "BagTrip — Synthetic + DR",
+  "uid": "bagtrip-synthetic-dr",
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Public endpoint up / down (blackbox http_2xx)",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}],
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value_and_name", "orientation": "auto"},
+      "targets": [{"expr": "probe_success{job=\"blackbox_http\"}", "legendFormat": "{{instance}}", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "title": "Endpoint availability over 7 days",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1, "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "min"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "avg_over_time(probe_success{job=\"blackbox_http\"}[$__rate_interval])",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Probe duration p95",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "probe_duration_seconds{job=\"blackbox_http\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "TLS certificate days remaining",
+      "type": "table",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 14}, {"color": "green", "value": 30}]}
+        }
+      },
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "expr": "(probe_ssl_earliest_cert_expiry - time()) / 86400",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "job": true}, "renameByName": {"Value": "days remaining", "instance": "host"}}}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Restic — last backup status (per target)",
+      "type": "stat",
+      "gridPos": {"h": 5, "w": 12, "x": 12, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"options": {"0": {"text": "FAILED", "color": "red"}, "1": {"text": "OK", "color": "green"}}, "type": "value"}],
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value_and_name"},
+      "targets": [{"expr": "restic_last_backup_status", "legendFormat": "{{target}}", "refId": "A"}]
+    },
+    {
+      "id": 6,
+      "title": "Restic — backup age (hours)",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 12, "x": 12, "y": 19},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 22}, {"color": "red", "value": 26}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "area"},
+      "targets": [
+        {
+          "expr": "(time() - restic_last_successful_backup_timestamp) / 3600",
+          "legendFormat": "{{target}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Restic — last restore drill",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 23},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"options": {"0": {"text": "DRILL FAILED", "color": "red"}, "1": {"text": "DRILL OK", "color": "green"}}, "type": "value"}],
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value_and_name", "orientation": "horizontal"},
+      "targets": [{"expr": "restic_last_restore_test_status", "legendFormat": "{{target}}", "refId": "A"}]
+    }
+  ]
+}

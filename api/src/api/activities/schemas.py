@@ -1,0 +1,108 @@
+import datetime as dt
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from src.api.common.base_schema import BagtripRequestModel
+from src.enums import ActivityCategory
+
+
+class ActivityCreateRequest(BagtripRequestModel):
+    title: str
+    date: dt.date
+    description: str | None = None
+    startTime: dt.time | None = None
+    endTime: dt.time | None = None
+    location: str | None = None
+    category: ActivityCategory | None = None
+    estimatedCost: float | None = None
+    isBooked: bool | None = None
+    isDone: bool | None = None
+    validationStatus: str | None = None
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityCreateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
+
+
+class ActivityUpdateRequest(BagtripRequestModel):
+    title: str | None = None
+    date: dt.date | None = None
+    description: str | None = None
+    startTime: dt.time | None = None
+    endTime: dt.time | None = None
+    location: str | None = None
+    category: ActivityCategory | None = None
+    estimatedCost: float | None = None
+    isBooked: bool | None = None
+    isDone: bool | None = None
+    validationStatus: str | None = None
+
+    @model_validator(mode="after")
+    def validate_time_range(self) -> "ActivityUpdateRequest":
+        if self.startTime and self.endTime and self.endTime <= self.startTime:
+            raise ValueError("endTime must be after startTime")
+        return self
+
+
+class ActivityResponse(BaseModel):
+    id: UUID
+    tripId: UUID = Field(alias="trip_id")
+    title: str
+    description: str | None = None
+    # ``date`` is nullable in the DB: AI-suggested recurring activities
+    # (eg. dinners) may be persisted without a calendar day, and the UI
+    # surfaces them in a dedicated "Unscheduled" bucket.
+    date: dt.date | None = None
+    startTime: dt.time | None = Field(default=None, alias="start_time")
+    endTime: dt.time | None = Field(default=None, alias="end_time")
+    location: str | None = None
+    category: str
+    estimatedCost: float | None = Field(default=None, alias="estimated_cost")
+    isBooked: bool = Field(alias="is_booked")
+    isDone: bool = Field(default=False, alias="is_done")
+    validationStatus: str = Field(default="MANUAL", alias="validation_status")
+    createdAt: dt.datetime = Field(alias="created_at")
+    updatedAt: dt.datetime = Field(alias="updated_at")
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class ActivityListResponse(BaseModel):
+    items: list[ActivityResponse]
+
+
+class ActivityPaginatedResponse(BaseModel):
+    items: list[ActivityResponse]
+    total: int
+    page: int
+    limit: int
+    totalPages: int = Field(alias="total_pages")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ActivityBatchUpdateRequest(BaseModel):
+    activityIds: list[UUID]
+    updates: ActivityUpdateRequest
+
+
+class SuggestedActivity(BaseModel):
+    """One AI-suggested activity. Validates the raw LLM output (snake_case keys)
+    and exposes it as a typed, camelCase payload."""
+
+    title: str
+    description: str | None = None
+    category: str | None = None
+    estimatedCost: float | None = Field(default=None, alias="estimated_cost")
+    suggestedDay: int | None = Field(default=None, alias="suggested_day")
+    timeOfDay: str | None = Field(default=None, alias="time_of_day")
+    location: str | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class ActivitySuggestResponse(BaseModel):
+    activities: list[SuggestedActivity]

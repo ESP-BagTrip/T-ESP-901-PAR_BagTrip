@@ -1,0 +1,162 @@
+{
+  "annotations": {"list": []},
+  "description": "Business KPIs derived from prometheus-fastapi-instrumentator counters. Phase 7 — non-infra metrics that demonstrate the observability stack also serves the product side, not just SRE.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "tags": ["bagtrip", "business", "kpi"],
+  "time": {"from": "now-7d", "to": "now"},
+  "timezone": "browser",
+  "title": "BagTrip — Business KPIs",
+  "uid": "bagtrip-business",
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "label": "Environment",
+        "type": "custom",
+        "query": "prod, preprod",
+        "current": {"selected": false, "text": "prod", "value": "prod"},
+        "options": [
+          {"selected": true, "text": "prod", "value": "prod"},
+          {"selected": false, "text": "preprod", "value": "preprod"}
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Signups / day",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}, "custom": {"drawStyle": "bars", "fillOpacity": 80}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=\"/v1/auth/register\", status=\"201\"}[1d]))",
+          "legendFormat": "successful signups",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=\"/v1/auth/register\", status=~\"4..\"}[1d]))",
+          "legendFormat": "rejected signups (4xx)",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Logins / day",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}, "custom": {"drawStyle": "bars", "fillOpacity": 80}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=\"/v1/auth/login\", status=\"200\"}[1d]))",
+          "legendFormat": "successful logins",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=\"/v1/auth/login\", status=\"401\"}[1d]))",
+          "legendFormat": "failed logins (401)",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Trips created / day",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}, "custom": {"drawStyle": "bars", "fillOpacity": 80}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=\"/v1/trips\", method=\"POST\", status=\"201\"}[1d]))",
+          "legendFormat": "trips created",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "SSE plan-trip — success vs error",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "ops", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=~\"/v1/.*plan-trip.*\", status=\"200\"}[5m]))",
+          "legendFormat": "200",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=~\"/v1/.*plan-trip.*\", status=~\"5..\"}[5m]))",
+          "legendFormat": "5xx",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Subscription flow",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}, "custom": {"drawStyle": "bars", "fillOpacity": 80}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["sum"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum by (handler) (increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=~\"/v1/subscription.*\", status=~\"2..\"}[1d]))",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Stripe webhooks received / day",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}, "custom": {"drawStyle": "bars", "fillOpacity": 80}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum by (status) (increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler=~\"/v1/stripe.*\"}[1d]))",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Hot endpoints (24h, by request count)",
+      "type": "table",
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 24},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "options": {"showHeader": true, "cellHeight": "sm"},
+      "targets": [
+        {
+          "expr": "topk(15, sum by (handler, method) (increase(http_requests_total{job=\"bagtrip-api\", env=\"$env\", handler!~\"/metrics|/health|/\"}[24h])))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "instance": true, "job": true, "env": true, "stack": true, "service": true}, "renameByName": {"Value": "requests / 24h"}}}
+      ]
+    }
+  ]
+}

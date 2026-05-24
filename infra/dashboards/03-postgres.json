@@ -1,0 +1,135 @@
+{
+  "annotations": {"list": []},
+  "description": "Postgres health for BagTrip prod and preprod databases.",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "tags": ["bagtrip", "postgres", "db"],
+  "time": {"from": "now-3h", "to": "now"},
+  "timezone": "browser",
+  "title": "BagTrip — Postgres",
+  "uid": "bagtrip-postgres",
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "env",
+        "label": "Environment",
+        "type": "custom",
+        "query": "prod, preprod",
+        "current": {"selected": false, "text": "prod", "value": "prod"},
+        "options": [
+          {"selected": true, "text": "prod", "value": "prod"},
+          {"selected": false, "text": "preprod", "value": "preprod"}
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active connections",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum by (datname) (pg_stat_database_numbackends{env=\"$env\", datname!~\"template.*|postgres\"})", "legendFormat": "{{datname}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Cache hit ratio (heap blocks)",
+      "type": "gauge",
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0.9}, {"color": "green", "value": 0.99}]}
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_database_blks_hit{env=\"$env\", datname!~\"template.*|postgres\"}[5m])) / (sum(rate(pg_stat_database_blks_hit{env=\"$env\", datname!~\"template.*|postgres\"}[5m])) + sum(rate(pg_stat_database_blks_read{env=\"$env\", datname!~\"template.*|postgres\"}[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Transactions / sec",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "ops", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum(rate(pg_stat_database_xact_commit{env=\"$env\"}[5m]))", "legendFormat": "commit", "refId": "A"},
+        {"expr": "sum(rate(pg_stat_database_xact_rollback{env=\"$env\"}[5m]))", "legendFormat": "rollback", "refId": "B"}
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Tuples returned / fetched / inserted / updated / deleted",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "ops", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum(rate(pg_stat_database_tup_returned{env=\"$env\"}[5m]))", "legendFormat": "returned", "refId": "A"},
+        {"expr": "sum(rate(pg_stat_database_tup_fetched{env=\"$env\"}[5m]))", "legendFormat": "fetched", "refId": "B"},
+        {"expr": "sum(rate(pg_stat_database_tup_inserted{env=\"$env\"}[5m]))", "legendFormat": "inserted", "refId": "C"},
+        {"expr": "sum(rate(pg_stat_database_tup_updated{env=\"$env\"}[5m]))", "legendFormat": "updated", "refId": "D"},
+        {"expr": "sum(rate(pg_stat_database_tup_deleted{env=\"$env\"}[5m]))", "legendFormat": "deleted", "refId": "E"}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Database size",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "bytes", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["last"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "pg_database_size_bytes{env=\"$env\", datname!~\"template.*|postgres\"}", "legendFormat": "{{datname}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Deadlocks (rate)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "ops", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum(rate(pg_stat_database_deadlocks{env=\"$env\"}[5m]))", "legendFormat": "deadlocks/s", "refId": "A"}
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Postgres exporter up",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [{"options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}, "type": "value"}],
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}
+        }
+      },
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value_and_name"},
+      "targets": [{"expr": "up{job=\"postgres\", env=\"$env\"}", "legendFormat": "{{env}}", "refId": "A"}]
+    }
+  ]
+}

@@ -1,0 +1,526 @@
+---
+- name: Ensure observability filesystem layout
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0755"
+  loop:
+    - "{{ observability_root }}"
+    - "{{ observability_root }}/prometheus"
+    - "{{ observability_root }}/grafana"
+    - "{{ observability_root }}/grafana/provisioning"
+    - "{{ observability_root }}/grafana/provisioning/datasources"
+    - "{{ observability_root }}/grafana/provisioning/dashboards"
+    - "{{ observability_root }}/grafana/dashboards"
+    - "{{ observability_root }}/blackbox"
+    - "{{ observability_root }}/loki"
+    - "{{ observability_root }}/promtail"
+    - "{{ observability_root }}/tempo"
+    - "{{ observability_root }}/alertmanager"
+    - "{{ observability_root }}/prometheus/alerts"
+    - "{{ observability_root }}/falco"
+
+# --- Read BagTrip postgres credentials from existing .env files (source of truth) ---
+
+- name: Slurp bagtrip prod environment
+  ansible.builtin.slurp:
+    src: "{{ observability_bagtrip_prod_env_file }}"
+  register: bagtrip_prod_env_raw
+  no_log: true
+
+- name: Slurp bagtrip preprod environment
+  ansible.builtin.slurp:
+    src: "{{ observability_bagtrip_preprod_env_file }}"
+  register: bagtrip_preprod_env_raw
+  no_log: true
+
+- name: Extract bagtrip postgres credentials
+  ansible.builtin.set_fact:
+    bagtrip_prod_pg_user: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_USER=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_prod_pg_password: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_PASSWORD=(.+)$', '\\1', multiline=True)) | first | default('') }}"
+    bagtrip_prod_pg_db: "{{ (bagtrip_prod_env_raw.content | b64decode | regex_search('^POSTGRES_DB=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_preprod_pg_user: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_USER=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+    bagtrip_preprod_pg_password: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_PASSWORD=(.+)$', '\\1', multiline=True)) | first | default('') }}"
+    bagtrip_preprod_pg_db: "{{ (bagtrip_preprod_env_raw.content | b64decode | regex_search('^POSTGRES_DB=(.+)$', '\\1', multiline=True)) | first | default('bagtrip') }}"
+  no_log: true
+
+- name: Assert postgres credentials were extracted
+  ansible.builtin.assert:
+    that:
+      - bagtrip_prod_pg_password | length > 0
+      - bagtrip_preprod_pg_password | length > 0
+    fail_msg: >
+      Could not extract POSTGRES_PASSWORD from {{ observability_bagtrip_prod_env_file }} or
+      {{ observability_bagtrip_preprod_env_file }}. Verify the files are readable and follow
+      KEY=VALUE format.
+    quiet: true
+
+# --- Generate or load Grafana admin password (persisted in /opt/observability/.env) ---
+
+- name: Stat observability env file
+  ansible.builtin.stat:
+    path: "{{ observability_root }}/.env"
+  register: obs_env_stat
+
+- name: Generate Grafana admin password (first deploy only)
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ lookup('community.general.random_string', length=24, special=false) }}"
+    grafana_password_was_generated: true
+  when: not obs_env_stat.stat.exists
+  no_log: true
+
+- name: Generate Restic repository password (no existing env file)
+  ansible.builtin.set_fact:
+    restic_password: "{{ lookup('community.general.random_string', length=48, special=false) }}"
+  when: not obs_env_stat.stat.exists
+  no_log: true
+
+- name: Generate Grafana basic_auth bcrypt placeholder (no existing env file)
+  # Real bcrypt is computed below via `caddy hash-password` once edge-caddy
+  # is reachable; keep the var defined here so env.j2 always renders.
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_persisted: ""
+  when: not obs_env_stat.stat.exists
+
+- name: Read existing observability env file
+  ansible.builtin.slurp:
+    src: "{{ observability_root }}/.env"
+  register: obs_env_raw
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Extract existing Grafana admin password
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ (obs_env_raw.content | b64decode | regex_search('^GF_ADMIN_PASSWORD=(.+)$', '\\1', multiline=True)) | first }}"
+    grafana_password_was_generated: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Read RESTIC_PASSWORD from existing env (via grep, robust)
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '^RESTIC_PASSWORD=' {{ observability_root }}/.env | head -1 | cut -d= -f2-
+  args:
+    executable: /bin/bash
+  register: restic_pwd_grep
+  changed_when: false
+  failed_when: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Set Restic password (existing or freshly generated)
+  ansible.builtin.set_fact:
+    restic_password: "{{ restic_pwd_grep.stdout if (restic_pwd_grep.stdout | default('') | length > 0) else lookup('community.general.random_string', length=48, special=false) }}"
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Read GRAFANA_BASIC_AUTH_HASH from existing env (idempotence anchor)
+  # The bcrypt hash uses a random salt, so `caddy hash-password` produces
+  # a different output on every invocation. Persisting the hash in .env
+  # lets us re-use it across runs and keeps the Grafana vhost blockinfile
+  # task idempotent.
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '^GRAFANA_BASIC_AUTH_HASH=' {{ observability_root }}/.env | head -1 | cut -d= -f2-
+  args:
+    executable: /bin/bash
+  register: grafana_hash_grep
+  changed_when: false
+  failed_when: false
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+- name: Set persisted Grafana basic_auth hash (or empty if first deploy)
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_persisted: "{{ grafana_hash_grep.stdout | default('') }}"
+  when: obs_env_stat.stat.exists
+  no_log: true
+
+# --- Compute bcrypt EARLY so env.j2 can persist it on first render -----------
+- name: Compute bcrypt hash for Grafana basic_auth (only when not yet persisted)
+  ansible.builtin.command:
+    cmd: "docker exec {{ observability_edge_container }} caddy hash-password --plaintext {{ grafana_admin_password | quote }}"
+  register: grafana_basic_auth_hash_new
+  changed_when: false
+  no_log: true
+  when:
+    - observability_expose_grafana_publicly | bool
+    - (grafana_basic_auth_hash_persisted | default('') | length) == 0
+
+- name: Resolve final Grafana basic_auth hash (existing or newly computed)
+  ansible.builtin.set_fact:
+    grafana_basic_auth_hash_value: "{{ grafana_basic_auth_hash_persisted if (grafana_basic_auth_hash_persisted | default('') | length > 0) else grafana_basic_auth_hash_new.stdout }}"
+  when: observability_expose_grafana_publicly | bool
+  no_log: true
+
+# --- Render templates ---
+
+- name: Render observability .env
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ observability_root }}/.env"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0600"
+  no_log: true
+  notify: Restart observability stack
+
+- name: Render docker compose
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ observability_root }}/compose.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Prometheus configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ observability_root }}/prometheus/prometheus.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Reload Prometheus configuration
+
+- name: Render Blackbox exporter configuration
+  ansible.builtin.template:
+    src: blackbox.yml.j2
+    # blackbox-exporter looks for /etc/blackbox_exporter/config.yml by default.
+    dest: "{{ observability_root }}/blackbox/config.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Loki configuration
+  ansible.builtin.template:
+    src: loki.yml.j2
+    dest: "{{ observability_root }}/loki/local-config.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Promtail configuration
+  ansible.builtin.template:
+    src: promtail.yml.j2
+    dest: "{{ observability_root }}/promtail/config.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Tempo configuration
+  ansible.builtin.template:
+    src: tempo.yml.j2
+    dest: "{{ observability_root }}/tempo/tempo.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Alertmanager configuration
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ observability_root }}/alertmanager/alertmanager.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Prometheus alert rules
+  ansible.builtin.template:
+    src: "alerts/{{ item }}.yml.j2"
+    dest: "{{ observability_root }}/prometheus/alerts/{{ item }}.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  loop:
+    - host
+    - containers
+    - api
+    - blackbox
+    - datastores
+  notify: Reload Prometheus configuration
+
+- name: Render Falco engine configuration
+  ansible.builtin.template:
+    src: falco.yaml.j2
+    dest: "{{ observability_root }}/falco/falco.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render BagTrip-specific Falco rules
+  ansible.builtin.template:
+    src: falco_rules.local.yaml.j2
+    dest: "{{ observability_root }}/falco/falco_rules.local.yaml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Grafana datasource provisioning
+  ansible.builtin.template:
+    src: grafana_datasources.yml.j2
+    dest: "{{ observability_root }}/grafana/provisioning/datasources/prometheus.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Render Grafana dashboard provider
+  ansible.builtin.template:
+    src: grafana_dashboards.yml.j2
+    dest: "{{ observability_root }}/grafana/provisioning/dashboards/dashboards.yml"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+  notify: Restart observability stack
+
+- name: Sync committed dashboards to Grafana provisioning path
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../dashboards/"
+    dest: "{{ observability_root }}/grafana/dashboards/"
+    owner: "{{ observability_owner }}"
+    group: "{{ observability_group }}"
+    mode: "0644"
+    directory_mode: "0755"
+  notify: Restart observability stack
+
+# --- Restic backups + restore drill ----------------------------------------
+
+- name: Install restic
+  ansible.builtin.apt:
+    name: restic
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure restic local repository directory exists
+  ansible.builtin.file:
+    path: "{{ observability_restic_local_repo_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Ensure node_exporter textfile collector directory exists
+  ansible.builtin.file:
+    path: "{{ observability_textfile_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure /opt/observability/scripts/ exists
+  ansible.builtin.file:
+    path: "{{ observability_root }}/scripts"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Render restic backup script
+  ansible.builtin.template:
+    src: restic_backup.sh.j2
+    dest: "{{ observability_root }}/scripts/restic-backup.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Render restic restore-test script
+  ansible.builtin.template:
+    src: restic_restore_test.sh.j2
+    dest: "{{ observability_root }}/scripts/restic-restore-test.sh"
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Render restic-backup systemd unit
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "/etc/systemd/system/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - { src: restic-backup.service.j2,        dest: restic-backup.service }
+    - { src: restic-backup.timer.j2,          dest: restic-backup.timer }
+    - { src: restic-restore-test.service.j2,  dest: restic-restore-test.service }
+    - { src: restic-restore-test.timer.j2,    dest: restic-restore-test.timer }
+  notify: Reload systemd
+
+- name: Enable restic timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop:
+    - restic-backup.timer
+    - restic-restore-test.timer
+
+# --- node_exporter must read the textfile dir for restic metrics -----------
+# (the compose template already mounts {{ observability_textfile_dir }})
+
+# --- Edge Caddy /metrics rebind + dir mount --------------------------------
+
+- name: Block public access to Caddy /metrics endpoint (iptables INPUT DROP)
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ ansible_facts['default_ipv4']['interface'] }}"
+    protocol: tcp
+    destination_port: "{{ observability_edge_metrics_port }}"
+    jump: DROP
+    state: present
+    comment: "Phase 1c — block public Caddy /metrics vhost"
+  notify: Persist iptables rules
+
+- name: Remove the public 2019 DROP rule from earlier iterations
+  ansible.builtin.iptables:
+    chain: INPUT
+    in_interface: "{{ ansible_facts['default_ipv4']['interface'] }}"
+    protocol: tcp
+    destination_port: "2019"
+    jump: DROP
+    state: absent
+  notify: Persist iptables rules
+
+- name: Drop any prior admin block from earlier iterations
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "\t# {mark} ANSIBLE managed — admin endpoint (Phase 1c)"
+    state: absent
+    backup: true
+    unsafe_writes: true
+
+- name: Drop any prior single-line admin directive
+  ansible.builtin.lineinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    regexp: '^\s*admin\s+(0\.0\.0\.0:|:|localhost:)2019\s*$'
+    state: absent
+    backup: true
+    unsafe_writes: true
+
+- name: Add dedicated Caddy /metrics vhost
+  # A bare `:PORT { metrics }` server lets Prometheus scrape Caddy's full
+  # metric set without touching the admin endpoint (which has its own
+  # origin enforcement and we don't want to fight it). Public access is
+  # blocked by iptables on the default-route NIC.
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "# {mark} ANSIBLE managed — Caddy /metrics vhost (Phase 1c)"
+    block: |
+      :{{ observability_edge_metrics_port }} {
+          metrics
+      }
+    backup: true
+    unsafe_writes: true
+  notify: Reload edge Caddy
+
+- name: Switch /opt/edge mount from single-file to directory
+  ansible.builtin.replace:
+    path: "{{ observability_edge_compose }}"
+    regexp: '^\s*-\s*\./Caddyfile:/etc/caddy/Caddyfile:ro\s*$'
+    replace: '      - ./:/etc/caddy:ro'
+    backup: true
+    unsafe_writes: true
+  notify: Recreate edge Caddy
+
+- name: Drop redundant ./certs mount (now inside the dir mount)
+  ansible.builtin.lineinfile:
+    path: "{{ observability_edge_compose }}"
+    regexp: '^\s*-\s*\./certs:/etc/caddy/certs:ro\s*$'
+    state: absent
+    backup: true
+    unsafe_writes: true
+  notify: Recreate edge Caddy
+
+# --- Verify external bagtrip networks exist (the stacks must be running) ---
+
+- name: Verify bagtrip networks exist
+  community.docker.docker_network_info:
+    name: "{{ item }}"
+  loop:
+    - "{{ observability_bagtrip_prod_network }}"
+    - "{{ observability_bagtrip_preprod_network }}"
+  register: bagtrip_network_info
+  failed_when:
+    - not bagtrip_network_info.failed | default(false)
+    - not (bagtrip_network_info.exists | default(false))
+
+# --- Bring the stack up ---
+
+- name: Bring observability stack up
+  community.docker.docker_compose_v2:
+    project_src: "{{ observability_root }}"
+    state: present
+    pull: missing
+  register: compose_up_result
+
+- name: Wait for Prometheus to become healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ observability_prometheus_host_port }}/-/ready"
+    status_code: 200
+  register: prom_ready
+  until: prom_ready.status == 200
+  retries: 30
+  delay: 2
+
+- name: Wait for Grafana to become healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ observability_grafana_host_port }}/api/health"
+    status_code: 200
+  register: grafana_ready
+  until: grafana_ready.status == 200
+  retries: 30
+  delay: 2
+
+# --- Public exposure via edge Caddy (optional) ---
+
+- name: Add Grafana vhost to edge Caddyfile
+  ansible.builtin.blockinfile:
+    path: "{{ observability_edge_caddyfile }}"
+    marker: "# {mark} ANSIBLE managed — observability stack Grafana public vhost"
+    block: |
+      {{ observability_grafana_public_hostname }} {
+          log access {
+              output file /var/log/caddy/access.log {
+                  roll_size 50mb
+                  roll_keep 7
+              }
+              format json
+          }
+          import security_headers
+          encode zstd gzip
+          basic_auth {
+              {{ observability_grafana_admin_user }} {{ grafana_basic_auth_hash_value }}
+          }
+          reverse_proxy 127.0.0.1:{{ observability_grafana_host_port }}
+      }
+    backup: true
+    mode: "0644"
+    # /opt/edge/Caddyfile is bind-mounted into edge-caddy as a single file.
+    # Atomic replaces (write to temp + rename) leave the container holding
+    # the stale inode. unsafe_writes truncates in-place so the container
+    # sees the new content without a restart.
+    unsafe_writes: true
+  notify: Reload edge Caddy
+  when: observability_expose_grafana_publicly | bool
+
+# --- Summary ---
+
+- name: Print observability stack summary
+  ansible.builtin.debug:
+    msg:
+      - "Observability stack deployed at {{ observability_root }}"
+      - "Prometheus (loopback only): http://127.0.0.1:{{ observability_prometheus_host_port }}"
+      - "Grafana (loopback):         http://127.0.0.1:{{ observability_grafana_host_port }}"
+      - "{% if observability_expose_grafana_publicly %}Grafana (public):           https://{{ observability_grafana_public_hostname }} (Caddy basic_auth + Grafana login){% else %}Grafana public exposure: disabled{% endif %}"
+      - "Grafana admin user: {{ observability_grafana_admin_user }}"
+      - "{{ 'Grafana admin password was generated this run — see /opt/observability/.env on the VPS.' if grafana_password_was_generated else 'Grafana admin password unchanged from previous deploy.' }}"

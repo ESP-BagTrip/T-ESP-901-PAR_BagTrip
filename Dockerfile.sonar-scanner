@@ -1,0 +1,26 @@
+FROM ghcr.io/cirruslabs/flutter:stable
+
+USER root
+
+# Install Java (required for Sonar Scanner)
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jre unzip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Sonar Scanner
+ENV SONAR_SCANNER_VERSION=5.0.1.3006
+RUN curl -sSLo /tmp/sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip" && \
+    unzip -q /tmp/sonar-scanner.zip -d /opt && \
+    mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux /opt/sonar-scanner && \
+    rm /tmp/sonar-scanner.zip
+
+ENV PATH="/opt/sonar-scanner/bin:${PATH}"
+
+# Allow git to trust the workspace
+RUN git config --global --add safe.directory /usr/src
+
+WORKDIR /usr/src
+
+ENTRYPOINT ["sonar-scanner"]
+

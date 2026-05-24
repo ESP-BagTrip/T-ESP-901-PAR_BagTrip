@@ -1,0 +1,102 @@
+{
+  "annotations": {"list": []},
+  "description": "Per-container CPU, memory and I/O for BagTrip-managed containers (bagtrip prod / preprod / edge / observability).",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "tags": ["bagtrip", "containers", "cadvisor"],
+  "time": {"from": "now-3h", "to": "now"},
+  "timezone": "browser",
+  "title": "BagTrip — Containers",
+  "uid": "bagtrip-containers",
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "container",
+        "label": "Container",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(container_last_seen, name)",
+        "multi": true,
+        "includeAll": true,
+        "current": {"selected": false, "text": "All", "value": "$__all"},
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU usage by container",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percent", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "right", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\"$container\", name!=\"\"}[5m])) * 100",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Memory (RSS) by container",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "bytes", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {
+          "expr": "sum by (name) (container_memory_rss{name=~\"$container\", name!=\"\"})",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Network I/O by container",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "Bps", "color": {"mode": "palette-classic"}}},
+      "options": {"legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi"}},
+      "targets": [
+        {"expr": "sum by (name) (rate(container_network_receive_bytes_total{name=~\"$container\", name!=\"\"}[5m]))", "legendFormat": "{{name}} rx", "refId": "A"},
+        {"expr": "sum by (name) (rate(container_network_transmit_bytes_total{name=~\"$container\", name!=\"\"}[5m]))", "legendFormat": "{{name}} tx", "refId": "B"}
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Container restarts (last 24h)",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color": "red", "value": 3}]}}},
+      "options": {"colorMode": "value", "graphMode": "none", "textMode": "value_and_name", "orientation": "horizontal"},
+      "targets": [
+        {"expr": "increase(container_start_time_seconds{name!=\"\"}[24h]) > 0", "legendFormat": "{{name}}", "refId": "A", "instant": true}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Container count by status",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "options": {"colorMode": "value", "graphMode": "area", "textMode": "value_and_name"},
+      "targets": [
+        {"expr": "count(container_last_seen{name!=\"\"})", "legendFormat": "running", "refId": "A", "instant": true}
+      ]
+    }
+  ]
+}

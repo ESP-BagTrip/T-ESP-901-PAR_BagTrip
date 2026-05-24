@@ -1,0 +1,430 @@
+"""Service pour la gestion des partages de trips."""
+
+import asyncio
+import uuid as uuid_mod
+from collections.abc import Coroutine
+from datetime import UTC, datetime, timedelta
+from typing import Any
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from src.enums import NotificationType, ShareRole, TripStatus
+from src.models.pending_invite import PendingInvite
+from src.models.trip import Trip
+from src.models.trip_share import TripShare
+from src.models.user import User
+from src.utils.errors import AppError
+from src.utils.logger import logger
+
+# Keep references to fire-and-forget invite-email tasks so the event loop does
+# not garbage-collect them mid-flight (asyncio holds only weak references).
+_background_email_tasks: set[asyncio.Task[Any]] = set()
+
+
+class TripShareService:
+    """Service pour les opérations CRUD sur les partages de trips."""
+
+    @staticmethod
+    def _run_best_effort(coro: Coroutine[Any, Any, Any]) -> None:
+        """Dispatch a best-effort async side-effect from a sync service method.
+
+        When called inside the request event loop (the normal route path) the
+        coroutine is scheduled as a background task so it never blocks the
+        response. With no running loop (sync scripts, some tests) it runs to
+        completion inline. Either way it never raises into the caller.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(coro)
+            return
+        task = loop.create_task(coro)
+        _background_email_tasks.add(task)
+        task.add_done_callback(_background_email_tasks.discard)
+
+    @staticmethod
+    def _send_invite_email(
+        db: Session,
+        *,
+        email: str,
+        owner: User | None,
+        trip: Trip | None,
+        token: str,
+    ) -> None:
+        """Best-effort: email the not-yet-registered invitee their accept link.
+
+        Registered users get a push notification instead; this path covers the
+        pending-invite case so the invitee can find out at all. Locale is
+        resolved from the inviter's device (the invitee has no account yet);
+        falls back to ``en``. Never blocks or raises into invite creation.
+        """
+        from src.services.mailer_service import MailerService
+        from src.services.notification_messages import untitled_trip
+
+        try:
+            inviter_name = (owner.full_name or owner.email) if owner else "A BagTrip user"
+            locale = "en"
+            if owner is not None:
+                from src.services.device_token_service import DeviceTokenService
+
+                locale = DeviceTokenService.get_locale_for_user(db, owner.id)
+            trip_title = (trip.title if trip else None) or untitled_trip(locale)
+            TripShareService._run_best_effort(
+                MailerService.send_trip_invite(
+                    to_email=email,
+                    trip_title=trip_title,
+                    inviter_name=inviter_name,
+                    invite_token=token,
+                    locale=locale,
+                )
+            )
+        except Exception as exc:
+            logger.error(f"[SHARE] Failed to dispatch trip-invite email: {exc}")
+
+    @staticmethod
+    def _check_trip_not_completed(db: Session, trip_id: UUID) -> None:
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        if trip and trip.status == TripStatus.COMPLETED:
+            raise AppError(
+                "TRIP_COMPLETED",
+                403,
+                "Cannot modify shares on a completed trip.",
+            )
+
+    @staticmethod
+    def _check_quota(db: Session, trip_id: UUID, owner_user_id: UUID) -> None:
+        """Check share + pending invite quota."""
+        from src.services.plan_service import PlanService
+
+        owner = db.query(User).filter(User.id == owner_user_id).first()
+        limit = PlanService.get_share_limit(owner) if owner else 2
+        share_count = db.query(TripShare).filter(TripShare.trip_id == trip_id).count()
+        pending_count = (
+            db.query(PendingInvite)
+            .filter(
+                PendingInvite.trip_id == trip_id,
+                PendingInvite.expires_at > datetime.now(UTC),
+            )
+            .count()
+        )
+        total = share_count + pending_count
+        if limit is not None and total >= limit:
+            raise AppError(
+                "SHARE_QUOTA_EXCEEDED",
+                402,
+                f"Maximum {limit} shares reached. Upgrade for more.",
+            )
+
+    @staticmethod
+    def create_share(
+        db: Session,
+        trip_id: UUID,
+        owner_user_id: UUID,
+        email: str,
+        message: str | None = None,
+        role: ShareRole = ShareRole.VIEWER,
+    ) -> dict:
+        """Inviter un utilisateur par email à rejoindre un trip.
+        Si l'utilisateur n'existe pas, crée une invitation en attente."""
+        TripShareService._check_trip_not_completed(db, trip_id)
+
+        # Resolve user by email
+        user = db.query(User).filter(User.email == email).first()
+
+        if user:
+            # User exists — check not self-sharing by ID
+            if user.id == owner_user_id:
+                raise AppError("SELF_SHARING", 400, "Cannot share a trip with yourself")
+
+            # Check not already shared
+            existing = (
+                db.query(TripShare)
+                .filter(TripShare.trip_id == trip_id, TripShare.user_id == user.id)
+                .first()
+            )
+            if existing:
+                raise AppError("ALREADY_SHARED", 409, "Trip already shared with this user")
+
+            # Check quota based on owner's plan
+            from src.services.plan_service import PlanService
+
+            owner = db.query(User).filter(User.id == owner_user_id).first()
+            limit = PlanService.get_share_limit(owner) if owner else 2
+            share_count = db.query(TripShare).filter(TripShare.trip_id == trip_id).count()
+            if limit is not None and share_count >= limit:
+                raise AppError(
+                    "SHARE_QUOTA_EXCEEDED",
+                    402,
+                    f"Maximum {limit} shares reached. Upgrade for more.",
+                )
+
+            # Create share
+            share = TripShare(trip_id=trip_id, user_id=user.id, role=role)
+            db.add(share)
+            db.commit()
+            db.refresh(share)
+
+            # Best-effort localized push notification to the invited user
+            try:
+                from src.services.device_token_service import DeviceTokenService
+                from src.services.notification_messages import untitled_trip
+                from src.services.notification_service import NotificationService
+
+                trip = db.query(Trip).filter(Trip.id == trip_id).first()
+                locale = DeviceTokenService.get_locale_for_user(db, user.id)
+                inviter = owner.full_name or owner.email
+                trip_title = (trip.title if trip else None) or untitled_trip(locale)
+                NotificationService.send_localized(
+                    db=db,
+                    user_id=user.id,
+                    trip_id=trip_id,
+                    notif_type=NotificationType.TRIP_SHARED,
+                    notif_key="TRIP_SHARED_WITH_MESSAGE" if message else "TRIP_SHARED",
+                    context={
+                        "inviter": inviter,
+                        "trip_title": trip_title,
+                        "message": message or "",
+                    },
+                    data={"screen": "tripHome", "tripId": str(trip_id)},
+                    locale=locale,
+                )
+            except Exception as e:
+                logger.error(f"[SHARE] Failed to send TRIP_SHARED notification: {e}")
+
+            return {
+                "id": share.id,
+                "trip_id": share.trip_id,
+                "user_id": share.user_id,
+                "role": share.role,
+                "invited_at": share.invited_at,
+                "user_email": user.email,
+                "user_full_name": user.full_name,
+                "status": "active",
+            }
+
+        # User does not exist — check self-sharing by owner email
+        owner = db.query(User).filter(User.id == owner_user_id).first()
+        if owner and owner.email == email:
+            raise AppError("SELF_SHARING", 400, "Cannot share a trip with yourself")
+
+        # Create pending invite
+        existing_pending = (
+            db.query(PendingInvite)
+            .filter(PendingInvite.trip_id == trip_id, PendingInvite.email == email)
+            .first()
+        )
+        if existing_pending:
+            raise AppError("ALREADY_SHARED", 409, "An invitation is already pending for this email")
+
+        TripShareService._check_quota(db, trip_id, owner_user_id)
+
+        token = str(uuid_mod.uuid4())
+        pending = PendingInvite(
+            trip_id=trip_id,
+            email=email,
+            role=role,
+            token=token,
+            message=message,
+            invited_by=owner_user_id,
+            expires_at=datetime.now(UTC) + timedelta(days=7),
+        )
+        db.add(pending)
+        db.commit()
+        db.refresh(pending)
+
+        # Best-effort invite email so the not-yet-registered invitee can act on
+        # it. Push notifications only reach existing users, so without this the
+        # invitee would never learn about the share.
+        trip = db.query(Trip).filter(Trip.id == trip_id).first()
+        TripShareService._send_invite_email(
+            db,
+            email=email,
+            owner=owner,
+            trip=trip,
+            token=token,
+        )
+
+        return {
+            "id": pending.id,
+            "trip_id": pending.trip_id,
+            "user_id": None,
+            "role": pending.role,
+            "invited_at": pending.created_at,
+            "user_email": email,
+            "user_full_name": None,
+            "status": "pending",
+            "invite_token": token,
+        }
+
+    @staticmethod
+    def get_shares_by_trip(db: Session, trip_id: UUID) -> list[dict]:
+        """Récupérer tous les partages d'un trip."""
+        shares = (
+            db.query(
+                TripShare, User.email.label("user_email"), User.full_name.label("user_full_name")
+            )
+            .join(User, TripShare.user_id == User.id)
+            .filter(TripShare.trip_id == trip_id)
+            .all()
+        )
+        return [
+            {
+                "id": share.id,
+                "trip_id": share.trip_id,
+                "user_id": share.user_id,
+                "role": share.role,
+                "invited_at": share.invited_at,
+                "user_email": user_email,
+                "user_full_name": user_full_name,
+            }
+            for share, user_email, user_full_name in shares
+        ]
+
+    @staticmethod
+    def get_pending_invites_by_trip(db: Session, trip_id: UUID) -> list[dict]:
+        """Récupérer les invitations en attente d'un trip."""
+        pending = (
+            db.query(PendingInvite)
+            .filter(
+                PendingInvite.trip_id == trip_id,
+                PendingInvite.expires_at > datetime.now(UTC),
+            )
+            .all()
+        )
+        return [
+            {
+                "id": p.id,
+                "trip_id": p.trip_id,
+                "email": p.email,
+                "role": p.role,
+                "token": p.token,
+                "created_at": p.created_at,
+                "expires_at": p.expires_at,
+            }
+            for p in pending
+        ]
+
+    @staticmethod
+    def delete_share(db: Session, share_id: UUID, trip_id: UUID) -> None:
+        """Révoquer un partage."""
+        TripShareService._check_trip_not_completed(db, trip_id)
+        share = (
+            db.query(TripShare)
+            .filter(TripShare.id == share_id, TripShare.trip_id == trip_id)
+            .first()
+        )
+        if not share:
+            raise AppError("SHARE_NOT_FOUND", 404, "Share not found")
+
+        # Capture the recipient before the row is gone — they need to know the
+        # access was revoked rather than discovering it silently on next refresh.
+        revoked_user_id = share.user_id
+
+        db.delete(share)
+        db.commit()
+
+        # Best-effort localized push to the ex-collaborator.
+        try:
+            from src.services.device_token_service import DeviceTokenService
+            from src.services.notification_messages import untitled_trip
+            from src.services.notification_service import NotificationService
+
+            trip = db.query(Trip).filter(Trip.id == trip_id).first()
+            locale = DeviceTokenService.get_locale_for_user(db, revoked_user_id)
+            trip_title = (trip.title if trip else None) or untitled_trip(locale)
+            NotificationService.send_localized(
+                db=db,
+                user_id=revoked_user_id,
+                trip_id=trip_id,
+                notif_type=NotificationType.TRIP_UNSHARED,
+                context={"trip_title": trip_title},
+                data={"screen": "home"},
+                locale=locale,
+            )
+        except Exception as e:
+            logger.error(f"[SHARE] Failed to send TRIP_UNSHARED notification: {e}")
+
+    @staticmethod
+    def delete_pending_invite(db: Session, invite_id: UUID, trip_id: UUID) -> None:
+        """Révoquer une invitation en attente."""
+        TripShareService._check_trip_not_completed(db, trip_id)
+        invite = (
+            db.query(PendingInvite)
+            .filter(PendingInvite.id == invite_id, PendingInvite.trip_id == trip_id)
+            .first()
+        )
+        if not invite:
+            raise AppError("INVITE_NOT_FOUND", 404, "Pending invite not found")
+
+        db.delete(invite)
+        db.commit()
+
+    @staticmethod
+    def accept_invite(db: Session, token: str, user_id: UUID) -> dict:
+        """Accepter une invitation par token."""
+        invite = db.query(PendingInvite).filter(PendingInvite.token == token).first()
+        if not invite:
+            raise AppError("INVITE_NOT_FOUND", 404, "Invite not found or expired")
+
+        if invite.expires_at < datetime.now(UTC):
+            db.delete(invite)
+            db.commit()
+            raise AppError("INVITE_EXPIRED", 410, "This invite has expired")
+
+        # Check not already shared
+        existing = (
+            db.query(TripShare)
+            .filter(TripShare.trip_id == invite.trip_id, TripShare.user_id == user_id)
+            .first()
+        )
+        if existing:
+            db.delete(invite)
+            db.commit()
+            raise AppError("ALREADY_SHARED", 409, "You already have access to this trip")
+
+        # Create the share
+        share = TripShare(trip_id=invite.trip_id, user_id=user_id, role=invite.role)
+        db.add(share)
+        db.delete(invite)
+        db.commit()
+        db.refresh(share)
+
+        user = db.query(User).filter(User.id == user_id).first()
+        return {
+            "id": share.id,
+            "trip_id": share.trip_id,
+            "user_id": share.user_id,
+            "role": share.role,
+            "invited_at": share.invited_at,
+            "user_email": user.email if user else "",
+            "user_full_name": user.full_name if user else None,
+        }
+
+    @staticmethod
+    def claim_pending_invites(db: Session, email: str, user_id: UUID) -> int:
+        """Réclamer toutes les invitations en attente pour un email (appelé à l'inscription).
+        Retourne le nombre d'invitations réclamées."""
+        pending = (
+            db.query(PendingInvite)
+            .filter(
+                PendingInvite.email == email,
+                PendingInvite.expires_at > datetime.now(UTC),
+            )
+            .all()
+        )
+        claimed = 0
+        for invite in pending:
+            existing = (
+                db.query(TripShare)
+                .filter(TripShare.trip_id == invite.trip_id, TripShare.user_id == user_id)
+                .first()
+            )
+            if not existing:
+                share = TripShare(trip_id=invite.trip_id, user_id=user_id, role=invite.role)
+                db.add(share)
+                claimed += 1
+            db.delete(invite)
+        if claimed:
+            db.commit()
+        return claimed

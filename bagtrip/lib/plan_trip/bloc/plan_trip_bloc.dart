@@ -1,0 +1,1119 @@
+import 'dart:async';
+
+import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/core/result.dart';
+import 'package:bagtrip/plan_trip/models/ai_destination.dart';
+import 'package:bagtrip/plan_trip/helpers/budget_estimation.dart';
+import 'package:bagtrip/plan_trip/models/budget_breakdown.dart';
+import 'package:bagtrip/plan_trip/models/budget_preset.dart';
+import 'package:bagtrip/plan_trip/models/date_mode.dart';
+import 'package:bagtrip/plan_trip/models/duration_preset.dart';
+import 'package:bagtrip/plan_trip/models/location_result.dart';
+import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
+import 'package:bagtrip/plan_trip/models/step_status.dart';
+import 'package:bagtrip/plan_trip/models/trip_plan.dart';
+import 'package:bagtrip/repositories/ai_repository.dart';
+import 'package:bagtrip/repositories/auth_repository.dart';
+import 'package:bagtrip/service/geo_location_service.dart';
+import 'package:bagtrip/service/location_service.dart';
+import 'package:bagtrip/service/personalization_storage.dart';
+import 'package:bloc/bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'plan_trip_event.dart';
+part 'plan_trip_state.dart';
+part 'plan_trip_bloc.freezed.dart';
+
+class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
+  // Phase E (SMP-325): TripRepository was only used by the now-removed
+  // ``_createManualTrip`` shortcut. The wizard's two flows both go
+  // through the SSE pipeline now, which persists the trip server-side
+  // and ships the id in its ``complete`` event.
+  final AiRepository _aiRepository;
+  final AuthRepository _authRepository;
+  final PersonalizationStorage _storage;
+  final LocationService _locationService;
+  final GeoLocationService _geoService;
+
+  StreamSubscription<Map<String, dynamic>>? _sseSubscription;
+
+  PlanTripBloc({
+    AiRepository? aiRepository,
+    AuthRepository? authRepository,
+    PersonalizationStorage? personalizationStorage,
+    LocationService? locationService,
+    GeoLocationService? geoLocationService,
+  }) : _aiRepository = aiRepository ?? getIt<AiRepository>(),
+       _authRepository = authRepository ?? getIt<AuthRepository>(),
+       _storage = personalizationStorage ?? getIt<PersonalizationStorage>(),
+       _locationService = locationService ?? getIt<LocationService>(),
+       _geoService = geoLocationService ?? getIt<GeoLocationService>(),
+       super(const PlanTripState()) {
+    // Init
+    on<PlanTripLoadPersonalization>(_onLoadPersonalization);
+    // Navigation
+    on<PlanTripNextStep>(_onNextStep);
+    on<PlanTripPreviousStep>(_onPreviousStep);
+    on<PlanTripGoToStep>(_onGoToStep);
+    // Step 0 — Dates
+    on<PlanTripSetDateMode>(_onSetDateMode);
+    on<PlanTripSetExactDates>(_onSetExactDates);
+    on<PlanTripSetMonthPreference>(_onSetMonthPreference);
+    on<PlanTripSetFlexibleDuration>(_onSetFlexibleDuration);
+    // Step 1 — Travelers + Budget
+    on<PlanTripSetTravelerCounts>(_onSetTravelerCounts);
+    on<PlanTripSetBudgetPreset>(_onSetBudgetPreset);
+    on<PlanTripSetOriginCity>(_onSetOriginCity);
+    on<PlanTripSearchOrigin>(_onSearchOrigin);
+    // Step 2 — Destination
+    on<PlanTripSearchDestination>(_onSearchDestination);
+    on<PlanTripSelectManualDestination>(_onSelectManualDestination);
+    on<PlanTripApplyPrefill>(_onApplyPrefill);
+    on<PlanTripRequestAiSuggestions>(_onRequestAiSuggestions);
+    on<PlanTripSelectAiDestination>(_onSelectAiDestination);
+    // Step 3 — Proposals
+    on<PlanTripSwipeProposal>(_onSwipeProposal);
+    // Step 4 — Generation
+    on<PlanTripStartGeneration>(_onStartGeneration);
+    on<PlanTripRetryGeneration>(_onRetryGeneration);
+    // Step 5 — Review
+    on<PlanTripCreateTrip>(_onCreateTrip);
+    on<PlanTripBackToProposals>(_onBackToProposals);
+    on<PlanTripUpdateReviewDates>(_onUpdateReviewDates);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Init — pre-fill from personalization
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onLoadPersonalization(
+    PlanTripLoadPersonalization event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    try {
+      final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      final userId = userResult.dataOrNull?.id ?? '';
+      if (userId.isEmpty) return;
+
+      final companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      final budget = await _storage.getBudget(userId);
+      if (isClosed) return;
+
+      int? adults;
+      int? children;
+      int? babies;
+      if (companions.isNotEmpty) {
+        (adults, children, babies) = _companionDefaults(companions);
+      }
+
+      BudgetPreset? budgetPreset;
+      if (budget.isNotEmpty) {
+        budgetPreset = _mapBudgetPreset(budget);
+      }
+
+      if (adults != null || budgetPreset != null) {
+        emit(
+          state.copyWith(
+            nbAdults: adults ?? state.nbAdults,
+            nbChildren: children ?? state.nbChildren,
+            nbBabies: babies ?? state.nbBabies,
+            budgetPreset: budgetPreset ?? state.budgetPreset,
+          ),
+        );
+      }
+
+      // Pre-fill origin from device geolocation (best-effort, non-blocking)
+      if (state.originCity == null || state.originCity!.isEmpty) {
+        final geoResult = await _geoService.getNearestCity();
+        if (isClosed) return;
+        if (geoResult case Success(:final data)) {
+          if (data.name.isNotEmpty) {
+            emit(state.copyWith(originCity: data.name));
+          }
+        }
+      }
+    } catch (_) {
+      // Pre-fill is best-effort — user can still set values manually.
+    }
+  }
+
+  static (int, int, int) _companionDefaults(String companions) {
+    return switch (companions) {
+      'solo' => (1, 0, 0),
+      'couple' => (2, 0, 0),
+      'family' => (2, 2, 0),
+      'friends' => (3, 0, 0),
+      _ => (1, 0, 0),
+    };
+  }
+
+  static BudgetPreset? _mapBudgetPreset(String budget) {
+    return switch (budget) {
+      'economical' => BudgetPreset.backpacker,
+      'moderate' => BudgetPreset.comfortable,
+      'comfort' => BudgetPreset.premium,
+      'luxury' => BudgetPreset.noLimit,
+      _ => null,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  void _onNextStep(PlanTripNextStep event, Emitter<PlanTripState> emit) {
+    var next = state.currentStep + 1;
+
+    // Skip proposals step (3) for manual flow
+    if (state.isManualFlow && next == 3) next = 4;
+
+    if (next < state.totalSteps) {
+      emit(state.copyWith(currentStep: next, error: null));
+    }
+  }
+
+  void _onPreviousStep(
+    PlanTripPreviousStep event,
+    Emitter<PlanTripState> emit,
+  ) {
+    // Leaving generation should feel instant; cancel stream in background.
+    if (state.currentStep == 4) {
+      unawaited(_cancelSseStream());
+      emit(
+        state.copyWith(
+          generatedPlan: null,
+          generationError: null,
+          generationSteps: {},
+          generationProgress: 0.0,
+          generationMessage: null,
+        ),
+      );
+    }
+
+    var prev = state.currentStep - 1;
+
+    // Skip proposals step (3) for manual flow going back
+    if (state.isManualFlow && prev == 3) prev = 2;
+
+    if (prev >= 0) {
+      emit(state.copyWith(currentStep: prev, error: null));
+    }
+  }
+
+  void _onGoToStep(PlanTripGoToStep event, Emitter<PlanTripState> emit) {
+    if (event.step >= 0 && event.step < state.totalSteps) {
+      emit(state.copyWith(currentStep: event.step, error: null));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 0 — Dates
+  // ---------------------------------------------------------------------------
+
+  void _onSetDateMode(PlanTripSetDateMode event, Emitter<PlanTripState> emit) {
+    emit(state.copyWith(dateMode: event.mode));
+  }
+
+  void _onSetExactDates(
+    PlanTripSetExactDates event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(startDate: event.start, endDate: event.end));
+  }
+
+  void _onSetMonthPreference(
+    PlanTripSetMonthPreference event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(preferredMonth: event.month, preferredYear: event.year),
+    );
+  }
+
+  void _onSetFlexibleDuration(
+    PlanTripSetFlexibleDuration event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(flexibleDuration: event.preset));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 1 — Travelers + Budget
+  // ---------------------------------------------------------------------------
+
+  static const int _maxTravelersPerCategory = 10;
+
+  void _onSetTravelerCounts(
+    PlanTripSetTravelerCounts event,
+    Emitter<PlanTripState> emit,
+  ) {
+    final adults = (event.adults ?? state.nbAdults).clamp(
+      1,
+      _maxTravelersPerCategory,
+    );
+    final children = (event.children ?? state.nbChildren).clamp(
+      0,
+      _maxTravelersPerCategory,
+    );
+    final babies = (event.babies ?? state.nbBabies).clamp(
+      0,
+      _maxTravelersPerCategory,
+    );
+    emit(
+      state.copyWith(nbAdults: adults, nbChildren: children, nbBabies: babies),
+    );
+  }
+
+  void _onSetBudgetPreset(
+    PlanTripSetBudgetPreset event,
+    Emitter<PlanTripState> emit,
+  ) {
+    // Topic 01 — derive the numeric target as soon as the user picks a
+    // preset (and trip days are known). Recomputed each time so the
+    // value stays in sync with travelers / duration changes.
+    double? targetBudget;
+    if (event.preset != null && state.tripDurationDays != null) {
+      final range = estimateBudget(
+        preset: event.preset!,
+        nbTravelers: state.nbTravelers,
+        days: state.tripDurationDays!,
+      );
+      targetBudget = range.max;
+    }
+    emit(
+      state.copyWith(budgetPreset: event.preset, targetBudget: targetBudget),
+    );
+  }
+
+  void _onSetOriginCity(
+    PlanTripSetOriginCity event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(state.copyWith(originCity: event.city, originSearchResults: []));
+  }
+
+  Future<void> _onSearchOrigin(
+    PlanTripSearchOrigin event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    if (event.query.length < 2) {
+      emit(state.copyWith(originSearchResults: []));
+      return;
+    }
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY',
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(6)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(state.copyWith(originSearchResults: locations));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 2 — Destination
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onSearchDestination(
+    PlanTripSearchDestination event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    if (event.query.length < 2) {
+      emit(state.copyWith(searchResults: [], isSearching: false));
+      return;
+    }
+    emit(state.copyWith(isSearching: true));
+    final result = await _locationService.searchLocationsByKeyword(
+      event.query,
+      'CITY,AIRPORT',
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      final locations = data
+          .take(8)
+          .map(
+            (m) => LocationResult(
+              name: m['name'] as String? ?? '',
+              iataCode: m['iataCode'] as String? ?? '',
+              city: m['city'] as String? ?? '',
+              countryCode: m['countryCode'] as String? ?? '',
+              countryName: m['countryName'] as String? ?? '',
+              subType: m['subType'] as String? ?? '',
+            ),
+          )
+          .toList();
+      emit(
+        state.copyWith(
+          isSearching: false,
+          searchResults: locations,
+          error: null,
+        ),
+      );
+    } else {
+      emit(state.copyWith(isSearching: false));
+    }
+  }
+
+  void _onSelectManualDestination(
+    PlanTripSelectManualDestination event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedManualDestination: event.location,
+        searchResults: [],
+        isManualFlow: true,
+        selectedAiDestination: null,
+      ),
+    );
+  }
+
+  /// Seed the wizard from an external entry point (e.g. the post-trip
+  /// "Create this trip" CTA). Applies destination + a flexible-duration
+  /// preset + the closest budget preset, keeping every field editable. The
+  /// dates step is switched to flexible mode so the suggested duration shows
+  /// up immediately without inventing arbitrary calendar dates.
+  void _onApplyPrefill(
+    PlanTripApplyPrefill event,
+    Emitter<PlanTripState> emit,
+  ) {
+    final prefill = event.prefill;
+
+    emit(
+      state.copyWith(
+        selectedManualDestination: prefill.destination,
+        selectedAiDestination: null,
+        isManualFlow: true,
+        searchResults: [],
+      ),
+    );
+
+    final duration = prefill.durationDays;
+    if (duration != null && duration > 0) {
+      emit(
+        state.copyWith(
+          dateMode: DateMode.flexible,
+          flexibleDuration: _durationPresetFromDays(duration),
+        ),
+      );
+    }
+
+    final budget = prefill.budgetEur;
+    if (budget != null && budget > 0) {
+      final preset = _budgetPresetFromEur(budget);
+      double? targetBudget;
+      if (state.tripDurationDays != null) {
+        targetBudget = estimateBudget(
+          preset: preset,
+          nbTravelers: state.nbTravelers,
+          days: state.tripDurationDays!,
+        ).max;
+      }
+      emit(state.copyWith(budgetPreset: preset, targetBudget: targetBudget));
+    }
+  }
+
+  /// Map a raw day count to the closest [DurationPreset].
+  static DurationPreset _durationPresetFromDays(int days) {
+    if (days <= 3) return DurationPreset.weekend;
+    if (days <= 10) return DurationPreset.oneWeek;
+    if (days <= 17) return DurationPreset.twoWeeks;
+    return DurationPreset.threeWeeks;
+  }
+
+  /// Map a total EUR budget to the closest [BudgetPreset] band.
+  static BudgetPreset _budgetPresetFromEur(double eur) {
+    if (eur < 800) return BudgetPreset.backpacker;
+    if (eur < 2000) return BudgetPreset.comfortable;
+    if (eur < 4000) return BudgetPreset.premium;
+    return BudgetPreset.noLimit;
+  }
+
+  Future<void> _onRequestAiSuggestions(
+    PlanTripRequestAiSuggestions event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingAiSuggestions: true, error: null));
+
+    try {
+      final userResult = await _authRepository.getCurrentUser();
+      if (isClosed) return;
+      final userId = userResult.dataOrNull?.id ?? '';
+
+      String? travelTypes;
+      String? budget;
+      String? companions;
+      String? constraints;
+
+      if (userId.isNotEmpty) {
+        travelTypes = await _storage.getTravelTypes(userId);
+        if (isClosed) return;
+        budget = await _storage.getBudget(userId);
+        if (isClosed) return;
+        companions = await _storage.getCompanions(userId);
+        if (isClosed) return;
+        constraints = await _storage.getConstraints(userId);
+        if (isClosed) return;
+
+        travelTypes = travelTypes.isEmpty ? null : travelTypes;
+        budget = budget.isEmpty ? null : budget;
+        companions = companions.isEmpty ? null : companions;
+        constraints = constraints.isEmpty ? null : constraints;
+      }
+
+      String? season;
+      if (state.startDate != null) {
+        final month = state.startDate!.month;
+        season = switch (month) {
+          >= 3 && <= 5 => 'printemps',
+          >= 6 && <= 8 => 'été',
+          >= 9 && <= 11 => 'automne',
+          _ => 'hiver',
+        };
+      } else if (state.preferredMonth != null) {
+        season = switch (state.preferredMonth!) {
+          >= 3 && <= 5 => 'printemps',
+          >= 6 && <= 8 => 'été',
+          >= 9 && <= 11 => 'automne',
+          _ => 'hiver',
+        };
+      }
+
+      // Origin city is REQUIRED by the W1 orchestrator (the resolver
+      // needs an origin IATA before it can hit Amadeus inspire). The
+      // wizard's dates step always populates ``state.originCity`` —
+      // if we somehow reach Inspire-me without one we surface a
+      // typed validation error rather than firing a request that the
+      // backend will refuse with ``ORIGIN_UNRESOLVED``.
+      final originCity = state.originCity ?? '';
+      if (originCity.trim().isEmpty) {
+        emit(
+          state.copyWith(
+            isLoadingAiSuggestions: false,
+            error: const ValidationError('Origin city is required'),
+          ),
+        );
+        return;
+      }
+
+      final (start, end) = state.representativeDates;
+      final departureDate = start.toIso8601String().split('T')[0];
+      final returnDate = end.toIso8601String().split('T')[0];
+
+      final result = await _aiRepository.getInspiration(
+        originCity: originCity,
+        travelTypes: travelTypes,
+        budgetRange: budget,
+        durationDays: state.tripDurationDays,
+        companions: companions,
+        season: season,
+        constraints: constraints,
+        departureDate: departureDate,
+        returnDate: returnDate,
+        nbTravelers: state.nbTravelers,
+        locale: event.locale,
+      );
+      if (isClosed) return;
+
+      switch (result) {
+        case Success(:final data):
+          final suggestions = data.map((m) {
+            return AiDestination(
+              city: m['city'] as String? ?? m['destination'] as String? ?? '',
+              country:
+                  m['country'] as String? ??
+                  m['destinationCountry'] as String? ??
+                  '',
+              iata: m['iata'] as String?,
+              matchReason:
+                  m['match_reason'] as String? ?? m['matchReason'] as String?,
+              imageUrl: m['image_url'] as String? ?? m['imageUrl'] as String?,
+              weatherSummary:
+                  m['weather_summary'] as String? ??
+                  m['weatherSummary'] as String?,
+              topActivities:
+                  (m['topActivities'] as List?)?.cast<String>() ?? [],
+            );
+          }).toList();
+          if (suggestions.isEmpty) {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                error: const UnknownError(
+                  'No destinations found. Try adjusting your preferences.',
+                ),
+              ),
+            );
+          } else {
+            emit(
+              state.copyWith(
+                isLoadingAiSuggestions: false,
+                aiSuggestions: suggestions,
+                isManualFlow: false,
+              ),
+            );
+          }
+        case Failure(:final error):
+          emit(state.copyWith(isLoadingAiSuggestions: false, error: error));
+      }
+    } catch (e) {
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          isLoadingAiSuggestions: false,
+          error: UnknownError(
+            'Failed to load AI suggestions',
+            originalError: e,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _onSelectAiDestination(
+    PlanTripSelectAiDestination event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        selectedAiDestination: event.destination,
+        selectedManualDestination: null,
+        isManualFlow: false,
+        currentStep: 3,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 3 — Proposals (swipe)
+  // ---------------------------------------------------------------------------
+
+  void _onSwipeProposal(
+    PlanTripSwipeProposal event,
+    Emitter<PlanTripState> emit,
+  ) {
+    // Select the AI destination at the swiped index and advance to generation
+    if (event.index >= 0 && event.index < state.aiSuggestions.length) {
+      final destination = state.aiSuggestions[event.index];
+      emit(state.copyWith(selectedAiDestination: destination, currentStep: 4));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 4 — Generation (SSE streaming)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onStartGeneration(
+    PlanTripStartGeneration event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    // Check AI quota
+    final userResult = await _authRepository.getCurrentUser();
+    if (isClosed) return;
+    final user = userResult.dataOrNull;
+    if (user != null &&
+        user.aiGenerationsRemaining != null &&
+        user.aiGenerationsRemaining! <= 0) {
+      emit(state.copyWith(generationError: 'AI generation quota exceeded'));
+      return;
+    }
+
+    // Initialize generation steps
+    final steps = <String, StepStatus>{
+      'destinations': StepStatus.pending,
+      'activities': StepStatus.pending,
+      'accommodations': StepStatus.pending,
+      'baggage': StepStatus.pending,
+      'budget': StepStatus.pending,
+    };
+
+    emit(
+      state.copyWith(
+        generationSteps: steps,
+        generationProgress: 0.0,
+        generationMessage: 'Préparation de votre voyage...',
+        generatedPlan: null,
+        generationError: null,
+      ),
+    );
+
+    // Load personalization prefs for SSE params
+    final userId = user?.id ?? '';
+    String? travelTypes;
+    String? companions;
+    String? constraints;
+
+    if (userId.isNotEmpty) {
+      travelTypes = await _storage.getTravelTypes(userId);
+      if (isClosed) return;
+      companions = await _storage.getCompanions(userId);
+      if (isClosed) return;
+      constraints = await _storage.getConstraints(userId);
+      if (isClosed) return;
+
+      if (travelTypes.isEmpty) travelTypes = null;
+      if (companions.isEmpty) companions = null;
+      if (constraints.isEmpty) constraints = null;
+    }
+
+    // Build SSE params
+    final params = _buildSseParams(
+      travelTypes: travelTypes,
+      companions: companions,
+      constraints: constraints,
+    );
+
+    // Start SSE stream with proper cancellation support
+    await _cancelSseStream();
+
+    final completer = Completer<void>();
+
+    _sseSubscription = _aiRepository
+        .planTripStream(
+          travelTypes: params['travelTypes'] as String?,
+          budgetRange: params['budgetRange'] as String?,
+          durationDays: params['durationDays'] as int?,
+          companions: params['companions'] as String?,
+          constraints: params['constraints'] as String?,
+          departureDate: params['departureDate'] as String?,
+          returnDate: params['returnDate'] as String?,
+          originCity: params['originCity'] as String?,
+          destinationCity: params['destinationCity'] as String?,
+          destinationIata: params['destinationIata'] as String?,
+          locale: event.locale,
+        )
+        .listen(
+          (sseEvent) {
+            if (!isClosed) {
+              emit(_handleSseEvent(sseEvent));
+            }
+          },
+          onError: (Object error) {
+            if (!isClosed) {
+              emit(state.copyWith(generationError: 'Generation failed'));
+            }
+            if (!completer.isCompleted) completer.complete();
+          },
+          onDone: () {
+            if (!completer.isCompleted) completer.complete();
+          },
+          cancelOnError: true,
+        );
+
+    // Keep handler alive so emit remains valid (bloc ^9 requirement)
+    await completer.future;
+  }
+
+  PlanTripState _handleSseEvent(Map<String, dynamic> sseEvent) {
+    final eventType = sseEvent['event'] as String? ?? 'message';
+    final data = sseEvent['data'] as Map<String, dynamic>? ?? {};
+
+    switch (eventType) {
+      case 'progress':
+        return state.copyWith(
+          generationMessage:
+              data['message'] as String? ?? state.generationMessage,
+        );
+
+      case 'destinations':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['destinations'] = StepStatus.completed
+          ..['activities'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.2,
+        );
+
+      case 'activities':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['activities'] = StepStatus.completed
+          ..['accommodations'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.4,
+        );
+
+      case 'accommodations':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['accommodations'] = StepStatus.completed
+          ..['baggage'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.6,
+        );
+
+      case 'baggage':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['baggage'] = StepStatus.completed
+          ..['budget'] = StepStatus.inProgress;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.8,
+        );
+
+      case 'budget':
+        final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
+          ..['budget'] = StepStatus.completed;
+        return state.copyWith(
+          generationSteps: updatedSteps,
+          generationProgress: 0.9,
+        );
+
+      // SMP-325: the W2 orchestrator emits weather + transport as their
+      // own events between ``parallel_planning`` and ``complete``. We
+      // don't render them as wizard steps (the destination + activities
+      // chips already carry the same info on the review screen), but
+      // accepting them prevents the "default" branch from no-op'ing
+      // unknown events into a state freeze.
+      case 'weather':
+      case 'transport':
+        return state;
+
+      case 'warning':
+        final code = data['code'] as String? ?? 'WARNING';
+        final message = data['message'] as String? ?? '';
+        final next = List<String>.from(state.generationWarnings)
+          ..add(message.isNotEmpty ? '$code — $message' : code);
+        return state.copyWith(generationWarnings: next);
+
+      case 'complete':
+        // The new backend persists the trip server-side and ships its
+        // ``tripId`` here. The full ``tripDraft`` is also embedded so we
+        // can render the review screen without an extra request.
+        final tripId = data['tripId'] as String?;
+        final draft = data['tripDraft'] as Map<String, dynamic>?;
+        return state.copyWith(
+          pendingTripId: tripId,
+          generatedPlan: draft != null
+              ? _tripPlanFromDraft(draft)
+              : state.generatedPlan,
+          generationProgress: 1.0,
+          currentStep: 5,
+        );
+
+      case 'error':
+        return state.copyWith(
+          generationError: data['message'] as String? ?? 'Stream error',
+        );
+
+      case 'done':
+        if (state.generatedPlan == null) {
+          // Fallback: advance to review with empty plan
+          return state.copyWith(generationProgress: 1.0, currentStep: 5);
+        }
+        return state;
+
+      default:
+        return state;
+    }
+  }
+
+  Future<void> _onRetryGeneration(
+    PlanTripRetryGeneration event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    await _sseSubscription?.cancel();
+    _sseSubscription = null;
+    add(PlanTripEvent.startGeneration(locale: event.locale));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 5 — Review / Create
+  // ---------------------------------------------------------------------------
+
+  Future<void> _onCreateTrip(
+    PlanTripCreateTrip event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    // Phase E (SMP-325): both wizard flows (Inspire-me + direct city
+    // entry) converge on the same SSE pipeline. The legacy
+    // ``_createManualTrip`` shortcut (POST /v1/trips with no AI run)
+    // would create an empty trip on top of the SSE-persisted one and
+    // leave the user on a blank planning page. There is now a single
+    // path: read the ``tripId`` the SSE shipped in its ``complete``
+    // event and promote it to ``createdTripId``.
+    emit(state.copyWith(isCreating: true, error: null));
+    final pending = state.pendingTripId;
+    if (pending == null || pending.isEmpty) {
+      emit(
+        state.copyWith(
+          isCreating: false,
+          error: const ServerError('No persisted trip from the AI run'),
+        ),
+      );
+      return;
+    }
+    emit(state.copyWith(isCreating: false, createdTripId: pending));
+  }
+
+  Future<void> _onBackToProposals(
+    PlanTripBackToProposals event,
+    Emitter<PlanTripState> emit,
+  ) async {
+    unawaited(_cancelSseStream());
+    emit(
+      state.copyWith(
+        currentStep: state.isManualFlow ? 2 : 3,
+        generatedPlan: null,
+        generationError: null,
+        generationSteps: {},
+        generationProgress: 0.0,
+        generationMessage: null,
+      ),
+    );
+  }
+
+  void _onUpdateReviewDates(
+    PlanTripUpdateReviewDates event,
+    Emitter<PlanTripState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        startDate: event.start,
+        endDate: event.end,
+        dateMode: DateMode.exact,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  /// Collect wizard data into SSE request params.
+  Map<String, dynamic> _buildSseParams({
+    String? travelTypes,
+    String? companions,
+    String? constraints,
+  }) {
+    // Always derive dates via representativeDates (handles all modes)
+    final (start, end) = state.representativeDates;
+    final departureDate = start.toIso8601String().split('T')[0];
+    final returnDate = end.toIso8601String().split('T')[0];
+
+    // Resolve destination from manual or AI selection
+    final destName =
+        state.selectedManualDestination?.name ??
+        state.selectedAiDestination?.city;
+    final destIata =
+        state.selectedManualDestination?.iataCode ??
+        state.selectedAiDestination?.iata;
+
+    return {
+      'durationDays': state.effectiveDurationDays,
+      'departureDate': departureDate,
+      'returnDate': returnDate,
+      // Topic 05 (B4) — `budgetRange` was a duplicate of `budgetPreset`
+      // (same enum value, two keys). Dropped.
+      'nbTravelers': state.nbTravelers,
+      'originCity': state.originCity,
+      'dateMode': state.dateMode.name,
+      'budgetPreset': state.budgetPreset?.name,
+      // Topic 01 — surface the numeric target so the agent treats it as a
+      // constraint instead of recomputing it from the breakdown.
+      if (state.targetBudget != null) 'targetBudget': state.targetBudget,
+      if (state.preferredMonth != null) 'preferredMonth': state.preferredMonth,
+      if (state.preferredYear != null) 'preferredYear': state.preferredYear,
+      if (destName != null) 'destinationCity': destName,
+      if (destIata != null) 'destinationIata': destIata,
+      if (travelTypes != null) 'travelTypes': travelTypes,
+      if (companions != null) 'companions': companions,
+      if (constraints != null) 'constraints': constraints,
+    };
+  }
+
+  /// Convert the W2 ``tripDraft`` payload (shipped in the SSE
+  /// ``complete`` event) to the wizard's [TripPlan] shape.
+  ///
+  /// The new backend produces a typed DTO with snake_case fields:
+  /// ``destination_city`` / ``destination_country`` /
+  /// ``destination_iata``, a ``transport[]`` array (flight or train
+  /// legs, both directions), ``activities[]``, ``accommodations[]``,
+  /// ``baggage[]``, ``budget`` (``transport`` / ``accommodation`` /
+  /// ``food`` / ``activity`` / ``total_min`` / ``total_max``).
+  /// The review screen still wants the fields the legacy [TripPlan]
+  /// exposes — this method bridges the two.
+  TripPlan _tripPlanFromDraft(Map<String, dynamic> draft) {
+    final originIata = draft['origin_iata'] as String? ?? '';
+    final destinationIata = draft['destination_iata'] as String? ?? '';
+    final destinationCity = draft['destination_city'] as String? ?? '';
+    final destinationCountry = draft['destination_country'] as String? ?? '';
+    final weather = draft['weather'] as Map<String, dynamic>? ?? {};
+    final activities =
+        (draft['activities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final accommodations =
+        (draft['accommodations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final transport =
+        (draft['transport'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final baggage =
+        (draft['baggage'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final budget = draft['budget'] as Map<String, dynamic>? ?? {};
+
+    final highlights = activities
+        .take(4)
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+
+    String accommodationName = 'À déterminer';
+    String accommodationSubtitle = '';
+    double accommodationPrice = 0;
+    String accommodationSource = 'estimated';
+    int hotelRating = 0;
+    if (accommodations.isNotEmpty) {
+      final best = accommodations.first;
+      accommodationName = best['name'] as String? ?? 'Hôtel';
+      final perNight = (best['price_per_night'] as num?)?.toDouble();
+      final priceTotal = (best['price_total'] as num?)?.toDouble();
+      final nightsRaw = (best['nights'] as num?)?.toInt() ?? 0;
+      if (perNight != null && perNight > 0) {
+        accommodationPrice = perNight;
+      } else if (priceTotal != null && priceTotal > 0 && nightsRaw > 0) {
+        accommodationPrice = priceTotal / nightsRaw;
+      }
+      accommodationSource = best['source'] as String? ?? 'estimated';
+      final currency = best['currency'] as String? ?? 'EUR';
+      accommodationSubtitle =
+          '$destinationCity · ${accommodationPrice.toStringAsFixed(0)} $currency';
+      hotelRating = (best['rating'] as num?)?.toInt() ?? 0;
+    }
+
+    // Transport — fold the FLIGHT/TRAIN legs the orchestrator returned
+    // back into the legacy [TripPlan] flight fields. TRAIN legs
+    // populate the ``flightSource = 'train'`` so the review widget can
+    // render the right pictogram without splitting the model.
+    final outbound = transport.firstWhere(
+      (l) => (l['direction'] as String?) == 'OUTBOUND',
+      orElse: () => const <String, dynamic>{},
+    );
+    final returnLeg = transport.firstWhere(
+      (l) => (l['direction'] as String?) == 'RETURN',
+      orElse: () => const <String, dynamic>{},
+    );
+    final outboundMode = (outbound['mode'] as String?) ?? '';
+    final flightSource = outboundMode == 'TRAIN'
+        ? 'train'
+        : (outbound['source'] as String? ?? 'estimated');
+    final flightAirline = outbound['carrier'] as String? ?? '';
+    final flightNumber = outbound['code'] as String? ?? '';
+    final flightDepartureIso = outbound['departure_at'] as String? ?? '';
+    final flightArrivalIso = outbound['arrival_at'] as String? ?? '';
+    final returnDepartureIso = returnLeg['departure_at'] as String? ?? '';
+    final returnArrivalIso = returnLeg['arrival_at'] as String? ?? '';
+    final outboundPrice = (outbound['price'] as num?)?.toDouble() ?? 0;
+    final returnPrice = (returnLeg['price'] as num?)?.toDouble() ?? 0;
+    final flightPrice = outboundPrice + returnPrice;
+    String flightRoute = '';
+    if (outbound.isNotEmpty) {
+      final from = outbound['origin_iata'] as String? ?? originIata;
+      final to = outbound['destination_iata'] as String? ?? destinationIata;
+      if (from.isNotEmpty || to.isNotEmpty) {
+        flightRoute = '$from → $to'.trim();
+      }
+    }
+
+    final dayProgram = activities
+        .map((a) => (a['title'] ?? '') as String)
+        .toList();
+    final dayDescriptions = activities
+        .map((a) => (a['description'] ?? '') as String)
+        .toList();
+    final dayCategories = activities
+        .map((a) => (a['category'] ?? 'OTHER') as String)
+        .toList();
+
+    final essentialItems = baggage
+        .map((b) => (b['name'] ?? '') as String)
+        .toList();
+    final essentialReasons = baggage
+        .map((b) => (b['reason'] ?? '') as String)
+        .toList();
+
+    // The new budget breakdown ships flat numeric keys (``transport``,
+    // ``accommodation``, ``food``, ``activity``) plus the running
+    // ``total_min`` / ``total_max`` band. Sum the categorised lines for
+    // consistency with the chart; fall through to ``total_max`` /
+    // ``total_min`` when the breakdown is empty.
+    double budgetEur = 0;
+    for (final key in const [
+      'transport',
+      'accommodation',
+      'food',
+      'activity',
+    ]) {
+      final value = budget[key];
+      if (value is num) budgetEur += value.toDouble();
+    }
+    if (budgetEur == 0) {
+      final totalMax = (budget['total_max'] as num?)?.toDouble() ?? 0;
+      final totalMin = (budget['total_min'] as num?)?.toDouble() ?? 0;
+      budgetEur = totalMax > 0 ? totalMax : totalMin;
+    }
+    if (budgetEur == 0) {
+      double fallback = accommodationPrice + flightPrice;
+      for (final a in activities) {
+        final cost = a['estimated_cost'];
+        if (cost is num) fallback += cost;
+      }
+      budgetEur = fallback;
+    }
+
+    return TripPlan(
+      destinationCity: destinationCity,
+      destinationCountry: destinationCountry,
+      destinationIata: destinationIata.isEmpty ? null : destinationIata,
+      durationDays: draft['duration_days'] as int? ?? 7,
+      budgetEur: budgetEur,
+      highlights: highlights,
+      accommodationName: accommodationName,
+      accommodationSubtitle: accommodationSubtitle,
+      accommodationPrice: accommodationPrice,
+      accommodationSource: accommodationSource,
+      flightRoute: flightRoute,
+      flightDetails: outboundMode,
+      flightPrice: flightPrice,
+      flightSource: flightSource,
+      originIata: originIata,
+      flightAirline: flightAirline,
+      flightNumber: flightNumber,
+      flightDeparture: flightDepartureIso,
+      flightArrival: flightArrivalIso,
+      returnDeparture: returnDepartureIso,
+      returnArrival: returnArrivalIso,
+      hotelRating: hotelRating,
+      dayProgram: dayProgram,
+      dayDescriptions: dayDescriptions,
+      dayCategories: dayCategories,
+      essentialItems: essentialItems,
+      essentialReasons: essentialReasons,
+      budgetBreakdown: BudgetBreakdown.fromSseMap(budget),
+      weatherData: weather,
+    );
+  }
+
+  Future<void> _cancelSseStream() async {
+    await _sseSubscription?.cancel();
+    _sseSubscription = null;
+  }
+
+  @override
+  Future<void> close() async {
+    await _cancelSseStream();
+    return super.close();
+  }
+}

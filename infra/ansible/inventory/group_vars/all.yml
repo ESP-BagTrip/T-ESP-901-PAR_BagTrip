@@ -1,0 +1,58 @@
+---
+# Variables shared across every host in the inventory.
+# Anything host-specific belongs in `host_vars/<host>.yml`.
+
+# --- Host baseline ---
+expected_os_id: ubuntu
+expected_os_version_min: "25.04"
+expected_kernel_min: "6.0.0"
+
+# --- Filesystem layout (BagTrip-managed paths only) ---
+bagtrip_prod_path: /opt/bagtrip
+bagtrip_preprod_path: /opt/bagtrip-preprod
+edge_path: /opt/edge
+monitoring_path: /opt/monitoring
+
+# Forensic & incident artefacts must persist — never clean these up.
+incident_log_path: /var/log/incident
+edge_access_log_path: /opt/edge/logs
+
+# --- Required system services (must be active) ---
+required_services:
+  - ssh.service
+  - docker.service
+  - containerd.service
+  - crowdsec.service
+  - crowdsec-firewall-bouncer.service
+  - systemd-journald.service
+  - unattended-upgrades.service
+
+# Required, enabled-but-may-be-inactive units (one-shot or oneshot-after-event).
+required_oneshot_units:
+  - shutdown-snapshot.service
+  - netfilter-persistent.service
+
+# --- Required system files (asserted to exist) ---
+required_baseline_files:
+  - path: /etc/iptables/rules.v4
+    description: Persistent IPv4 firewall rules (incident-2026-04-26 C2 block lives here)
+  - path: /etc/iptables/rules.v6
+    description: Persistent IPv6 firewall rules
+  - path: /etc/systemd/journald.conf.d/persistence.conf
+    description: Journald persistent storage override
+  - path: /etc/docker/daemon.json
+    description: Docker daemon log rotation policy
+  - path: /usr/local/bin/shutdown-snapshot.sh
+    description: Pre-shutdown state capture script
+
+# --- Required deploy account ---
+deploy_user: deploy
+admin_user: ubuntu
+
+# --- Public domains (used later for blackbox probes) ---
+bagtrip_public_domains:
+  - bagtrip.fr
+  - api.bagtrip.fr
+  - dev.bagtrip.fr
+  - api.dev.bagtrip.fr
+  - monitoring.bagtrip.fr

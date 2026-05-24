@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: observability_stack
+  description: >
+    Deploys the BagTrip observability stack to /opt/observability:
+    Prometheus + Grafana + node_exporter + cAdvisor + postgres_exporter
+    (×2) + redis_exporter (×2) + blackbox_exporter. Provisions Grafana
+    datasource and baseline dashboards.
+  license: proprietary
+  min_ansible_version: "2.16"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "25.04"
+dependencies:
+  - role: common

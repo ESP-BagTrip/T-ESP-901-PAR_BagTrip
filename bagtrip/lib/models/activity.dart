@@ -1,0 +1,58 @@
+import 'package:bagtrip/models/validation_status.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+export 'package:bagtrip/models/validation_status.dart';
+
+part 'activity.freezed.dart';
+part 'activity.g.dart';
+
+@JsonEnum(alwaysCreate: true)
+enum ActivityCategory {
+  @JsonValue('CULTURE')
+  culture,
+  @JsonValue('NATURE')
+  nature,
+  @JsonValue('FOOD')
+  food,
+  @JsonValue('SPORT')
+  sport,
+  @JsonValue('SHOPPING')
+  shopping,
+  @JsonValue('NIGHTLIFE')
+  nightlife,
+  @JsonValue('RELAXATION')
+  relaxation,
+  @JsonValue('TRANSPORT')
+  transport,
+  @JsonValue('OTHER')
+  other,
+}
+
+@freezed
+abstract class Activity with _$Activity {
+  const factory Activity({
+    required String id,
+    required String tripId,
+    required String title,
+    String? description,
+    DateTime? date,
+    String? startTime,
+    String? endTime,
+    String? location,
+    @JsonKey(unknownEnumValue: ActivityCategory.other)
+    @Default(ActivityCategory.other)
+    ActivityCategory category,
+    double? estimatedCost,
+    @Default(false) bool isBooked,
+    @Default(false) bool isDone,
+    @JsonKey(unknownEnumValue: ValidationStatus.manual)
+    @Default(ValidationStatus.manual)
+    ValidationStatus validationStatus,
+    int? suggestedDay,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) = _Activity;
+
+  factory Activity.fromJson(Map<String, dynamic> json) =>
+      _$ActivityFromJson(json);
+}

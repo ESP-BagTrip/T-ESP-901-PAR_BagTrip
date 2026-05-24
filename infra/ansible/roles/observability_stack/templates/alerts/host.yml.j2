@@ -1,0 +1,51 @@
+# {{ ansible_managed }}
+# Host-level alerts — node_exporter metrics.
+
+groups:
+  - name: bagtrip_host
+    interval: 30s
+    rules:
+      - alert: HostCPUSaturated
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host CPU > 90% for 5 minutes (instance={{ '{{ $labels.instance }}' }})"
+          description: "Sustained CPU pressure on the VPS — investigate top processes / container."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/host-cpu-saturation.md"
+
+      - alert: HostMemoryPressure
+        expr: |
+          (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host available memory < 10% for 10 min ({{ '{{ $labels.instance }}' }})"
+          description: "OOM killer is approaching. Check container memory budgets."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/host-cpu-saturation.md"
+
+      - alert: HostDiskPressure
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/host",fstype!=""}
+            / node_filesystem_size_bytes{mountpoint="/host",fstype!=""}) * 100 < 15
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host root filesystem < 15% free for 15 min"
+          description: "Free space on the VPS root volume. Loki / Tempo retention will start shedding data."
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/host-disk-pressure.md"
+
+      - alert: HostDiskCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/host",fstype!=""}
+            / node_filesystem_size_bytes{mountpoint="/host",fstype!=""}) * 100 < 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host root filesystem < 5% free — services will start failing"
+          runbook_url: "https://github.com/ESP-BagTrip/T-ESP-901-PAR_BagTrip/blob/develop/infra/runbooks/host-disk-pressure.md"

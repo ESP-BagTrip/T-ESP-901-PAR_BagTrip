@@ -1,0 +1,14 @@
+# {{ ansible_managed }}
+[Unit]
+Description=BagTrip nightly Restic backup
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/observability/scripts/restic-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=4
+StandardOutput=journal
+StandardError=journal

@@ -1,0 +1,152 @@
+# {{ ansible_managed }}
+# BagTrip Prometheus configuration.
+
+global:
+  scrape_interval: {{ observability_scrape_interval }}
+  evaluation_interval: {{ observability_scrape_interval }}
+  external_labels:
+    env: prod
+    host: vps_prod
+
+# --- Alertmanager wiring ---
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+scrape_configs:
+  # --- Prometheus self-scrape ---
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+        labels: { service: prometheus }
+
+  # --- Host metrics ---
+  - job_name: node
+    static_configs:
+      - targets: ['node_exporter:9100']
+        labels:
+          service: node_exporter
+          instance: vps_prod
+
+  # --- Container metrics (cAdvisor sees every container on the host;
+  #     allowlist BagTrip-managed names so adjacent unrelated workloads
+  #     don't end up in our TSDB) ---
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: cadvisor
+          instance: vps_prod
+    metric_relabel_configs:
+      - source_labels: [name]
+        regex: '^(bagtrip-.*|observability-.*|edge-caddy|netdata)$|^$'
+        action: keep
+
+  # --- Postgres ---
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres_exporter_prod:9187']
+        labels: { service: postgres, env: prod, stack: bagtrip }
+      - targets: ['postgres_exporter_preprod:9187']
+        labels: { service: postgres, env: preprod, stack: bagtrip }
+
+  # --- Redis ---
+  - job_name: redis
+    static_configs:
+      - targets: ['redis_exporter_prod:9121']
+        labels: { service: redis, env: prod, stack: bagtrip }
+      - targets: ['redis_exporter_preprod:9121']
+        labels: { service: redis, env: preprod, stack: bagtrip }
+
+  # --- BagTrip FastAPI (RED metrics from prometheus-fastapi-instrumentator) ---
+  # Reachable via the bagtrip_prod / bagtrip_preprod docker networks the
+  # Prometheus container is multi-homed on. Public access to /metrics is
+  # blocked at the inner Caddyfile.
+  - job_name: bagtrip-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['bagtrip-api-1:3000']
+        labels: { service: api, env: prod, stack: bagtrip }
+      - targets: ['bagtrip-preprod-api-1:3000']
+        labels: { service: api, env: preprod, stack: bagtrip }
+
+  # --- BagTrip Next.js admin (RED metrics from prom-client) ---
+  - job_name: bagtrip-admin
+    metrics_path: /api/metrics
+    static_configs:
+      - targets: ['bagtrip-admin-1:8000']
+        labels: { service: admin, env: prod, stack: bagtrip }
+      - targets: ['bagtrip-preprod-admin-1:8000']
+        labels: { service: admin, env: preprod, stack: bagtrip }
+
+  # --- Tempo self-metrics ---
+  - job_name: tempo
+    static_configs:
+      - targets: ['tempo:3200']
+        labels: { service: tempo, instance: vps_prod }
+
+  # --- Alertmanager self-scrape ---
+  - job_name: alertmanager
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels: { service: alertmanager, instance: vps_prod }
+
+  # --- Edge Caddy /metrics ---
+  # Caddy exposes its full metrics set via a dedicated `:8089 { metrics }`
+  # vhost (separate from the admin endpoint). Public access blocked by an
+  # iptables INPUT DROP rule on the default-route NIC; Prometheus on the
+  # observability bridge reaches it through host.docker.internal.
+  - job_name: caddy_edge
+    static_configs:
+      - targets: ['host.docker.internal:8089']
+        labels:
+          service: caddy
+          instance: edge
+    metric_relabel_configs:
+      # Drop reverse_proxy_upstreams metrics for adjacent unrelated stacks
+      # so /opt/edge's `pokemon-ocr-caddy` / `claw.zatoun.fr` upstreams
+      # never leak in. Keep ours: 8081 (bagtrip prod), 8082 (preprod),
+      # 8085 (netdata), 8086 (crowdsec lapi), and metrics with no upstream.
+      - source_labels: [upstream]
+        regex: '127\.0\.0\.1:(8081|8082|8085|8086)|^$'
+        action: keep
+
+  # --- Synthetic probes (HTTP) ---
+  - job_name: blackbox_http
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+{% for target in observability_blackbox_targets %}
+        - {{ target }}
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  # --- TLS expiry ---
+  - job_name: blackbox_tls
+    metrics_path: /probe
+    params:
+      module: [tcp_tls]
+    static_configs:
+      - targets:
+{% for target in observability_blackbox_targets %}
+        - {{ target | regex_replace('^https?://', '') | regex_replace('/.*$', '') }}:443
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115

@@ -1,0 +1,73 @@
+# ===== Environment & Secrets =====
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# ===== IDE / Editors =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Node =====
+node_modules/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+*.egg
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.mypy_cache/
+.tox/
+
+# ===== Flutter / Dart =====
+bagtrip/build/
+bagtrip/.dart_tool/
+bagtrip/.flutter-plugins
+bagtrip/.flutter-plugins-dependencies
+bagtrip/.packages
+bagtrip/.pub-cache/
+bagtrip/.pub/
+bagtrip/coverage/
+
+# ===== Next.js / Admin Panel =====
+admin-panel/.next/
+admin-panel/out/
+admin-panel/build/
+admin-panel/coverage/
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Misc =====
+*.log
+*.pem
+.claude/
+.specify/
+./specs
+CLAUDE.md
+
+# ===== Sonarqube =====
+.scannerwork/
+
+# ===== Production secrets =====
+secrets/
+
+kanban/
+documentations/backlog-manques.md

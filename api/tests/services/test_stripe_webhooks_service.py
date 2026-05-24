@@ -1,0 +1,452 @@
+"""Unit tests for the Stripe webhook dispatcher."""
+
+import uuid
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.models.booking_intent import BookingIntent
+from src.models.stripe_event import StripeEvent
+from src.models.user import User
+from src.services.stripe_webhooks_service import StripeWebhooksService
+
+
+@pytest.fixture
+def mock_db_session():
+    return MagicMock()
+
+
+def _event(event_type: str, obj: dict, event_id: str = "evt_x") -> MagicMock:
+    """Build a Stripe event mock that mirrors the real shape."""
+    event = MagicMock()
+    event.id = event_id
+    event.type = event_type
+    event.livemode = False
+    event.to_dict.return_value = {}
+    event.data.object = obj
+    return event
+
+
+class TestIdempotency:
+    def test_returns_existing_event_when_already_processed(self, mock_db_session):
+        """Duplicate Stripe deliveries short-circuit on the unique constraint."""
+        existing = StripeEvent(stripe_event_id="evt_dup")
+        mock_db_session.query.return_value.filter.return_value.first.return_value = existing
+
+        result = StripeWebhooksService.process_event(mock_db_session, _event("any.type", {}))
+
+        assert result.stripe_event_id == "evt_dup"
+        mock_db_session.add.assert_not_called()
+
+    def test_unknown_event_type_persists_with_no_handler(self, mock_db_session):
+        """Unknown events are still recorded in the audit log (no handler runs)."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        result = StripeWebhooksService.process_event(mock_db_session, _event("payout.created", {}))
+
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+
+class TestHandlerFailureAlerting:
+    def test_handler_exception_persists_error_and_emits_structured_alert(
+        self, mock_db_session
+    ):
+        """A raising handler must not crash the endpoint, must persist the error,
+        and must emit a structured, alertable log marker (SMP327-174)."""
+        import src.services.stripe_webhooks.service as service_module
+
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        def _boom(db, event, stripe_event):
+            raise RuntimeError("downgrade logic blew up")
+
+        with (
+            patch.dict(service_module._DISPATCH, {"charge.dispute.created": _boom}),
+            patch.object(service_module, "logger") as mock_logger,
+        ):
+            result = StripeWebhooksService.process_event(
+                mock_db_session, _event("charge.dispute.created", {})
+            )
+
+        # Error captured on the row, no exception propagated.
+        assert result.processing_error is not None
+        assert result.processing_error["type"] == "RuntimeError"
+        assert result.processed_at is None
+
+        # Structured alert emitted with the stable marker + event context.
+        mock_logger.error.assert_called_once()
+        _, kwargs = mock_logger.error.call_args
+        data = kwargs["data"]
+        assert data["alert"] == service_module.WEBHOOK_HANDLER_FAILED_ALERT
+        assert data["event_type"] == "charge.dispute.created"
+        assert data["error_type"] == "RuntimeError"
+
+
+class TestPaymentEvents:
+    def test_amount_capturable_updated_authorizes_intent(self, mock_db_session):
+        intent = BookingIntent(status="INIT")
+        booking_intent_id = uuid.uuid4()
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "payment_intent.amount_capturable_updated",
+                {"metadata": {"booking_intent_id": str(booking_intent_id)}},
+            ),
+        )
+        assert intent.status == "AUTHORIZED"
+
+    def test_payment_intent_succeeded_marks_captured(self, mock_db_session):
+        intent = BookingIntent(status="BOOKED")
+        booking_intent_id = uuid.uuid4()
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "payment_intent.succeeded",
+                {
+                    "metadata": {"booking_intent_id": str(booking_intent_id)},
+                    "latest_charge": "ch_456",
+                },
+            ),
+        )
+        assert intent.status == "CAPTURED"
+        assert intent.stripe_charge_id == "ch_456"
+
+    def test_payment_intent_canceled(self, mock_db_session):
+        intent = BookingIntent(status="AUTHORIZED")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "payment_intent.canceled",
+                {"metadata": {"booking_intent_id": str(uuid.uuid4())}},
+            ),
+        )
+        assert intent.status == "CANCELLED"
+
+    def test_payment_intent_failed(self, mock_db_session):
+        intent = BookingIntent(status="INIT")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "payment_intent.payment_failed",
+                {"metadata": {"booking_intent_id": str(uuid.uuid4())}},
+            ),
+        )
+        assert intent.status == "FAILED"
+        assert intent.last_error["type"] == "payment_failed"
+
+
+class TestSubscriptionEvents:
+    def test_subscription_created_sets_premium(self, mock_db_session):
+        user = User(id=uuid.uuid4(), plan="FREE", stripe_customer_id="cus_123")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "customer.subscription.created",
+                {
+                    "customer": "cus_123",
+                    "id": "sub_123",
+                    "current_period_end": 1735689600,
+                },
+            ),
+        )
+        assert user.plan == "PREMIUM"
+        assert user.stripe_subscription_id == "sub_123"
+
+    def test_subscription_created_does_not_overwrite_admin(self, mock_db_session):
+        """Admin must never be silently downgraded to PREMIUM by a webhook."""
+        user = User(id=uuid.uuid4(), plan="ADMIN", stripe_customer_id="cus_admin")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "customer.subscription.created",
+                {"customer": "cus_admin", "id": "sub_admin", "current_period_end": 1735689600},
+            ),
+        )
+        assert user.plan == "ADMIN"
+
+    def test_subscription_deleted_clears(self, mock_db_session):
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event("customer.subscription.deleted", {"customer": "cus_123", "id": "sub_123"}),
+        )
+        assert user.plan == "FREE"
+        assert user.stripe_subscription_id is None
+
+    def test_subscription_updated_canceled_status(self, mock_db_session):
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "customer.subscription.updated",
+                {
+                    "customer": "cus_123",
+                    "status": "canceled",
+                    "current_period_end": 1735689600,
+                },
+            ),
+        )
+        assert user.plan == "FREE"
+        assert user.stripe_subscription_id is None
+
+
+class TestInvoiceEvents:
+    def test_invoice_payment_succeeded_extends_period(self, mock_db_session):
+        user = User(id=uuid.uuid4(), plan="FREE", stripe_customer_id="cus_123")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "invoice.payment_succeeded",
+                {
+                    "customer": "cus_123",
+                    "lines": {"data": [{"period": {"end": 1735689600}}]},
+                },
+            ),
+        )
+        assert user.plan == "PREMIUM"
+
+    def test_invoice_payment_failed_logs_only(self, mock_db_session):
+        """Failed payment doesn't downgrade — Stripe runs its own dunning retries first."""
+        user = User(id=uuid.uuid4(), plan="PREMIUM", stripe_customer_id="cus_123")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "invoice.payment_failed",
+                {"customer": "cus_123", "id": "in_123", "attempt_count": 1},
+            ),
+        )
+        # State unchanged — handler is just observability
+        assert user.plan == "PREMIUM"
+
+
+class TestChargeEvents:
+    def test_charge_refunded_full_marks_refunded(self, mock_db_session):
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_123")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_123", "refunded": True, "amount": 10000, "amount_refunded": 10000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+
+    def test_charge_refunded_partial_keeps_captured(self, mock_db_session):
+        """Partial refund: keep CAPTURED so further partial refunds remain possible."""
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_123")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_123", "refunded": False, "amount": 10000, "amount_refunded": 3000},
+            ),
+        )
+        assert intent.status == "CAPTURED"
+
+    def test_charge_dispute_created_downgrades_to_free(self, mock_db_session):
+        """A chargeback revokes Premium immediately (SMP-327 decision)."""
+        user = User(
+            id=uuid.uuid4(),
+            plan="PREMIUM",
+            stripe_customer_id="cus_123",
+            stripe_subscription_id="sub_123",
+        )
+        # 1st .first() = idempotency check, 2nd = find_user_by_customer.
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.dispute.created",
+                {"customer": "cus_123", "charge": "ch_123", "amount": 1000, "reason": "fraudulent"},
+            ),
+        )
+        assert user.plan == "FREE"
+        assert user.plan_expires_at is None
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_dispute_created_does_not_downgrade_admin(self, mock_db_session):
+        """An ADMIN account is never downgraded by a dispute webhook."""
+        user = User(id=uuid.uuid4(), plan="ADMIN", stripe_customer_id="cus_admin")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, user]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.dispute.created",
+                {"customer": "cus_admin", "charge": "ch_a", "amount": 1000, "reason": "fraudulent"},
+            ),
+        )
+        assert user.plan == "ADMIN"
+
+    def test_charge_dispute_created_no_user_is_noop(self, mock_db_session):
+        """Unknown customer -> logged, no crash, event still recorded."""
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, None]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.dispute.created",
+                {"customer": "cus_unknown", "charge": "ch_x", "amount": 500, "reason": "general"},
+            ),
+        )
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+
+class TestChargeRefundEdgeCases:
+    """Uncovered refund paths (SMP327-029): over-refund, dashboard refund,
+    missing charge, and idempotent re-delivery."""
+
+    def test_charge_refunded_over_refund_marks_refunded(self, mock_db_session):
+        """amount_refunded > amount (over-refund) still counts as fully refunded.
+
+        The handler treats `amount_refunded >= amount` as "fully refunded", so a
+        value strictly greater than the charge total must not regress to CAPTURED.
+        """
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_over")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                # `refunded` flag false but amount_refunded exceeds amount.
+                {"id": "ch_over", "refunded": False, "amount": 10000, "amount_refunded": 15000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+
+    def test_charge_refunded_dashboard_initiated_no_metadata(self, mock_db_session):
+        """Refund triggered from the Stripe dashboard carries no app metadata.
+
+        charge.* events are matched purely on `stripe_charge_id`, so a
+        dashboard-initiated refund (no booking_intent_id metadata) must still
+        sync the local row to REFUNDED.
+        """
+        intent = BookingIntent(status="CAPTURED", stripe_charge_id="ch_dash")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                # No "metadata" key at all — pure dashboard refund payload.
+                {"id": "ch_dash", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+        assert result.processing_error is None
+
+    def test_charge_refunded_unknown_charge_is_noop(self, mock_db_session):
+        """A refund for a charge we never recorded is a clean no-op (no crash)."""
+        # First query() = idempotency lookup (None), second = intent lookup (None).
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, None]
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_unknown", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_refunded_missing_charge_id_is_noop(self, mock_db_session):
+        """A payload with no charge id short-circuits before any DB intent lookup."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        result = StripeWebhooksService.process_event(
+            mock_db_session,
+            _event("charge.refunded", {"refunded": True, "amount": 5000, "amount_refunded": 5000}),
+        )
+        assert result.processed_at is not None
+        assert result.processing_error is None
+
+    def test_charge_refunded_idempotent_when_already_refunded(self, mock_db_session):
+        """Re-delivery of a refund for an already-REFUNDED intent leaves it REFUNDED.
+
+        The handler only transitions from CAPTURED, so a second delivery (or a
+        refund on an intent that was already refunded) is a stable no-op rather
+        than a redundant commit-and-flip.
+        """
+        intent = BookingIntent(status="REFUNDED", stripe_charge_id="ch_idem")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_idem", "refunded": True, "amount": 5000, "amount_refunded": 5000},
+            ),
+        )
+        assert intent.status == "REFUNDED"
+
+    def test_charge_refunded_partial_on_non_captured_stays_put(self, mock_db_session):
+        """Partial refund on a non-CAPTURED intent doesn't force a status change."""
+        intent = BookingIntent(status="AUTHORIZED", stripe_charge_id="ch_auth")
+        mock_db_session.query.return_value.filter.return_value.first.side_effect = [None, intent]
+
+        StripeWebhooksService.process_event(
+            mock_db_session,
+            _event(
+                "charge.refunded",
+                {"id": "ch_auth", "refunded": False, "amount": 10000, "amount_refunded": 2000},
+            ),
+        )
+        assert intent.status == "AUTHORIZED"
+
+
+class TestErrorHandling:
+    def test_handler_exception_recorded_not_raised(self, mock_db_session):
+        """A buggy handler shouldn't take down the webhook endpoint."""
+        mock_db_session.query.return_value.filter.return_value.first.return_value = None
+
+        with patch(
+            "src.services.stripe_webhooks.service._DISPATCH",
+            {"customer.subscription.created": MagicMock(side_effect=Exception("boom"))},
+        ):
+            result = StripeWebhooksService.process_event(
+                mock_db_session,
+                _event("customer.subscription.created", {"customer": "cus_x", "id": "sub_x"}),
+            )
+
+        assert result.processing_error is not None
+        assert result.processing_error["error"] == "boom"
