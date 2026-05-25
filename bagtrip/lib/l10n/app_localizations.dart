@@ -6225,6 +6225,30 @@ abstract class AppLocalizations {
   /// **'Mon abonnement'**
   String get subscriptionPageTitle;
 
+  /// No description provided for @subscriptionSectionStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut'**
+  String get subscriptionSectionStatus;
+
+  /// No description provided for @subscriptionSectionPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get subscriptionSectionPayment;
+
+  /// No description provided for @subscriptionSectionBilling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Facturation'**
+  String get subscriptionSectionBilling;
+
+  /// No description provided for @subscriptionSectionManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestion'**
+  String get subscriptionSectionManage;
+
   /// No description provided for @subscriptionStatusActive.
   ///
   /// In fr, this message translates to:

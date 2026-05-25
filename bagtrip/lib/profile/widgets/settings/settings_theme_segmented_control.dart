@@ -1,6 +1,6 @@
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:bagtrip/profile/widgets/settings/settings_style.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
 import 'package:flutter/material.dart';
 
 /// Three-way theme picker: gray track, sliding indicator, icon + label segments.
@@ -26,8 +26,10 @@ class SettingsThemeSegmentedControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final selectedIndex = _themes.indexOf(selectedTheme).clamp(0, 2);
-    final trackColor = SettingsStyle.themeTrackBackground(brightness);
-    final indicatorColor = SettingsStyle.themeIndicatorBackground(brightness);
+    final trackColor = ProfileDetailStyle.themeTrackBackground(brightness);
+    final indicatorColor = ProfileDetailStyle.themeIndicatorBackground(
+      brightness,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -119,8 +121,8 @@ class _Segment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = selected
-        ? SettingsStyle.themeSegmentSelectedForeground(brightness)
-        : SettingsStyle.themeSegmentUnselectedForeground(brightness);
+        ? ProfileDetailStyle.themeSegmentSelectedForeground(brightness)
+        : ProfileDetailStyle.themeSegmentUnselectedForeground(brightness);
 
     return Material(
       color: Colors.transparent,

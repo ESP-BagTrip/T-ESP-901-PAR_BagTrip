@@ -3473,6 +3473,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionPageTitle => 'My subscription';
 
   @override
+  String get subscriptionSectionStatus => 'Status';
+
+  @override
+  String get subscriptionSectionPayment => 'Payment';
+
+  @override
+  String get subscriptionSectionBilling => 'Billing';
+
+  @override
+  String get subscriptionSectionManage => 'Manage';
+
+  @override
   String get subscriptionStatusActive => 'Active';
 
   @override

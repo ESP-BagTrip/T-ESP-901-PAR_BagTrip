@@ -2,7 +2,7 @@ import 'package:bagtrip/components/adaptive/adaptive_action_sheet.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/form/form_section_header.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/widgets/settings/settings_style.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
 import 'package:bagtrip/profile/widgets/profile_menu_group_card.dart';
 import 'package:bagtrip/profile/widgets/settings/settings_icon_badge.dart';
 import 'package:bagtrip/profile/widgets/settings/settings_labeled_content.dart';
@@ -75,7 +75,7 @@ class PreferencesSection extends StatelessWidget {
             children: [
               SettingsIconBadge(
                 icon: Icons.language_outlined,
-                iconColor: SettingsStyle.iconAccentSecondary(),
+                iconColor: ProfileDetailStyle.iconAccentSecondary(),
               ),
               const SizedBox(width: AppSpacing.space12),
               Expanded(
@@ -86,7 +86,9 @@ class PreferencesSection extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right,
-                color: SettingsStyle.chevronColor(Theme.of(context).brightness),
+                color: ProfileDetailStyle.chevronColor(
+                  Theme.of(context).brightness,
+                ),
                 size: 20,
               ),
             ],
@@ -121,7 +123,7 @@ class PreferencesSection extends StatelessWidget {
             children: [
               SettingsIconBadge(
                 icon: Icons.dark_mode_outlined,
-                iconColor: SettingsStyle.iconAccentMuted(),
+                iconColor: ProfileDetailStyle.iconAccentMuted(),
               ),
               const SizedBox(width: AppSpacing.space12),
               Expanded(

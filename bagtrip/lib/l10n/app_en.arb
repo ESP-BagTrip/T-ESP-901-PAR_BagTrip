@@ -1714,6 +1714,10 @@
   "subscriptionContinue": "Continue",
 
   "subscriptionPageTitle": "My subscription",
+  "subscriptionSectionStatus": "Status",
+  "subscriptionSectionPayment": "Payment",
+  "subscriptionSectionBilling": "Billing",
+  "subscriptionSectionManage": "Manage",
   "subscriptionStatusActive": "Active",
   "subscriptionStatusPremiumActive": "Premium · Active",
   "subscriptionStatusFree": "Free plan",

@@ -6,32 +6,42 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
-  final String name;
-  final String memberSince;
-
   const ProfileHeaderCard({
     super.key,
     required this.name,
     required this.memberSince,
   });
 
+  final String name;
+  final String memberSince;
+
   String _getInitials(String fullName) {
-    final parts = fullName.split(' ');
+    final parts = fullName.trim().split(RegExp(r'\s+'));
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return fullName.isNotEmpty ? fullName[0].toUpperCase() : '';
   }
 
-  String _displayName(String fullName) {
-    final parts = fullName.trim().split(' ');
-    return parts.isNotEmpty ? parts.first : fullName;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final initials = _getInitials(name);
-    final displayName = _displayName(name);
+    final displayName = name.trim();
+    final initials = _getInitials(displayName);
+    const nameStyle = TextStyle(
+      fontFamily: FontFamily.dMSerifDisplay,
+      fontSize: 28,
+      fontWeight: FontWeight.w400,
+      color: AppColors.onPrimary,
+      height: 1.15,
+      letterSpacing: -0.5,
+    );
+    final memberSinceStyle = TextStyle(
+      fontFamily: FontFamily.dMSans,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      color: AppColors.onPrimary.withValues(alpha: 0.72),
+      height: 1.4,
+    );
 
     return Row(
       children: [
@@ -46,7 +56,8 @@ class ProfileHeaderCard extends StatelessWidget {
             child: Text(
               initials,
               style: const TextStyle(
-                color: AppColors.surface,
+                fontFamily: FontFamily.dMSans,
+                color: AppColors.onPrimary,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
@@ -58,26 +69,11 @@ class ProfileHeaderCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                displayName,
-                style: const TextStyle(
-                  fontFamily: FontFamily.dMSerifDisplay,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                  color: ColorName.surface,
-                  height: 1.15,
-                  letterSpacing: -0.5,
-                ),
-              ),
+              Text(displayName, style: nameStyle),
               const SizedBox(height: AppSpacing.space4),
               Text(
                 AppLocalizations.of(context)!.memberSinceText(memberSince),
-                style: TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 14,
-                  color: ColorName.surface.withValues(alpha: 0.72),
-                  height: 1.4,
-                ),
+                style: memberSinceStyle,
               ),
             ],
           ),

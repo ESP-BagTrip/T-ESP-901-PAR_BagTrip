@@ -1,4 +1,4 @@
-import 'package:bagtrip/profile/widgets/settings/settings_style.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
 import 'package:flutter/material.dart';
 
 /// Scaled [Switch.adaptive] with profile-aligned track colors.
@@ -17,16 +17,16 @@ class SettingsCompactSwitch extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
 
     return Transform.scale(
-      scale: SettingsStyle.switchScale,
+      scale: ProfileDetailStyle.switchScale,
       alignment: Alignment.centerRight,
       child: Switch.adaptive(
         value: value,
         onChanged: onChanged,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        activeTrackColor: SettingsStyle.switchActiveTrack(),
-        activeThumbColor: SettingsStyle.switchThumb(),
-        inactiveTrackColor: SettingsStyle.switchInactiveTrack(brightness),
-        inactiveThumbColor: SettingsStyle.switchThumb(),
+        activeTrackColor: ProfileDetailStyle.switchActiveTrack(),
+        activeThumbColor: ProfileDetailStyle.switchThumb(),
+        inactiveTrackColor: ProfileDetailStyle.switchInactiveTrack(brightness),
+        inactiveThumbColor: ProfileDetailStyle.switchThumb(),
       ),
     );
   }

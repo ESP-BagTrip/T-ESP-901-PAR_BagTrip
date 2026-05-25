@@ -1,7 +1,8 @@
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
 import 'package:bagtrip/profile/widgets/settings/settings_compact_switch.dart';
 import 'package:bagtrip/profile/widgets/settings/settings_icon_badge.dart';
-import 'package:bagtrip/profile/widgets/settings/settings_style.dart';
 import 'package:flutter/material.dart';
 
 /// Settings row with icon badge, title hierarchy, and unified switch.
@@ -78,17 +79,22 @@ class _TitleBlock extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 14,
+            fontFamily: FontFamily.dMSerifDisplay,
             fontWeight: FontWeight.w600,
-            color: SettingsStyle.titleColor(brightness, enabled: enabled),
+            color: ProfileDetailStyle.titleColor(brightness, enabled: enabled),
           ),
         ),
         const SizedBox(height: AppSpacing.space4),
         Text(
           subtitle,
           style: TextStyle(
-            fontSize: 13,
-            color: SettingsStyle.subtitleColor(brightness, enabled: enabled),
+            fontFamily: FontFamily.dMSans,
+            fontSize: 12,
+            color: ProfileDetailStyle.subtitleColor(
+              brightness,
+              enabled: enabled,
+            ),
           ),
         ),
       ],

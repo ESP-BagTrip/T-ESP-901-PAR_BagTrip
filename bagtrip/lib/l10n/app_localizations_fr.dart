@@ -3496,6 +3496,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscriptionPageTitle => 'Mon abonnement';
 
   @override
+  String get subscriptionSectionStatus => 'Statut';
+
+  @override
+  String get subscriptionSectionPayment => 'Paiement';
+
+  @override
+  String get subscriptionSectionBilling => 'Facturation';
+
+  @override
+  String get subscriptionSectionManage => 'Gestion';
+
+  @override
   String get subscriptionStatusActive => 'Actif';
 
   @override

@@ -3,7 +3,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/form/form_section_header.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/profile/widgets/settings/settings_style.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
 import 'package:bagtrip/models/notification_preferences.dart';
 import 'package:bagtrip/profile/widgets/profile_menu_group_card.dart';
 import 'package:bagtrip/profile/widgets/settings/settings_switch_row.dart';
@@ -106,7 +106,7 @@ class _NotificationPreferencesView extends StatelessWidget {
     return [
       SettingsSwitchRow(
         icon: Icons.notifications_outlined,
-        iconColor: SettingsStyle.iconAccentSecondary(),
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
         title: l10n.notificationPrefsPush,
         subtitle: l10n.notificationPrefsPushSubtitle,
         value: prefs.pushEnabled,
@@ -115,7 +115,7 @@ class _NotificationPreferencesView extends StatelessWidget {
       ),
       SettingsSwitchRow(
         icon: Icons.flight_outlined,
-        iconColor: SettingsStyle.iconAccentSecondary(),
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
         title: l10n.notificationPrefsFlightReminders,
         subtitle: l10n.notificationPrefsFlightRemindersSubtitle,
         value: subEnabled && prefs.flightReminders,
@@ -127,7 +127,7 @@ class _NotificationPreferencesView extends StatelessWidget {
       ),
       SettingsSwitchRow(
         icon: Icons.event_note_outlined,
-        iconColor: SettingsStyle.iconAccentSecondary(),
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
         title: l10n.notificationPrefsActivityReminders,
         subtitle: l10n.notificationPrefsActivityRemindersSubtitle,
         value: subEnabled && prefs.activityReminders,
@@ -139,7 +139,7 @@ class _NotificationPreferencesView extends StatelessWidget {
       ),
       SettingsSwitchRow(
         icon: Icons.luggage_outlined,
-        iconColor: SettingsStyle.iconAccentSecondary(),
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
         title: l10n.notificationPrefsTripUpdates,
         subtitle: l10n.notificationPrefsTripUpdatesSubtitle,
         value: subEnabled && prefs.tripUpdates,
@@ -150,7 +150,7 @@ class _NotificationPreferencesView extends StatelessWidget {
       ),
       SettingsSwitchRow(
         icon: Icons.attach_money_outlined,
-        iconColor: SettingsStyle.iconAccentWarning(),
+        iconColor: ProfileDetailStyle.iconAccentWarning(),
         title: l10n.notificationPrefsBudgetAlerts,
         subtitle: l10n.notificationPrefsBudgetAlertsSubtitle,
         value: subEnabled && prefs.budgetAlerts,
@@ -161,7 +161,7 @@ class _NotificationPreferencesView extends StatelessWidget {
       ),
       SettingsSwitchRow(
         icon: Icons.people_outline,
-        iconColor: SettingsStyle.iconAccentMuted(),
+        iconColor: ProfileDetailStyle.iconAccentMuted(),
         title: l10n.notificationPrefsSocial,
         subtitle: l10n.notificationPrefsSocialSubtitle,
         value: subEnabled && prefs.social,

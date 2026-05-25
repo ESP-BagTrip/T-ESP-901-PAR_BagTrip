@@ -6,9 +6,7 @@ import '../../helpers/pump_widget.dart';
 
 void main() {
   group('ProfileHeaderCard', () {
-    testWidgets('renders first name and initials from full name', (
-      tester,
-    ) async {
+    testWidgets('renders full name and initials', (tester) async {
       await pumpLocalized(
         tester,
         const SizedBox(
@@ -18,9 +16,8 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.text('Alice'), findsOneWidget);
+      expect(find.text('Alice Doe'), findsOneWidget);
       expect(find.text('AD'), findsOneWidget);
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
     });
 
     testWidgets('renders with single-part name', (tester) async {
@@ -50,9 +47,7 @@ void main() {
       expect(find.byType(ProfileHeaderCard), findsOneWidget);
     });
 
-    testWidgets('renders with multi-part name showing first name only', (
-      tester,
-    ) async {
+    testWidgets('renders with multi-part name', (tester) async {
       await pumpLocalized(
         tester,
         const SizedBox(
@@ -62,7 +57,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.text('Bob'), findsOneWidget);
+      expect(find.text('Bob Smith'), findsOneWidget);
     });
   });
 }

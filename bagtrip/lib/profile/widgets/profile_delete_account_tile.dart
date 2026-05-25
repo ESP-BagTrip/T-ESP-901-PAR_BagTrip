@@ -56,7 +56,7 @@ class ProfileDeleteAccountTile extends StatelessWidget {
                         l10n.deleteAccountButton,
                         style: const TextStyle(
                           fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: accent,
                         ),
