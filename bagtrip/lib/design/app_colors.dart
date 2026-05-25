@@ -12,6 +12,10 @@ class AppColors {
   static const Color surfaceLight = ColorName.surfaceLight;
   static const Color surfaceDark = ColorName.surfaceDark;
   static const Color surfaceVariant = ColorName.surfaceVariant;
+  static const Color surfaceGroup = ColorName.surfaceGroup;
+  static const Color surfaceGroupDark = ColorName.surfaceGroupDark;
+  static const Color surfaceGroupBorder = ColorName.surfaceGroupBorder;
+  static const Color surfaceGroupBorderDark = ColorName.surfaceGroupBorderDark;
 
   // --- Text on surfaces ---
   static const Color onSurface = ColorName.primaryTrueDark;
@@ -43,6 +47,7 @@ class AppColors {
   static const Color warningLight = ColorName.warningLight;
   static const Color error = ColorName.error;
   static const Color errorDark = ColorName.errorDark;
+  static const Color destructive = ColorName.destructive;
   static const Color info = ColorName.info;
   static const Color infoLight = ColorName.infoLight;
 
@@ -118,6 +123,27 @@ class AppColors {
       b == Brightness.dark ? categoryTransportDark : categoryTransport;
   static Color categoryOtherOf(Brightness b) =>
       b == Brightness.dark ? categoryOtherDark : categoryOther;
+
+  /// Grouped list/card surfaces (e.g. profile menu blocks).
+  static Color surfaceGroupOf(Brightness b) =>
+      b == Brightness.dark ? primaryDark : surfaceGroup;
+
+  static Color surfaceGroupBorderOf(Brightness b) => b == Brightness.dark
+      ? surface.withValues(alpha: 0.12)
+      : surfaceGroupBorder;
+
+  /// Profile sheet zone behind grouped menu blocks.
+  static Color profileSheetBackgroundOf(Brightness b) =>
+      b == Brightness.dark ? primaryTrueDark : surfaceLight;
+
+  /// Primary label on profile menu rows and booking cards.
+  static Color profileMenuTitleOf(Brightness b) =>
+      b == Brightness.dark ? surface : primaryTrueDark;
+
+  /// Secondary/muted label on profile menu content in dark mode.
+  static Color profileMenuMutedOf(Brightness b) => b == Brightness.dark
+      ? surface.withValues(alpha: 0.72)
+      : primaryTrueDark.withValues(alpha: 0.6);
 
   // --- Text resolvers (brightness-aware) ---
   static Color textSecondaryOf(Brightness b) =>

@@ -1,7 +1,9 @@
 import 'package:bagtrip/components/adaptive/adaptive_edit_dialog.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/profile/widgets/personal_info_section.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,23 +14,24 @@ class PersonalInfoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.personalInfoPageTitle)),
+    return ProfileDetailScaffold(
+      title: l10n.personalInfoPageTitle,
       body: BlocBuilder<UserProfileBloc, UserProfileState>(
         builder: (context, state) {
           if (state is! UserProfileLoaded) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AdaptiveIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: PersonalInfoSection(
-              name: state.name,
-              email: state.email,
-              phone: state.phone,
-              onEditName: () => _editName(context, state, l10n),
-              onEditPhone: () => _editPhone(context, state, l10n),
-            ),
+          return ProfileDetailScrollBody(
+            children: [
+              PersonalInfoSection(
+                name: state.name,
+                email: state.email,
+                phone: state.phone,
+                onEditName: () => _editName(context, state, l10n),
+                onEditPhone: () => _editPhone(context, state, l10n),
+              ),
+            ],
           );
         },
       ),

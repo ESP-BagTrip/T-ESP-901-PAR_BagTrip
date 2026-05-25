@@ -1,11 +1,17 @@
-import 'package:bagtrip/components/adaptive/adaptive_app_bar.dart';
+import 'package:bagtrip/components/adaptive/adaptive_indicator.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/payment_method_preview.dart';
 import 'package:bagtrip/models/subscription_details.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_labeled_row.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_menu_row.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_scaffold.dart';
+import 'package:bagtrip/profile/widgets/profile_detail_style.dart';
+import 'package:bagtrip/profile/widgets/profile_menu_group_card.dart';
 import 'package:bagtrip/subscription/bloc/subscription_bloc.dart';
 import 'package:bagtrip/subscription/premium_checkout.dart';
 import 'package:bagtrip/subscription/premium_pricing.dart';
@@ -19,12 +25,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-/// "Manage subscription" — the showcase page.
-///
-/// Inspired by iOS Settings → Apple ID → Subscriptions: large breathing
-/// typography, divider-separated sections, no decorative borders. The
-/// destructive cancel action is a `ListTile` with red text rather than a
-/// solid red button — the copy carries the weight, not the chrome.
+/// Manage subscription — unified profile detail layout.
 class SubscriptionSettingsPage extends StatefulWidget {
   const SubscriptionSettingsPage({super.key});
 
@@ -46,24 +47,18 @@ class _SubscriptionSettingsPageState extends State<SubscriptionSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AdaptiveAppBar.build(
-        context: context,
-        title: l10n.subscriptionPageTitle,
-      ),
+
+    return ProfileDetailScaffold(
+      title: l10n.subscriptionPageTitle,
       body: BlocConsumer<SubscriptionBloc, SubscriptionState>(
         listenWhen: (prev, curr) =>
             prev.actionInFlight != SubscriptionAction.idle &&
             curr.actionInFlight == SubscriptionAction.idle &&
             curr.error == null,
-        listener: (context, state) {
-          // Cancel/reactivate succeeded — show subtle toast. The page itself
-          // re-fetches automatically via the LoadSubscription dispatch in
-          // the bloc, so the badge / actions update without intervention.
-        },
+        listener: (context, state) {},
         builder: (context, state) {
           if (state.isLoading && !state.hasData) {
-            return const _LoadingScaffold();
+            return const Center(child: AdaptiveIndicator());
           }
           if (state.error != null && !state.hasData) {
             return _ErrorView(
@@ -76,10 +71,10 @@ class _SubscriptionSettingsPageState extends State<SubscriptionSettingsPage> {
           if (details == null) {
             return const SizedBox.shrink();
           }
+
           return RefreshIndicator.adaptive(
             onRefresh: () async {
               context.read<SubscriptionBloc>().add(RefreshSubscription());
-              // Wait for the next state where loading finishes.
               await context.read<SubscriptionBloc>().stream.firstWhere(
                 (s) => !s.isLoading && !s.isRefreshing,
               );
@@ -94,10 +89,6 @@ class _SubscriptionSettingsPageState extends State<SubscriptionSettingsPage> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Premium body — the core showcase
-// ---------------------------------------------------------------------------
-
 class _PremiumBody extends StatelessWidget {
   const _PremiumBody({required this.state});
   final SubscriptionState state;
@@ -109,224 +100,175 @@ class _PremiumBody extends StatelessWidget {
     final dateFormat = DateFormat.yMMMMd(
       Localizations.localeOf(context).languageCode,
     );
+    final renewal = details.effectiveRenewalDate;
+
+    final statusLabel = _statusLabel(context, details, dateFormat);
+    final statusColor = _statusColor(details);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
+        AppSpacing.space16,
         AppSpacing.space24,
-        AppSpacing.space24,
-        AppSpacing.space24,
+        AppSpacing.space16,
         AppSpacing.space48,
       ),
       children: [
-        // Status badge — simple text, no chip with background.
-        _StatusBadge(details: details),
-        const SizedBox(height: AppSpacing.space32),
-
-        // Payment method card.
+        FormSectionHeader(
+          label: l10n.subscriptionSectionStatus,
+          icon: Icons.workspace_premium_outlined,
+        ),
+        ProfileMenuGroupCard(
+          children: [
+            ProfileDetailLabeledRow(
+              icon: Icons.workspace_premium_outlined,
+              iconColor: ProfileDetailStyle.iconAccentSecondary(),
+              label: '',
+              title: statusLabel,
+              showLabel: false,
+              titleColor: statusColor,
+              cardSerifTypography: true,
+            ),
+          ],
+        ),
         if (details.paymentMethod != null) ...[
-          _PaymentMethodCard(method: details.paymentMethod!),
           const SizedBox(height: AppSpacing.space24),
-        ],
-
-        // Renewal / expiry summary.
-        _RenewalSummary(details: details, dateFormat: dateFormat),
-        const SizedBox(height: AppSpacing.space32),
-        const _Divider(),
-
-        // Self-service actions.
-        // Update payment method opens the *native* PaymentSheet in setup
-        // mode — no browser, no portal. Apple Pay / Google Pay / cards
-        // attach in the same chrome the user paid in.
-        _ActionTile(
-          icon: AdaptiveIcons.creditCard,
-          label: l10n.subscriptionUpdatePaymentMethod,
-          onTap: () => UpdatePaymentMethodFlow.run(context),
-        ),
-        const _Divider(),
-        _ActionTile(
-          icon: AdaptiveIcons.invoice,
-          label: l10n.subscriptionViewInvoices,
-          onTap: () => const SubscriptionInvoicesRoute().go(context),
-        ),
-        const _Divider(),
-        if (details.cancelAtPeriodEnd)
-          _ActionTile(
-            icon: AdaptiveIcons.refresh,
-            label: l10n.subscriptionReactivateAction,
-            tone: _ActionTone.primary,
-            onTap: state.isReactivating
-                ? null
-                : () => ReactivateSubscriptionSheet.show(context),
-          )
-        else
-          _ActionTile(
-            icon: AdaptiveIcons.cancel,
-            label: l10n.subscriptionCancelAction,
-            tone: _ActionTone.destructive,
-            onTap: state.isCancelling
-                ? null
-                : () => CancelSubscriptionSheet.show(
-                    context,
-                    expiresAt: details.effectiveRenewalDate,
-                  ),
+          FormSectionHeader(
+            label: l10n.subscriptionSectionPayment,
+            icon: Icons.credit_card_outlined,
           ),
+          ProfileMenuGroupCard(
+            children: [_PaymentMethodRow(method: details.paymentMethod!)],
+          ),
+        ],
+        if (renewal != null) ...[
+          const SizedBox(height: AppSpacing.space24),
+          FormSectionHeader(
+            label: l10n.subscriptionSectionBilling,
+            icon: Icons.event_outlined,
+          ),
+          ProfileMenuGroupCard(
+            children: [
+              ProfileDetailLabeledRow(
+                icon: Icons.calendar_today_outlined,
+                iconColor: ProfileDetailStyle.iconAccentSecondary(),
+                label: '',
+                title: details.cancelAtPeriodEnd
+                    ? l10n.subscriptionExpiresOn(dateFormat.format(renewal))
+                    : l10n.subscriptionRenewsOn(dateFormat.format(renewal)),
+                subtitle: l10n.premiumPriceLabel(PremiumPricing.displayPrice),
+                showLabel: false,
+                cardSerifTypography: true,
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: AppSpacing.space24),
+        FormSectionHeader(
+          label: l10n.subscriptionSectionManage,
+          icon: Icons.settings_outlined,
+        ),
+        ProfileMenuGroupCard(children: _manageActions(context, state, details)),
       ],
     );
   }
-}
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.details});
-  final SubscriptionDetails details;
-
-  @override
-  Widget build(BuildContext context) {
+  List<Widget> _manageActions(
+    BuildContext context,
+    SubscriptionState state,
+    SubscriptionDetails details,
+  ) {
     final l10n = AppLocalizations.of(context)!;
-    final dateFormat = DateFormat.yMMMMd(
-      Localizations.localeOf(context).languageCode,
-    );
-    final renewal = details.effectiveRenewalDate;
 
-    final String label;
-    final Color color;
-    if (details.isCancelScheduled && renewal != null) {
-      label = l10n.subscriptionStatusCancelsOn(dateFormat.format(renewal));
-      color = AppColors.warning;
-    } else {
-      label = l10n.subscriptionStatusPremiumActive;
-      color = AppColors.primary;
-    }
-
-    return Text(
-      label,
-      style: TextStyle(
-        fontFamily: FontFamily.b612,
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: color,
-        letterSpacing: 0.2,
+    return [
+      ProfileDetailMenuRow(
+        icon: Icons.credit_card_outlined,
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
+        title: l10n.subscriptionUpdatePaymentMethod,
+        cardSerifTypography: true,
+        onTap: () => UpdatePaymentMethodFlow.run(context),
       ),
-    );
+      ProfileDetailMenuRow(
+        icon: Icons.receipt_long_outlined,
+        iconColor: ProfileDetailStyle.iconAccentSecondary(),
+        title: l10n.subscriptionViewInvoices,
+        cardSerifTypography: true,
+        onTap: () => const SubscriptionInvoicesRoute().go(context),
+      ),
+      if (details.cancelAtPeriodEnd)
+        ProfileDetailMenuRow(
+          icon: Icons.refresh_rounded,
+          iconColor: ProfileDetailStyle.iconAccentPrimary(),
+          title: l10n.subscriptionReactivateAction,
+          titleColor: AppColors.primary,
+          cardSerifTypography: true,
+          onTap: state.isReactivating
+              ? null
+              : () => ReactivateSubscriptionSheet.show(context),
+        )
+      else
+        ProfileDetailMenuRow(
+          icon: Icons.cancel_outlined,
+          iconColor: ProfileDetailStyle.iconAccentDestructive(),
+          title: l10n.subscriptionCancelAction,
+          titleColor: AppColors.error,
+          showChevron: false,
+          cardSerifTypography: true,
+          onTap: state.isCancelling
+              ? null
+              : () => CancelSubscriptionSheet.show(
+                  context,
+                  expiresAt: details.effectiveRenewalDate,
+                ),
+        ),
+    ];
+  }
+
+  String _statusLabel(
+    BuildContext context,
+    SubscriptionDetails details,
+    DateFormat dateFormat,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final renewal = details.effectiveRenewalDate;
+    if (details.isCancelScheduled && renewal != null) {
+      return l10n.subscriptionStatusCancelsOn(dateFormat.format(renewal));
+    }
+    return l10n.subscriptionStatusPremiumActive;
+  }
+
+  Color _statusColor(SubscriptionDetails details) {
+    if (details.isCancelScheduled) {
+      return AppColors.warning;
+    }
+    return AppColors.primary;
   }
 }
 
-class _PaymentMethodCard extends StatelessWidget {
-  const _PaymentMethodCard({required this.method});
+class _PaymentMethodRow extends StatelessWidget {
+  const _PaymentMethodRow({required this.method});
   final PaymentMethodPreview method;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.space16),
-      decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? AppColors.surfaceDark
-            : AppColors.surfaceVariant,
-        borderRadius: AppRadius.large20,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: AppRadius.medium8,
-            ),
-            child: Text(
-              method.brandDisplay.substring(0, 1).toUpperCase(),
-              style: const TextStyle(
-                fontFamily: FontFamily.b612,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.space16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  method.last4 != null
-                      ? '${method.brandDisplay}  ${l10n.subscriptionCardLast4(method.last4!)}'
-                      : method.brandDisplay,
-                  style: TextStyle(
-                    fontFamily: FontFamily.b612,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                if (method.formattedExpiry != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    l10n.subscriptionCardExpires(method.formattedExpiry!),
-                    style: TextStyle(
-                      fontFamily: FontFamily.b612,
-                      fontSize: 13,
-                      color: AppColors.textSecondaryOf(theme.brightness),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+    final title = method.last4 != null
+        ? '${method.brandDisplay}  ${l10n.subscriptionCardLast4(method.last4!)}'
+        : method.brandDisplay;
+
+    return ProfileDetailLabeledRow(
+      icon: Icons.credit_card_outlined,
+      iconColor: ProfileDetailStyle.iconAccentSecondary(),
+      label: '',
+      title: title,
+      subtitle: method.formattedExpiry != null
+          ? l10n.subscriptionCardExpires(method.formattedExpiry!)
+          : null,
+      showLabel: false,
+      cardSerifTypography: true,
     );
   }
 }
-
-class _RenewalSummary extends StatelessWidget {
-  const _RenewalSummary({required this.details, required this.dateFormat});
-  final SubscriptionDetails details;
-  final DateFormat dateFormat;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final renewal = details.effectiveRenewalDate;
-    if (renewal == null) return const SizedBox.shrink();
-
-    final dateLine = details.cancelAtPeriodEnd
-        ? l10n.subscriptionExpiresOn(dateFormat.format(renewal))
-        : l10n.subscriptionRenewsOn(dateFormat.format(renewal));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          dateLine,
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 16,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space4),
-        Text(
-          l10n.premiumPriceLabel(PremiumPricing.displayPrice),
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 14,
-            color: AppColors.textSecondaryOf(theme.brightness),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Free body
-// ---------------------------------------------------------------------------
 
 class _FreeBody extends StatefulWidget {
   const _FreeBody();
@@ -335,13 +277,6 @@ class _FreeBody extends StatefulWidget {
   State<_FreeBody> createState() => _FreeBodyState();
 }
 
-/// FREE-state of the manage-subscription page.
-///
-/// Used to show "Plan gratuit" + a paragraph + a button that opened
-/// *another* sheet with the same info and another button — three
-/// stacked surfaces for what's a single intent. Now the page itself is
-/// the showcase: swipeable feature cards, price, single CTA → Stripe
-/// PaymentSheet directly. One layer.
 class _FreeBodyState extends State<_FreeBody> {
   final _pageController = PageController();
   bool _isLoading = false;
@@ -359,15 +294,12 @@ class _FreeBodyState extends State<_FreeBody> {
     await PremiumCheckout.run(context);
     if (!mounted) return;
     setState(() => _isLoading = false);
-    // Nothing else to do on success — the bloc state flip will rebuild
-    // the parent into _PremiumBody automatically (via
-    // SubscriptionBloc.LoadSubscription dispatched inside PremiumCheckout).
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    final brightness = Theme.of(context).brightness;
     final mediaQuery = MediaQuery.of(context);
 
     final features = <_FreeFeature>[
@@ -397,9 +329,9 @@ class _FreeBodyState extends State<_FreeBody> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
+            AppSpacing.space16,
             AppSpacing.space24,
-            AppSpacing.space24,
-            AppSpacing.space24,
+            AppSpacing.space16,
             0,
           ),
           child: Align(
@@ -410,7 +342,10 @@ class _FreeBodyState extends State<_FreeBody> {
                 fontFamily: FontFamily.b612,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondaryOf(theme.brightness),
+                color: ProfileDetailStyle.subtitleColor(
+                  brightness,
+                  enabled: true,
+                ),
                 letterSpacing: 0.2,
               ),
             ),
@@ -449,9 +384,12 @@ class _FreeBodyState extends State<_FreeBody> {
                 l10n.premiumPriceLabel(PremiumPricing.displayPrice),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 13,
-                  color: AppColors.textSecondaryOf(theme.brightness),
+                  fontFamily: FontFamily.dMSerifDisplay,
+                  fontSize: 14,
+                  color: ProfileDetailStyle.subtitleColor(
+                    brightness,
+                    enabled: true,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.space4),
@@ -459,7 +397,7 @@ class _FreeBodyState extends State<_FreeBody> {
                 l10n.premiumDisclaimerCancelAnytime,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: FontFamily.b612,
+                  fontFamily: FontFamily.dMSans,
                   fontSize: 12,
                   color: AppColors.textDisabled,
                 ),
@@ -474,14 +412,15 @@ class _FreeBodyState extends State<_FreeBody> {
 }
 
 class _FreeFeature {
-  final IconData icon;
-  final String title;
-  final String body;
   const _FreeFeature({
     required this.icon,
     required this.title,
     required this.body,
   });
+
+  final IconData icon;
+  final String title;
+  final String body;
 }
 
 class _FreeFeaturePage extends StatelessWidget {
@@ -490,7 +429,7 @@ class _FreeFeaturePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final brightness = Theme.of(context).brightness;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space32),
       child: Column(
@@ -506,7 +445,7 @@ class _FreeFeaturePage extends StatelessWidget {
               fontSize: 26,
               fontWeight: FontWeight.w700,
               height: 1.2,
-              color: theme.colorScheme.onSurface,
+              color: ProfileDetailStyle.titleColor(brightness, enabled: true),
             ),
           ),
           const SizedBox(height: AppSpacing.space16),
@@ -517,7 +456,10 @@ class _FreeFeaturePage extends StatelessWidget {
               fontFamily: FontFamily.b612,
               fontSize: 15,
               height: 1.5,
-              color: AppColors.textSecondaryOf(theme.brightness),
+              color: ProfileDetailStyle.subtitleColor(
+                brightness,
+                enabled: true,
+              ),
             ),
           ),
         ],
@@ -554,93 +496,6 @@ class _FreePageDots extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Reusable list-tile-style actions
-// ---------------------------------------------------------------------------
-
-enum _ActionTone { neutral, primary, destructive }
-
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.tone = _ActionTone.neutral,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final _ActionTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = switch (tone) {
-      _ActionTone.neutral => theme.colorScheme.onSurface,
-      _ActionTone.primary => AppColors.primary,
-      _ActionTone.destructive => AppColors.error,
-    };
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.space4,
-          vertical: AppSpacing.space16,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: AppSpacing.space16),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontFamily: FontFamily.b612,
-                  fontSize: 16,
-                  color: color,
-                ),
-              ),
-            ),
-            if (tone != _ActionTone.destructive)
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.textDisabled,
-                size: 20,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  const _Divider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
-      child: Container(
-        height: 1,
-        color: AppColors.border.withValues(alpha: 0.4),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Loading + error scaffolds
-// ---------------------------------------------------------------------------
-
-class _LoadingScaffold extends StatelessWidget {
-  const _LoadingScaffold();
-  @override
-  Widget build(BuildContext context) =>
-      const Center(child: CupertinoActivityIndicator());
-}
-
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});
   final String message;
@@ -648,6 +503,7 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
@@ -660,7 +516,10 @@ class _ErrorView extends StatelessWidget {
               style: TextStyle(
                 fontFamily: FontFamily.b612,
                 fontSize: 16,
-                color: AppColors.textSecondaryOf(Theme.of(context).brightness),
+                color: ProfileDetailStyle.subtitleColor(
+                  brightness,
+                  enabled: true,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.space16),
@@ -673,14 +532,4 @@ class _ErrorView extends StatelessWidget {
       ),
     );
   }
-}
-
-// Static icon glyph wrapper so the action tiles use the same iconography on
-// both platforms without each call site re-deciding.
-class AdaptiveIcons {
-  AdaptiveIcons._();
-  static const IconData creditCard = Icons.credit_card_outlined;
-  static const IconData invoice = Icons.receipt_long_outlined;
-  static const IconData refresh = Icons.refresh_rounded;
-  static const IconData cancel = Icons.cancel_outlined;
 }

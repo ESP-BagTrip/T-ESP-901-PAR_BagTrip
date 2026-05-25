@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseThemeHint.
   ///
   /// In fr, this message translates to:
-  /// **'Choisissez votre thème préféré'**
+  /// **'Apparence de l\'interface'**
   String get chooseThemeHint;
 
   /// No description provided for @themeLight.
@@ -601,6 +601,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Version {version} · © {year} Vol Airlines'**
   String profileFooterText(String version, int year);
+
+  /// No description provided for @profileSectionMyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'MON COMPTE'**
+  String get profileSectionMyAccount;
+
+  /// No description provided for @profileSectionSession.
+  ///
+  /// In fr, this message translates to:
+  /// **'SESSION'**
+  String get profileSectionSession;
+
+  /// No description provided for @deleteAccountIrreversible.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action irréversible'**
+  String get deleteAccountIrreversible;
 
   /// No description provided for @memberSinceText.
   ///
@@ -2341,6 +2359,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Social'**
   String get notificationPrefsSocial;
+
+  /// No description provided for @notificationPrefsPushSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les alertes'**
+  String get notificationPrefsPushSubtitle;
+
+  /// No description provided for @notificationPrefsFlightRemindersSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant chaque vol'**
+  String get notificationPrefsFlightRemindersSubtitle;
+
+  /// No description provided for @notificationPrefsActivityRemindersSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'activités planifiées'**
+  String get notificationPrefsActivityRemindersSubtitle;
+
+  /// No description provided for @notificationPrefsTripUpdatesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changements sur vos voyages'**
+  String get notificationPrefsTripUpdatesSubtitle;
+
+  /// No description provided for @notificationPrefsBudgetAlertsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépassements et seuils'**
+  String get notificationPrefsBudgetAlertsSubtitle;
+
+  /// No description provided for @notificationPrefsSocialSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis et partages'**
+  String get notificationPrefsSocialSubtitle;
 
   /// No description provided for @notificationPrefsLoadError.
   ///
@@ -6170,6 +6224,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mon abonnement'**
   String get subscriptionPageTitle;
+
+  /// No description provided for @subscriptionSectionStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut'**
+  String get subscriptionSectionStatus;
+
+  /// No description provided for @subscriptionSectionPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get subscriptionSectionPayment;
+
+  /// No description provided for @subscriptionSectionBilling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Facturation'**
+  String get subscriptionSectionBilling;
+
+  /// No description provided for @subscriptionSectionManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestion'**
+  String get subscriptionSectionManage;
 
   /// No description provided for @subscriptionStatusActive.
   ///

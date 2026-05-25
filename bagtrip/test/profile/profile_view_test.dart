@@ -1,6 +1,9 @@
 import 'package:bagtrip/core/app_error.dart';
 import 'package:bagtrip/profile/bloc/user_profile_bloc.dart';
 import 'package:bagtrip/profile/view/profile_view.dart';
+import 'package:bagtrip/profile/widgets/profile_delete_account_tile.dart';
+import 'package:bagtrip/profile/widgets/profile_section_label.dart';
+import 'package:bagtrip/profile/widgets/profile_two_zone_layout.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,7 +54,9 @@ void main() {
       expect(find.byType(ProfileView), findsOneWidget);
     });
 
-    testWidgets('renders loaded state with full profile', (tester) async {
+    testWidgets('renders loaded state with section labels and delete tile', (
+      tester,
+    ) async {
       await pump(
         tester,
         UserProfileLoaded(
@@ -65,7 +70,9 @@ void main() {
           companions: 'couple',
         ),
       );
-      expect(find.byType(ProfileView), findsOneWidget);
+      expect(find.byType(ProfileTwoZoneLayout), findsOneWidget);
+      expect(find.byType(ProfileSectionLabel), findsNWidgets(2));
+      expect(find.byType(ProfileDeleteAccountTile), findsOneWidget);
     });
 
     testWidgets('renders error state', (tester) async {

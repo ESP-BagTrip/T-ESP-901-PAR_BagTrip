@@ -42,7 +42,9 @@ class DurationChipSelector extends StatelessWidget {
             duration: AppAnimations.microInteraction,
             padding: AppSpacing.allEdgeInsetSpace12,
             decoration: BoxDecoration(
-              color: isSelected ? ColorName.primaryLight : ColorName.surface,
+              color: isSelected
+                  ? const Color.fromARGB(255, 245, 234, 234)
+                  : const Color.fromARGB(255, 255, 255, 255),
               borderRadius: AppRadius.large16,
               border: Border.all(
                 color: isSelected

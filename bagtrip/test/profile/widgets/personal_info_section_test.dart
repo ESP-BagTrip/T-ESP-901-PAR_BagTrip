@@ -1,4 +1,6 @@
+import 'package:bagtrip/design/widgets/form/form_section_header.dart';
 import 'package:bagtrip/profile/widgets/personal_info_section.dart';
+import 'package:bagtrip/profile/widgets/profile_menu_group_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,6 +27,8 @@ void main() {
       );
       await tester.pump();
       expect(find.byType(PersonalInfoSection), findsOneWidget);
+      expect(find.byType(FormSectionHeader), findsOneWidget);
+      expect(find.byType(ProfileMenuGroupCard), findsOneWidget);
     });
 
     testWidgets('renders without edit callbacks', (tester) async {
