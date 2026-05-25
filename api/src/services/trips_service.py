@@ -55,6 +55,8 @@ class TripsService:
         destination_name: str | None = None,
         nb_travelers: int | None = None,
         cover_image_url: str | None = None,
+        cover_image_source: str | None = None,
+        cover_image_candidates: list[dict] | None = None,
         budget_target: float | None = None,
         origin: str | None = None,
         date_mode: str | None = None,
@@ -73,6 +75,8 @@ class TripsService:
             destination_timezone=resolve_timezone_from_iata(destination_iata),
             nb_travelers=nb_travelers or 1,
             cover_image_url=cover_image_url,
+            cover_image_source=cover_image_source,
+            cover_image_candidates=cover_image_candidates,
             budget_target=budget_target,
             origin=origin or TripOrigin.MANUAL,
             date_mode=date_mode or DateMode.EXACT,
@@ -361,6 +365,10 @@ class TripsService:
             trip.nb_travelers = nb_travelers
         if cover_image_url is not None:
             trip.cover_image_url = cover_image_url
+            # When the user picks a cover (either from the swap sheet or
+            # via a direct URL), tag the provenance so future re-picks
+            # don't silently overwrite their choice.
+            trip.cover_image_source = "user_selected"
         if budget_target is not None:
             trip.budget_target = budget_target
         if date_mode is not None:

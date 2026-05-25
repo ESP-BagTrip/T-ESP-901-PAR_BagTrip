@@ -71,6 +71,64 @@ void main() {
   group('TripDetailBloc', () {
     // ── LoadTripDetail ─────────────────────────────────────────────
 
+    // SMP-330 — RefreshTripCoverFromDetail + SelectTripCoverFromDetail.
+    // The cover swap surfaces in the trip-detail hero; both events have
+    // simple optimistic semantics and no completion-recompute side-effects,
+    // so the assertions stay tight.
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'RefreshTripCoverFromDetail merges the refreshed trip into state',
+      build: () {
+        stubAllSuccess();
+        when(() => mockTripRepo.refreshTripCover(any())).thenAnswer(
+          (_) async => Success(
+            makeTrip().copyWith(
+              coverImageUrl: 'https://local/covers/new.jpg',
+              coverImageSource: 'wikipedia',
+            ),
+          ),
+        );
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(RefreshTripCoverFromDetail());
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(() => mockTripRepo.refreshTripCover('trip-1')).called(1);
+      },
+    );
+
+    blocTest<TripDetailBloc, TripDetailState>(
+      'SelectTripCoverFromDetail optimistically updates the trip cover URL',
+      build: () {
+        stubAllSuccess();
+        when(
+          () => mockTripRepo.updateTrip(any(), any()),
+        ).thenAnswer((_) async => Success(makeTrip()));
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadTripDetail(tripId: 'trip-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(
+          SelectTripCoverFromDetail(
+            coverImageUrl: 'https://local/covers/x.jpg',
+          ),
+        );
+      },
+      wait: const Duration(milliseconds: 300),
+      verify: (_) {
+        verify(
+          () => mockTripRepo.updateTrip('trip-1', {
+            'coverImageUrl': 'https://local/covers/x.jpg',
+          }),
+        ).called(1);
+      },
+    );
+
     blocTest<TripDetailBloc, TripDetailState>(
       'emits [Loading, Loaded(deferred:false), Loaded(deferred:true)] on successful load',
       build: () {

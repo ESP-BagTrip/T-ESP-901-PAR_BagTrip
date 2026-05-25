@@ -75,6 +75,9 @@ class TripResponse(BaseModel):
     destinationTimezone: str | None = Field(default=None, alias="destination_timezone")
     nbTravelers: int | None = Field(default=None, alias="nb_travelers")
     coverImageUrl: str | None = Field(default=None, alias="cover_image_url")
+    # SMP-330 — provenance + alternatives surfaced to the swap UI.
+    coverImageSource: str | None = Field(default=None, alias="cover_image_source")
+    coverImageCandidates: list[dict] | None = Field(default=None, alias="cover_image_candidates")
     budgetTarget: float | None = Field(default=None, alias="budget_target")
     budgetEstimated: float | None = Field(default=None, alias="budget_estimated")
     budgetActual: float | None = Field(default=None, alias="budget_actual")

@@ -6,21 +6,18 @@ import '../../helpers/pump_widget.dart';
 
 void main() {
   group('ProfileHeaderCard', () {
-    testWidgets('renders with full name (two parts)', (tester) async {
+    testWidgets('renders full name and initials', (tester) async {
       await pumpLocalized(
         tester,
-        SizedBox(
+        const SizedBox(
           width: 800,
           height: 400,
-          child: ProfileHeaderCard(
-            name: 'Alice Doe',
-            memberSince: '2024',
-            onEditName: () {},
-          ),
+          child: ProfileHeaderCard(name: 'Alice Doe', memberSince: '2024'),
         ),
       );
       await tester.pump();
-      expect(find.byType(ProfileHeaderCard), findsOneWidget);
+      expect(find.text('Alice Doe'), findsOneWidget);
+      expect(find.text('AD'), findsOneWidget);
     });
 
     testWidgets('renders with single-part name', (tester) async {
@@ -33,7 +30,8 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(ProfileHeaderCard), findsOneWidget);
+      expect(find.text('Alice'), findsOneWidget);
+      expect(find.text('A'), findsOneWidget);
     });
 
     testWidgets('renders with empty name', (tester) async {
@@ -49,7 +47,7 @@ void main() {
       expect(find.byType(ProfileHeaderCard), findsOneWidget);
     });
 
-    testWidgets('renders without onEditName callback', (tester) async {
+    testWidgets('renders with multi-part name', (tester) async {
       await pumpLocalized(
         tester,
         const SizedBox(
@@ -59,7 +57,7 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.byType(ProfileHeaderCard), findsOneWidget);
+      expect(find.text('Bob Smith'), findsOneWidget);
     });
   });
 }

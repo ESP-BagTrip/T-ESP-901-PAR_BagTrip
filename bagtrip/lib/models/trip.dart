@@ -1,3 +1,4 @@
+import 'package:bagtrip/models/trip_cover_candidate.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'trip.freezed.dart';
@@ -54,6 +55,13 @@ abstract class Trip with _$Trip {
     double? destinationLongitude,
     int? nbTravelers,
     String? coverImageUrl,
+    // SMP-330 — populated by the no-API-key cover pipeline. ``source``
+    // is one of ``wikipedia``, ``wikidata``, ``commons_geo``,
+    // ``user_selected``, ``unsplash_legacy``. ``candidates`` is the list
+    // the "Change cover" bottom sheet shows; null on legacy trips.
+    String? coverImageSource,
+    @Default(<TripCoverCandidate>[])
+    List<TripCoverCandidate> coverImageCandidates,
     double? budgetTarget,
     double? budgetEstimated,
     double? budgetActual,

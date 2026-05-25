@@ -127,7 +127,7 @@
   "languageFrench": "Français",
   "languageEnglish": "Anglais",
   "themeLabel": "THÈME",
-  "chooseThemeHint": "Choisissez votre thème préféré",
+  "chooseThemeHint": "Apparence de l'interface",
   "themeLight": "Clair",
   "themeDark": "Sombre",
   "themeSystem": "Système",
@@ -142,6 +142,9 @@
       }
     }
   },
+  "profileSectionMyAccount": "MON COMPTE",
+  "profileSectionSession": "SESSION",
+  "deleteAccountIrreversible": "Action irréversible",
   "memberSinceText": "Membre depuis {date}",
   "@memberSinceText": {
     "placeholders": {
@@ -576,6 +579,12 @@
   "notificationPrefsTripUpdates": "Mises à jour du voyage",
   "notificationPrefsBudgetAlerts": "Alertes budget",
   "notificationPrefsSocial": "Social",
+  "notificationPrefsPushSubtitle": "Toutes les alertes",
+  "notificationPrefsFlightRemindersSubtitle": "Avant chaque vol",
+  "notificationPrefsActivityRemindersSubtitle": "Rappels d'activités planifiées",
+  "notificationPrefsTripUpdatesSubtitle": "Changements sur vos voyages",
+  "notificationPrefsBudgetAlertsSubtitle": "Dépassements et seuils",
+  "notificationPrefsSocialSubtitle": "Amis et partages",
   "notificationPrefsLoadError": "Impossible de charger vos préférences de notification.",
   "personalInfoPageTitle": "Informations personnelles",
   "travelPreferencesTitle": "Préférences de voyage",
@@ -1705,6 +1714,10 @@
   "subscriptionContinue": "Continuer",
 
   "subscriptionPageTitle": "Mon abonnement",
+  "subscriptionSectionStatus": "Statut",
+  "subscriptionSectionPayment": "Paiement",
+  "subscriptionSectionBilling": "Facturation",
+  "subscriptionSectionManage": "Gestion",
   "subscriptionStatusActive": "Actif",
   "subscriptionStatusPremiumActive": "Premium · Actif",
   "subscriptionStatusFree": "Plan gratuit",
@@ -1839,5 +1852,10 @@
   "activitiesPanelTabRecos": "Recommandations",
   "activitiesPanelEmptyRecos": "Aucune recommandation de restaurant ou de transport pour ce voyage.",
   "activitiesPanelSectionRestaurants": "Restaurants",
-  "activitiesPanelSectionTransports": "Transports"
+  "activitiesPanelSectionTransports": "Transports",
+  "coverPickerTitle": "Changer la photo de couverture",
+  "coverPickerEmpty": "Aucune alternative disponible — appuyez sur « Trouver d'autres photos » pour relancer.",
+  "coverPickerFindMore": "Trouver d'autres photos",
+  "coverPickerCurrentBadge": "Actuelle",
+  "coverChangeButton": "Changer la photo"
 }

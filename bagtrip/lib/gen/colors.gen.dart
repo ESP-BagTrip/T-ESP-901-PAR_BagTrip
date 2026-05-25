@@ -26,6 +26,9 @@ class ColorName {
   /// Color: #E0E0E0
   static const Color border = Color(0xFFE0E0E0);
 
+  /// Color: #EF4444
+  static const Color destructive = Color(0xFFEF4444);
+
   /// Color: #F44336
   static const Color error = Color(0xFFF44336);
 
@@ -82,6 +85,18 @@ class ColorName {
 
   /// Color: #2A2F3D
   static const Color surfaceDark = Color(0xFF2A2F3D);
+
+  /// Color: #FAFBFC
+  static const Color surfaceGroup = Color(0xFFFAFBFC);
+
+  /// Color: #EAECF0
+  static const Color surfaceGroupBorder = Color(0xFFEAECF0);
+
+  /// Color: #454B5A
+  static const Color surfaceGroupBorderDark = Color(0xFF454B5A);
+
+  /// Color: #353B4A
+  static const Color surfaceGroupDark = Color(0xFF353B4A);
 
   /// Color: #F7F9FC
   static const Color surfaceLight = Color(0xFFF7F9FC);

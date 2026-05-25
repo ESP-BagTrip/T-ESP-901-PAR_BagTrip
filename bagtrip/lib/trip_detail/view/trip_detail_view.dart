@@ -16,7 +16,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
-import 'package:bagtrip/plan_trip/helpers/destination_cover.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
@@ -27,6 +26,7 @@ import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
+import 'package:bagtrip/trip_detail/widgets/cover_image_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/hero_overflow_menu.dart';
 import 'package:bagtrip/trip_detail/widgets/review_shimmer.dart';
@@ -182,6 +182,12 @@ class _LoadedTripViewState extends State<_LoadedTripView>
             onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
             onBack: () => const HomeRoute().go(context),
             onOverflow: () => _handleOverflow(context),
+            onChangeCover: _canEdit
+                ? () => showCoverImagePickerSheet(
+                    context,
+                    bloc: context.read<TripDetailBloc>(),
+                  )
+                : null,
             trailing: CompletionRing(
               percentage: state.completionResult.percentage,
               onTap: _canEdit
@@ -318,15 +324,15 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return totalBudget.formatPrice();
   }
 
-  /// Cover image for the hero: prefer the URL stored on the trip (populated by
-  /// the backend at accept time from Unsplash), fall back to the shared
-  /// destination-cover helper so manual trips also get an image.
+  /// Cover image for the hero. The backend's SMP-330 no-API-key pipeline
+  /// (Wikipedia → Wikidata → Commons) always populates [Trip.coverImageUrl]
+  /// when a destination is known, so the client no longer keeps a parallel
+  /// fallback. ``null`` here lets the hero widget render its gradient
+  /// placeholder, which is preferable to a wrong stock photo.
   String? _resolveCoverImage(Trip trip) {
     final fromBackend = trip.coverImageUrl;
     if (fromBackend != null && fromBackend.isNotEmpty) return fromBackend;
-    final city = trip.destinationName ?? trip.title ?? '';
-    if (city.isEmpty) return null;
-    return destinationCoverUrl(city: city, country: '');
+    return null;
   }
 
   Widget? _buildStatusBadge(AppLocalizations l10n) {

@@ -83,6 +83,8 @@ class TripDetailBloc extends Bloc<TripDetailEvent, TripDetailState> {
     on<UpdateTripDates>(_onUpdateTripDates);
     on<UpdateTripTravelers>(_onUpdateTripTravelers);
     on<UpdateTripTrackingFromDetail>(_onUpdateTripTracking);
+    on<RefreshTripCoverFromDetail>(_onRefreshTripCoverFromDetail);
+    on<SelectTripCoverFromDetail>(_onSelectTripCoverFromDetail);
     on<DeleteTripDetail>(_onDeleteTrip);
 
     // Activities (see trip_detail_activity_handlers.dart).

@@ -28,6 +28,12 @@ _Trip _$TripFromJson(Map<String, dynamic> json) => _Trip(
   destinationLongitude: (json['destination_longitude'] as num?)?.toDouble(),
   nbTravelers: (json['nb_travelers'] as num?)?.toInt(),
   coverImageUrl: json['cover_image_url'] as String?,
+  coverImageSource: json['cover_image_source'] as String?,
+  coverImageCandidates:
+      (json['cover_image_candidates'] as List<dynamic>?)
+          ?.map((e) => TripCoverCandidate.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <TripCoverCandidate>[],
   budgetTarget: (json['budget_target'] as num?)?.toDouble(),
   budgetEstimated: (json['budget_estimated'] as num?)?.toDouble(),
   budgetActual: (json['budget_actual'] as num?)?.toDouble(),
@@ -61,6 +67,10 @@ Map<String, dynamic> _$TripToJson(_Trip instance) => <String, dynamic>{
   'destination_longitude': instance.destinationLongitude,
   'nb_travelers': instance.nbTravelers,
   'cover_image_url': instance.coverImageUrl,
+  'cover_image_source': instance.coverImageSource,
+  'cover_image_candidates': instance.coverImageCandidates
+      .map((e) => e.toJson())
+      .toList(),
   'budget_target': instance.budgetTarget,
   'budget_estimated': instance.budgetEstimated,
   'budget_actual': instance.budgetActual,

@@ -127,7 +127,7 @@
   "languageFrench": "French",
   "languageEnglish": "English",
   "themeLabel": "THEME",
-  "chooseThemeHint": "Choose your preferred theme",
+  "chooseThemeHint": "Interface appearance",
   "themeLight": "Light",
   "themeDark": "Dark",
   "themeSystem": "System",
@@ -142,6 +142,9 @@
       }
     }
   },
+  "profileSectionMyAccount": "MY ACCOUNT",
+  "profileSectionSession": "SESSION",
+  "deleteAccountIrreversible": "Irreversible action",
   "memberSinceText": "Member since {date}",
   "@memberSinceText": {
     "placeholders": {
@@ -576,6 +579,12 @@
   "notificationPrefsTripUpdates": "Trip updates",
   "notificationPrefsBudgetAlerts": "Budget alerts",
   "notificationPrefsSocial": "Social",
+  "notificationPrefsPushSubtitle": "All alerts",
+  "notificationPrefsFlightRemindersSubtitle": "Before each flight",
+  "notificationPrefsActivityRemindersSubtitle": "Scheduled activity reminders",
+  "notificationPrefsTripUpdatesSubtitle": "Changes to your trips",
+  "notificationPrefsBudgetAlertsSubtitle": "Overspending and thresholds",
+  "notificationPrefsSocialSubtitle": "Friends and sharing",
   "notificationPrefsLoadError": "Unable to load your notification preferences.",
   "personalInfoPageTitle": "Personal information",
   "travelPreferencesTitle": "Travel preferences",
@@ -1705,6 +1714,10 @@
   "subscriptionContinue": "Continue",
 
   "subscriptionPageTitle": "My subscription",
+  "subscriptionSectionStatus": "Status",
+  "subscriptionSectionPayment": "Payment",
+  "subscriptionSectionBilling": "Billing",
+  "subscriptionSectionManage": "Manage",
   "subscriptionStatusActive": "Active",
   "subscriptionStatusPremiumActive": "Premium · Active",
   "subscriptionStatusFree": "Free plan",
@@ -1839,5 +1852,10 @@
   "activitiesPanelTabRecos": "Recos",
   "activitiesPanelEmptyRecos": "No restaurant or transport recommendations for this trip.",
   "activitiesPanelSectionRestaurants": "Restaurants",
-  "activitiesPanelSectionTransports": "Transports"
+  "activitiesPanelSectionTransports": "Transports",
+  "coverPickerTitle": "Change cover photo",
+  "coverPickerEmpty": "No alternatives available — tap \"Find more\" to refresh.",
+  "coverPickerFindMore": "Find more photos",
+  "coverPickerCurrentBadge": "Current",
+  "coverChangeButton": "Change photo"
 }

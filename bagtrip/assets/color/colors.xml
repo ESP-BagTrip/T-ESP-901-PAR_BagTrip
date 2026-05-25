@@ -16,6 +16,7 @@
     <color name="warning">#FF9800</color>
     <color name="error">#F44336</color>
     <color name="error_dark">#B71C1C</color>
+    <color name="destructive">#EF4444</color>
     <color name="info">#2196F3</color>
     <color name="info_light">#E3F2FD</color>
     <color name="warning_light">#FFF3E0</color>
@@ -30,6 +31,10 @@
     <color name="surface_light">#F7F9FC</color>
     <color name="surface_dark">#2A2F3D</color>
     <color name="surface_variant">#E8EDF1</color>
+    <color name="surface_group">#FAFBFC</color>
+    <color name="surface_group_dark">#353B4A</color>
+    <color name="surface_group_border">#EAECF0</color>
+    <color name="surface_group_border_dark">#454B5A</color>
     <color name="input_background_dark">#353B4A</color>
 
     <!-- Background gradients -->

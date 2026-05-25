@@ -177,6 +177,15 @@ class CachedTripRepository implements TripRepository {
   }
 
   @override
+  Future<Result<Trip>> refreshTripCover(String tripId) async {
+    final result = await _remote.refreshTripCover(tripId);
+    if (result is Success) {
+      await _invalidateTripCaches(tripId);
+    }
+    return result;
+  }
+
+  @override
   Future<Result<Trip>> updateTripStatus(String tripId, String status) async {
     final result = await _remote.updateTripStatus(tripId, status);
     if (result is Success) {

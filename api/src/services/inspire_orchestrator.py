@@ -41,8 +41,8 @@ from src.integrations.aviation_data.service import (
     AviationDataService,
     Location,
 )
-from src.integrations.unsplash import unsplash_client
 from src.services.amadeus_service import AmadeusService
+from src.services.cover_image.service import cover_image_service
 from src.services.llm_router import LLMRouter
 from src.utils.errors import AppError
 from src.utils.locale import normalize_locale
@@ -223,7 +223,7 @@ class InspireOrchestrator:
             selected = [c for c in usable if c.selected]
 
         # 6. Cover images, parallel.
-        await cls._fetch_cover_images(selected)
+        await cls._fetch_cover_images(selected, locale=normalize_locale(req.locale))
 
         payload = [cls._serialize(c) for c in selected]
         yield "destinations", {"destinations": payload, "originIata": origin_iata}
@@ -493,14 +493,18 @@ class InspireOrchestrator:
         return "\n".join(lines)
 
     @staticmethod
-    async def _fetch_cover_images(candidates: list[_Candidate]) -> None:
+    async def _fetch_cover_images(candidates: list[_Candidate], *, locale: str = "en") -> None:
         async def _one(c: _Candidate) -> None:
             assert c.location is not None
             city = c.location.address.cityName if c.location.address else c.iata
             country = c.location.address.countryName if c.location.address else ""
             query = f"{city}, {country}" if country else city
-            url = await unsplash_client.fetch_cover_image(query)
-            c.image_url = url or unsplash_client.get_fallback_url(query)
+            # SMP-330 — pick_cover already rehosts the URL locally.
+            # ``None`` leaves ``c.image_url`` empty; the Flutter card
+            # falls back to its placeholder.
+            result = await cover_image_service.pick_cover(query, locale=locale)
+            if result is not None:
+                c.image_url = result.primary_url
 
         await asyncio.gather(*[_one(c) for c in candidates])
 
@@ -674,7 +678,7 @@ class InspireOrchestrator:
 
         # Cover images, then serialise through the same path as the main
         # Amadeus pipeline so both flows ship an identical payload shape.
-        await cls._fetch_cover_images(selected)
+        await cls._fetch_cover_images(selected, locale=normalize_locale(req.locale))
         return [cls._serialize(c) for c in selected]
 
     @staticmethod

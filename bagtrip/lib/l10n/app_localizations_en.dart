@@ -274,7 +274,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeLabel => 'THEME';
 
   @override
-  String get chooseThemeHint => 'Choose your preferred theme';
+  String get chooseThemeHint => 'Interface appearance';
 
   @override
   String get themeLight => 'Light';
@@ -289,6 +289,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileFooterText(String version, int year) {
     return 'Version $version · © $year Vol Airlines';
   }
+
+  @override
+  String get profileSectionMyAccount => 'MY ACCOUNT';
+
+  @override
+  String get profileSectionSession => 'SESSION';
+
+  @override
+  String get deleteAccountIrreversible => 'Irreversible action';
 
   @override
   String memberSinceText(String date) {
@@ -1231,6 +1240,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsPushSubtitle => 'All alerts';
+
+  @override
+  String get notificationPrefsFlightRemindersSubtitle => 'Before each flight';
+
+  @override
+  String get notificationPrefsActivityRemindersSubtitle =>
+      'Scheduled activity reminders';
+
+  @override
+  String get notificationPrefsTripUpdatesSubtitle => 'Changes to your trips';
+
+  @override
+  String get notificationPrefsBudgetAlertsSubtitle =>
+      'Overspending and thresholds';
+
+  @override
+  String get notificationPrefsSocialSubtitle => 'Friends and sharing';
 
   @override
   String get notificationPrefsLoadError =>
@@ -3444,6 +3473,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get subscriptionPageTitle => 'My subscription';
 
   @override
+  String get subscriptionSectionStatus => 'Status';
+
+  @override
+  String get subscriptionSectionPayment => 'Payment';
+
+  @override
+  String get subscriptionSectionBilling => 'Billing';
+
+  @override
+  String get subscriptionSectionManage => 'Manage';
+
+  @override
   String get subscriptionStatusActive => 'Active';
 
   @override
@@ -3738,4 +3779,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activitiesPanelSectionTransports => 'Transports';
+
+  @override
+  String get coverPickerTitle => 'Change cover photo';
+
+  @override
+  String get coverPickerEmpty =>
+      'No alternatives available — tap \"Find more\" to refresh.';
+
+  @override
+  String get coverPickerFindMore => 'Find more photos';
+
+  @override
+  String get coverPickerCurrentBadge => 'Current';
+
+  @override
+  String get coverChangeButton => 'Change photo';
 }

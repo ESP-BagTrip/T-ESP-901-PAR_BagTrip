@@ -276,7 +276,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get themeLabel => 'THÈME';
 
   @override
-  String get chooseThemeHint => 'Choisissez votre thème préféré';
+  String get chooseThemeHint => 'Apparence de l\'interface';
 
   @override
   String get themeLight => 'Clair';
@@ -291,6 +291,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String profileFooterText(String version, int year) {
     return 'Version $version · © $year Vol Airlines';
   }
+
+  @override
+  String get profileSectionMyAccount => 'MON COMPTE';
+
+  @override
+  String get profileSectionSession => 'SESSION';
+
+  @override
+  String get deleteAccountIrreversible => 'Action irréversible';
 
   @override
   String memberSinceText(String date) {
@@ -1241,6 +1250,26 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsPushSubtitle => 'Toutes les alertes';
+
+  @override
+  String get notificationPrefsFlightRemindersSubtitle => 'Avant chaque vol';
+
+  @override
+  String get notificationPrefsActivityRemindersSubtitle =>
+      'Rappels d\'activités planifiées';
+
+  @override
+  String get notificationPrefsTripUpdatesSubtitle =>
+      'Changements sur vos voyages';
+
+  @override
+  String get notificationPrefsBudgetAlertsSubtitle => 'Dépassements et seuils';
+
+  @override
+  String get notificationPrefsSocialSubtitle => 'Amis et partages';
 
   @override
   String get notificationPrefsLoadError =>
@@ -3467,6 +3496,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subscriptionPageTitle => 'Mon abonnement';
 
   @override
+  String get subscriptionSectionStatus => 'Statut';
+
+  @override
+  String get subscriptionSectionPayment => 'Paiement';
+
+  @override
+  String get subscriptionSectionBilling => 'Facturation';
+
+  @override
+  String get subscriptionSectionManage => 'Gestion';
+
+  @override
   String get subscriptionStatusActive => 'Actif';
 
   @override
@@ -3764,4 +3805,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get activitiesPanelSectionTransports => 'Transports';
+
+  @override
+  String get coverPickerTitle => 'Changer la photo de couverture';
+
+  @override
+  String get coverPickerEmpty =>
+      'Aucune alternative disponible — appuyez sur « Trouver d\'autres photos » pour relancer.';
+
+  @override
+  String get coverPickerFindMore => 'Trouver d\'autres photos';
+
+  @override
+  String get coverPickerCurrentBadge => 'Actuelle';
+
+  @override
+  String get coverChangeButton => 'Changer la photo';
 }

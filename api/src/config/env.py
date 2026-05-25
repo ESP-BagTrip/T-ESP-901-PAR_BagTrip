@@ -159,8 +159,18 @@ class Settings(BaseSettings):
     # AirLabs (flight info)
     AIRLABS_API_KEY: str | None = None
 
-    # Unsplash (cover images)
+    # Unsplash (cover images — legacy, kept for backward compat with old trips)
     UNSPLASH_ACCESS_KEY: str | None = None
+
+    # SMP-330 — no-API-key cover images stored on local disk and re-served
+    # via Caddy. Default dir is the docker volume mount point used in
+    # ``compose.prod.yml``; the base URL is the Caddy-exposed path. Both are
+    # overridable for local dev where the API runs outside docker.
+    COVERS_STORAGE_DIR: str = "/var/lib/bagtrip/covers"
+    COVERS_PUBLIC_URL_BASE: str = "https://bagtrip.fr/covers"
+    # 7 days — destination cover images change rarely; the rehosted files
+    # are content-addressed so re-picking is idempotent on the same source.
+    COVERS_CACHE_TTL_SECONDS: int = 604_800
 
     # Open-Meteo (weather — free, no key required)
     OPEN_METEO_BASE_URL: str = "https://api.open-meteo.com"

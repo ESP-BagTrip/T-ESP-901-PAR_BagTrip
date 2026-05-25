@@ -81,6 +81,17 @@ final class UpdateTripStatus extends TripDetailEvent {
   UpdateTripStatus({required this.status});
 }
 
+/// SMP-330 — POST /v1/trips/{id}/cover/refresh: pick a fresh batch of
+/// cover candidates and the new primary URL.
+final class RefreshTripCoverFromDetail extends TripDetailEvent {}
+
+/// SMP-330 — user picked one of the alternatives from the "Change cover"
+/// sheet. Updates the trip cover URL (server tags it ``user_selected``).
+final class SelectTripCoverFromDetail extends TripDetailEvent {
+  final String coverImageUrl;
+  SelectTripCoverFromDetail({required this.coverImageUrl});
+}
+
 final class DeleteTripDetail extends TripDetailEvent {}
 
 final class DeleteFlightFromDetail extends TripDetailEvent {

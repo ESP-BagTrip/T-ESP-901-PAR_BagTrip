@@ -265,6 +265,23 @@ class TripRepositoryImpl implements TripRepository {
   }
 
   @override
+  Future<Result<Trip>> refreshTripCover(String tripId) async {
+    try {
+      final response = await _apiClient.post('/trips/$tripId/cover/refresh');
+      if (response.statusCode == 200) {
+        return Success(Trip.fromJson(response.data));
+      }
+      return loggedFailure(
+        UnknownError('refresh cover failed: ${response.statusCode}'),
+      );
+    } on DioException catch (e) {
+      return loggedFailure(ApiClient.mapDioError(e));
+    } catch (e) {
+      return loggedFailure(UnknownError(e.toString(), originalError: e));
+    }
+  }
+
+  @override
   Future<Result<void>> deleteTrip(String tripId) async {
     try {
       final response = await _apiClient.delete('/trips/$tripId');

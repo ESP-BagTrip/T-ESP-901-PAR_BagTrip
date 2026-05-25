@@ -105,13 +105,22 @@ def _stub_weather(monkeypatch, *, payload: dict | None = None):
 
 
 def _stub_unsplash(monkeypatch):
-    monkeypatch.setattr(
-        "src.services.full_plan_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value="https://images.unsplash.com/cover.jpg"),
+    """Stub the SMP-330 cover image pipeline for full-plan eval tests."""
+    from src.integrations.cover_image.types import CoverCandidate
+    from src.services.cover_image.service import CoverResult
+
+    result = CoverResult(
+        primary_url="https://images.unsplash.com/cover.jpg",
+        primary_source="wikipedia",
+        candidates=[
+            CoverCandidate(
+                url="https://images.unsplash.com/cover.jpg", source="wikipedia"
+            ),
+        ],
     )
     monkeypatch.setattr(
-        "src.services.full_plan_orchestrator.unsplash_client.get_fallback_url",
-        MagicMock(return_value="https://fallback"),
+        "src.services.full_plan_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=result),
     )
 
 

@@ -52,6 +52,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${API_OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
       OTEL_SERVICE_NAME: ${API_OTEL_SERVICE_NAME:-bagtrip-api}
       OTEL_TRACES_SAMPLER_ARG: ${API_OTEL_TRACES_SAMPLER_ARG:-1.0}
+      # SMP-330 — content-addressed cover image store, shared with Caddy
+      # so it can serve them on /covers/* without proxying through the API.
+      COVERS_STORAGE_DIR: /var/lib/bagtrip/covers
+      COVERS_PUBLIC_URL_BASE: ${COVERS_PUBLIC_URL_BASE:-https://bagtrip.fr/covers}
+    volumes:
+      - covers_data:/var/lib/bagtrip/covers
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,6 +100,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      # SMP-330 — read-only mount of the API's cover store so Caddy can
+      # serve /covers/* directly from disk (no proxy hop through the API).
+      - covers_data:/srv/covers:ro
     depends_on:
       - admin
       - api
@@ -103,3 +112,4 @@ volumes:
   redis_data:
   caddy_data:
   caddy_config:
+  covers_data:

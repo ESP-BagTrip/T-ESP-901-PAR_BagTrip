@@ -85,6 +85,8 @@ def mock_trip():
     trip.destination_timezone = None
     trip.nb_travelers = 1
     trip.cover_image_url = None
+    trip.cover_image_source = None
+    trip.cover_image_candidates = None
     trip.budget_target = None
     trip.origin = None
     trip.date_mode = "EXACT"
