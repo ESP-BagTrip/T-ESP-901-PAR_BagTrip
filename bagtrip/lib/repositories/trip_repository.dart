@@ -30,6 +30,11 @@ abstract class TripRepository {
   Future<Result<Trip>> updateTripStatus(String tripId, String status);
   Future<Result<Trip>> updateTrip(String tripId, Map<String, dynamic> updates);
 
+  /// SMP-330 — re-pick a fresh cover image batch for the trip.
+  /// The backend excludes URLs already present in [Trip.coverImageCandidates]
+  /// + the current [Trip.coverImageUrl], so each call surfaces new options.
+  Future<Result<Trip>> refreshTripCover(String tripId);
+
   /// Toggle whether BagTrip tracks flights / accommodations for this trip.
   /// Pass `null` to keep the current value for either flag.
   Future<Result<Trip>> updateTripTracking(

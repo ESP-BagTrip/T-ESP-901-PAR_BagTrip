@@ -3779,4 +3779,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activitiesPanelSectionTransports => 'Transports';
+
+  @override
+  String get coverPickerTitle => 'Change cover photo';
+
+  @override
+  String get coverPickerEmpty =>
+      'No alternatives available — tap \"Find more\" to refresh.';
+
+  @override
+  String get coverPickerFindMore => 'Find more photos';
+
+  @override
+  String get coverPickerCurrentBadge => 'Current';
+
+  @override
+  String get coverChangeButton => 'Change photo';
 }

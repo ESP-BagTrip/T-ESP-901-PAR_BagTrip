@@ -120,13 +120,25 @@ def _patch_weather(monkeypatch, *, payload: dict[str, Any] | None) -> None:
 
 
 def _patch_unsplash(monkeypatch, url: str | None = "https://img") -> None:
+    """Stub the new no-key cover pipeline.
+
+    Kept named ``_patch_unsplash`` for git-history continuity even though
+    we now patch ``cover_image_service.pick_cover`` (SMP-330). Pass
+    ``url=None`` to simulate a no-candidates outcome.
+    """
+    from src.integrations.cover_image.types import CoverCandidate
+    from src.services.cover_image.service import CoverResult
+
+    result: CoverResult | None = None
+    if url is not None:
+        result = CoverResult(
+            primary_url=url,
+            primary_source="wikipedia",
+            candidates=[CoverCandidate(url=url, source="wikipedia")],
+        )
     monkeypatch.setattr(
-        "src.services.full_plan_orchestrator.unsplash_client.fetch_cover_image",
-        AsyncMock(return_value=url),
-    )
-    monkeypatch.setattr(
-        "src.services.full_plan_orchestrator.unsplash_client.get_fallback_url",
-        MagicMock(return_value="https://fallback"),
+        "src.services.full_plan_orchestrator.cover_image_service.pick_cover",
+        AsyncMock(return_value=result),
     )
 
 

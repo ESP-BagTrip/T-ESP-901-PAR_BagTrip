@@ -43,9 +43,9 @@ from src.integrations.amadeus.types import (
     HotelListSearchQuery,
     HotelOffersSearchQuery,
 )
-from src.integrations.unsplash import unsplash_client
 from src.services import currency_service
 from src.services.amadeus_service import AmadeusService
+from src.services.cover_image.service import CoverResult, cover_image_service
 from src.services.llm_router import LLMRouter
 from src.services.location_resolver import LocationResolver, ResolvedLocation
 from src.utils.errors import AppError
@@ -240,6 +240,9 @@ class TripDraftCommand:
     transport: list[TransportLeg] = field(default_factory=list)
     baggage: list[BaggageDraft] = field(default_factory=list)
     budget: BudgetBreakdown = field(default_factory=BudgetBreakdown)
+    # SMP-330 — provenance + alternatives produced by the cover pipeline.
+    cover_image_source: str | None = None
+    cover_image_candidates: list[dict] | None = None
 
 
 # ── Orchestrator ──────────────────────────────────────────────────────
@@ -298,7 +301,7 @@ class FullPlanOrchestrator:
         accommodations_task = cls._search_accommodations(dest, req)
         transport_task = cls._build_transport(origin, dest, req)
         baggage_task = cls._advise_baggage(dest, weather, req)
-        cover_task = cls._fetch_cover_image(dest)
+        cover_task = cls._fetch_cover_image(dest, locale=req.locale)
 
         results = await asyncio.gather(
             activities_task,
@@ -342,10 +345,22 @@ class FullPlanOrchestrator:
             baggage = raw_baggage
 
         cover_url: str | None = None
+        cover_source: str | None = None
+        cover_candidates: list[dict] | None = None
         if isinstance(raw_cover, BaseException):
             logger.warn("FullPlan: cover image fetch failed", {"error": str(raw_cover)})
-        else:
-            cover_url = raw_cover
+        elif raw_cover is not None:
+            cover_url = raw_cover.primary_url
+            cover_source = raw_cover.primary_source
+            cover_candidates = [
+                {
+                    "url": c.url,
+                    "source": c.source,
+                    "title": c.title,
+                    "attribution": c.attribution,
+                }
+                for c in raw_cover.candidates
+            ]
 
         for w in warnings:
             yield "warning", w
@@ -377,6 +392,8 @@ class FullPlanOrchestrator:
             target_budget=req.target_budget,
             locale=req.locale,
             cover_image_url=cover_url,
+            cover_image_source=cover_source,
+            cover_image_candidates=cover_candidates,
             weather=weather,
             activities=activities,
             accommodations=accommodations,
@@ -800,10 +817,9 @@ class FullPlanOrchestrator:
     # ── Cover image ───────────────────────────────────────────────────
 
     @staticmethod
-    async def _fetch_cover_image(dest: ResolvedLocation) -> str | None:
+    async def _fetch_cover_image(dest: ResolvedLocation, *, locale: str) -> CoverResult | None:
         query = f"{dest.city}, {dest.country}" if dest.country else dest.city
-        url = await unsplash_client.fetch_cover_image(query)
-        return url or unsplash_client.get_fallback_url(query)
+        return await cover_image_service.pick_cover(query, locale=locale)
 
     # ── Budget composition ────────────────────────────────────────────
 

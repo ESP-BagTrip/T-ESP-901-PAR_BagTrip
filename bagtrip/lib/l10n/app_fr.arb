@@ -1852,5 +1852,10 @@
   "activitiesPanelTabRecos": "Recommandations",
   "activitiesPanelEmptyRecos": "Aucune recommandation de restaurant ou de transport pour ce voyage.",
   "activitiesPanelSectionRestaurants": "Restaurants",
-  "activitiesPanelSectionTransports": "Transports"
+  "activitiesPanelSectionTransports": "Transports",
+  "coverPickerTitle": "Changer la photo de couverture",
+  "coverPickerEmpty": "Aucune alternative disponible — appuyez sur « Trouver d'autres photos » pour relancer.",
+  "coverPickerFindMore": "Trouver d'autres photos",
+  "coverPickerCurrentBadge": "Actuelle",
+  "coverChangeButton": "Changer la photo"
 }

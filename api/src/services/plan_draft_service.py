@@ -77,6 +77,8 @@ class PlanDraftService:
             end_date=cmd.end_date or None,
             origin=TripOrigin.AI,
             cover_image_url=cmd.cover_image_url,
+            cover_image_source=cmd.cover_image_source,
+            cover_image_candidates=cmd.cover_image_candidates,
             date_mode="EXACT",
             nb_travelers=cmd.nb_travelers,
         )

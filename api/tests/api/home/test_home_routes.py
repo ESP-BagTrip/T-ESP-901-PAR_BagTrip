@@ -98,6 +98,8 @@ def _make_trip(status: str) -> MagicMock:
     trip.destination_timezone = None
     trip.nb_travelers = 2
     trip.cover_image_url = None
+    trip.cover_image_source = None
+    trip.cover_image_candidates = None
     trip.budget_target = None
     trip.budget_estimated = None
     trip.budget_actual = None
