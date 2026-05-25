@@ -274,7 +274,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeLabel => 'THEME';
 
   @override
-  String get chooseThemeHint => 'Choose your preferred theme';
+  String get chooseThemeHint => 'Interface appearance';
 
   @override
   String get themeLight => 'Light';
@@ -1240,6 +1240,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsPushSubtitle => 'All alerts';
+
+  @override
+  String get notificationPrefsFlightRemindersSubtitle => 'Before each flight';
+
+  @override
+  String get notificationPrefsActivityRemindersSubtitle =>
+      'Scheduled activity reminders';
+
+  @override
+  String get notificationPrefsTripUpdatesSubtitle => 'Changes to your trips';
+
+  @override
+  String get notificationPrefsBudgetAlertsSubtitle =>
+      'Overspending and thresholds';
+
+  @override
+  String get notificationPrefsSocialSubtitle => 'Friends and sharing';
 
   @override
   String get notificationPrefsLoadError =>

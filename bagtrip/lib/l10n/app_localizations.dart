@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseThemeHint.
   ///
   /// In fr, this message translates to:
-  /// **'Choisissez votre thème préféré'**
+  /// **'Apparence de l\'interface'**
   String get chooseThemeHint;
 
   /// No description provided for @themeLight.
@@ -2359,6 +2359,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Social'**
   String get notificationPrefsSocial;
+
+  /// No description provided for @notificationPrefsPushSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les alertes'**
+  String get notificationPrefsPushSubtitle;
+
+  /// No description provided for @notificationPrefsFlightRemindersSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant chaque vol'**
+  String get notificationPrefsFlightRemindersSubtitle;
+
+  /// No description provided for @notificationPrefsActivityRemindersSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rappels d\'activités planifiées'**
+  String get notificationPrefsActivityRemindersSubtitle;
+
+  /// No description provided for @notificationPrefsTripUpdatesSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changements sur vos voyages'**
+  String get notificationPrefsTripUpdatesSubtitle;
+
+  /// No description provided for @notificationPrefsBudgetAlertsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépassements et seuils'**
+  String get notificationPrefsBudgetAlertsSubtitle;
+
+  /// No description provided for @notificationPrefsSocialSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis et partages'**
+  String get notificationPrefsSocialSubtitle;
 
   /// No description provided for @notificationPrefsLoadError.
   ///

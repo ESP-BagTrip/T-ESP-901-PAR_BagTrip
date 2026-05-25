@@ -276,7 +276,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get themeLabel => 'THÈME';
 
   @override
-  String get chooseThemeHint => 'Choisissez votre thème préféré';
+  String get chooseThemeHint => 'Apparence de l\'interface';
 
   @override
   String get themeLight => 'Clair';
@@ -1250,6 +1250,26 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationPrefsSocial => 'Social';
+
+  @override
+  String get notificationPrefsPushSubtitle => 'Toutes les alertes';
+
+  @override
+  String get notificationPrefsFlightRemindersSubtitle => 'Avant chaque vol';
+
+  @override
+  String get notificationPrefsActivityRemindersSubtitle =>
+      'Rappels d\'activités planifiées';
+
+  @override
+  String get notificationPrefsTripUpdatesSubtitle =>
+      'Changements sur vos voyages';
+
+  @override
+  String get notificationPrefsBudgetAlertsSubtitle => 'Dépassements et seuils';
+
+  @override
+  String get notificationPrefsSocialSubtitle => 'Amis et partages';
 
   @override
   String get notificationPrefsLoadError =>
