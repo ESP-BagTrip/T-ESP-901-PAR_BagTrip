@@ -22,6 +22,11 @@ class PremiumStepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final inactiveDot = PersonalizationColors.textTertiaryOf(
+      brightness,
+    ).withValues(alpha: 0.35);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -49,11 +54,7 @@ class PremiumStepIndicator extends StatelessWidget {
                             : const [ColorName.primary, ColorName.secondary],
                       )
                     : null,
-                color: isCurrent
-                    ? null
-                    : PersonalizationColors.textTertiary.withValues(
-                        alpha: 0.35,
-                      ),
+                color: isCurrent ? null : inactiveDot,
                 boxShadow: isCurrent
                     ? [
                         BoxShadow(
@@ -73,7 +74,7 @@ class PremiumStepIndicator extends StatelessWidget {
           Text(
             '$current / $total',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: PersonalizationColors.textSecondary,
+              color: PersonalizationColors.textSecondaryOf(brightness),
               fontSize: 13,
             ),
           ),

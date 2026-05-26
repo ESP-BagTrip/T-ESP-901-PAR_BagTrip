@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -21,6 +22,10 @@ class MonthGridPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
     final now = DateTime.now();
     final locale = Localizations.localeOf(context).toString();
     final months = List.generate(12, (i) => DateTime(now.year, now.month + i));
@@ -49,12 +54,10 @@ class MonthGridPicker extends StatelessWidget {
             duration: AppAnimations.microInteraction,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isSelected ? ColorName.primaryLight : ColorName.surface,
+              color: isSelected ? ColorName.primaryLight : surfaceColor,
               borderRadius: AppRadius.large16,
               border: Border.all(
-                color: isSelected
-                    ? ColorName.primary
-                    : ColorName.primarySoftLight,
+                color: isSelected ? ColorName.primary : borderColor,
               ),
             ),
             child: Text(
@@ -69,7 +72,7 @@ class MonthGridPicker extends StatelessWidget {
                     ? ColorName.hint
                     : isSelected
                     ? ColorName.primary
-                    : ColorName.primaryTrueDark,
+                    : titleColor,
               ),
             ),
           ),

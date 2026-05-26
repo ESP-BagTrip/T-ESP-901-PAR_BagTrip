@@ -51,6 +51,7 @@ class ReviewDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final events = <Widget>[];
     for (final flight in data.flights) {
       events.add(ReviewInlineFlight(data: flight));
@@ -71,16 +72,21 @@ class ReviewDayCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.reviewCardSurfaceOf(brightness),
           borderRadius: AppRadius.large24,
-          border: Border.all(color: AppColors.reviewBorderLight, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          border: Border.all(
+            color: AppColors.reviewBorderLightOf(brightness),
+            width: 0.5,
+          ),
+          boxShadow: brightness == Brightness.dark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.space24),
@@ -111,25 +117,23 @@ class _DayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = AppColors.reviewInkOf(Theme.of(context).brightness);
+
     return Row(
       children: [
         Text(
           dayNumber.toString().padLeft(2, '0'),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSerifDisplay,
             fontSize: 36,
             height: 1,
             fontWeight: FontWeight.w400,
             letterSpacing: -1,
-            color: AppColors.reviewInk,
+            color: ink,
           ),
         ),
         const SizedBox(width: AppSpacing.space16),
-        Container(
-          width: 24,
-          height: 1,
-          color: AppColors.reviewInk.withValues(alpha: 0.25),
-        ),
+        Container(width: 24, height: 1, color: ink.withValues(alpha: 0.25)),
         const SizedBox(width: AppSpacing.space16),
         Expanded(
           child: Text(
@@ -141,7 +145,7 @@ class _DayHeader extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 2.4,
-              color: AppColors.reviewInk.withValues(alpha: 0.55),
+              color: ink.withValues(alpha: 0.55),
             ),
           ),
         ),
@@ -157,6 +161,9 @@ class _ActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.reviewInkOf(brightness);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.space8),
       child: Row(
@@ -167,7 +174,7 @@ class _ActivityRow extends StatelessWidget {
             height: 28,
             margin: const EdgeInsets.only(top: 3),
             decoration: BoxDecoration(
-              color: AppColors.reviewInk.withValues(alpha: 0.15),
+              color: ink.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -178,25 +185,25 @@ class _ActivityRow extends StatelessWidget {
               children: [
                 Text(
                   activity.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 18,
                     height: 1.25,
                     fontWeight: FontWeight.w400,
                     letterSpacing: -0.2,
-                    color: AppColors.reviewInk,
+                    color: ink,
                   ),
                 ),
                 if (activity.description.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     activity.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       height: 1.45,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.reviewSubtle,
+                      color: AppColors.reviewSubtleOf(brightness),
                     ),
                   ),
                 ],
@@ -223,7 +230,9 @@ class _FreeDayNote extends StatelessWidget {
         fontSize: 16,
         fontStyle: FontStyle.italic,
         fontWeight: FontWeight.w400,
-        color: AppColors.reviewInk.withValues(alpha: 0.45),
+        color: AppColors.reviewInkOf(
+          Theme.of(context).brightness,
+        ).withValues(alpha: 0.45),
       ),
     );
   }

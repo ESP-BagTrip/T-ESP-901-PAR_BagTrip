@@ -1,5 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
@@ -12,10 +12,12 @@ class HotelStatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space12),
-      decoration: const BoxDecoration(
-        color: ColorName.surfaceLight,
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGroupOf(brightness),
         borderRadius: AppRadius.large16,
       ),
       child: Column(
@@ -23,22 +25,22 @@ class HotelStatBox extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 12,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
-              color: ColorName.hint,
+              color: AppColors.textSecondaryOf(brightness),
             ),
           ),
           const SizedBox(height: AppSpacing.space4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: ColorName.primaryDark,
+              color: AppColors.profileMenuTitleOf(brightness),
             ),
           ),
         ],

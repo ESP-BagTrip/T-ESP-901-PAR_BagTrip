@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -21,6 +22,11 @@ class DurationChipSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     final items = _buildItems(l10n);
 
     return GridView.count(
@@ -42,14 +48,10 @@ class DurationChipSelector extends StatelessWidget {
             duration: AppAnimations.microInteraction,
             padding: AppSpacing.allEdgeInsetSpace12,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color.fromARGB(255, 245, 234, 234)
-                  : const Color.fromARGB(255, 255, 255, 255),
+              color: isSelected ? ColorName.primaryLight : surfaceColor,
               borderRadius: AppRadius.large16,
               border: Border.all(
-                color: isSelected
-                    ? ColorName.primary
-                    : ColorName.primarySoftLight,
+                color: isSelected ? ColorName.primary : borderColor,
               ),
             ),
             child: Column(
@@ -58,9 +60,7 @@ class DurationChipSelector extends StatelessWidget {
                 Icon(
                   item.icon,
                   size: 24,
-                  color: isSelected
-                      ? ColorName.primary
-                      : ColorName.primaryTrueDark,
+                  color: isSelected ? ColorName.primary : titleColor,
                 ),
                 const SizedBox(height: AppSpacing.space4),
                 Text(
@@ -69,9 +69,7 @@ class DurationChipSelector extends StatelessWidget {
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected
-                        ? ColorName.primary
-                        : ColorName.primaryTrueDark,
+                    color: isSelected ? ColorName.primary : titleColor,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -80,7 +78,7 @@ class DurationChipSelector extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 11,
-                    color: isSelected ? ColorName.primary : ColorName.hint,
+                    color: isSelected ? ColorName.primary : mutedColor,
                   ),
                 ),
               ],

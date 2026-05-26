@@ -29,6 +29,8 @@ class ReviewRecommendationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (recommendations.isEmpty) return const SizedBox.shrink();
 
+    final brightness = Theme.of(context).brightness;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.space24,
@@ -59,7 +61,7 @@ class ReviewRecommendationSection extends StatelessWidget {
           ...recommendations.map(
             (reco) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.space8),
-              child: _RecommendationCard(reco: reco),
+              child: _RecommendationCard(reco: reco, brightness: brightness),
             ),
           ),
         ],
@@ -69,9 +71,10 @@ class ReviewRecommendationSection extends StatelessWidget {
 }
 
 class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({required this.reco});
+  const _RecommendationCard({required this.reco, required this.brightness});
 
   final TripRecommendation reco;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +85,9 @@ class _RecommendationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
       decoration: BoxDecoration(
-        color: ColorName.surface,
+        color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.surfaceGroupBorderOf(brightness)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,11 +98,11 @@ class _RecommendationCard extends StatelessWidget {
               children: [
                 Text(
                   reco.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 18,
                     fontWeight: FontWeight.w400,
-                    color: ColorName.onSurface,
+                    color: AppColors.profileMenuTitleOf(brightness),
                   ),
                 ),
                 if (reco.description.isNotEmpty) ...[
@@ -111,7 +114,7 @@ class _RecommendationCard extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
-                      color: ColorName.onSurface.withValues(alpha: 0.7),
+                      color: AppColors.textSecondaryOf(brightness),
                     ),
                   ),
                 ],
@@ -119,11 +122,11 @@ class _RecommendationCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.space4),
                   Text(
                     reco.location,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: ColorName.hint,
+                      color: AppColors.reviewMutedOf(brightness),
                     ),
                   ),
                 ],

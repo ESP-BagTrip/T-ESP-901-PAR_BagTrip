@@ -22,6 +22,11 @@ class SkippedPanelState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final inkColor = AppColors.reviewInkOf(brightness);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.space24),
       child: Column(
@@ -30,11 +35,9 @@ class SkippedPanelState extends StatelessWidget {
           const SizedBox(height: AppSpacing.space40),
           DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFFFBFAF7),
+              color: cardColor,
               borderRadius: AppRadius.large24,
-              border: Border.all(
-                color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
-              ),
+              border: Border.all(color: cardBorder),
             ),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.space32),
@@ -43,23 +46,23 @@ class SkippedPanelState extends StatelessWidget {
                 children: [
                   Text(
                     title.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 3.2,
-                      color: Color(0xFF6B7280),
+                      color: AppColors.textSecondaryOf(brightness),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
                   Text(
                     message,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSerifDisplay,
                       fontSize: 20,
                       height: 1.35,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.reviewInk,
+                      color: inkColor,
                     ),
                   ),
                   if (onResume != null) ...[
@@ -75,12 +78,12 @@ class SkippedPanelState extends StatelessWidget {
                         ),
                         child: Text(
                           resumeLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.dMSans,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline,
-                            color: AppColors.reviewInk,
+                            color: inkColor,
                           ),
                         ),
                       ),

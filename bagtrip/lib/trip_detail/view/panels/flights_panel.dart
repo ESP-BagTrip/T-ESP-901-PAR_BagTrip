@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/core/trip_enums.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
@@ -153,9 +154,11 @@ class FlightsPanel extends StatelessWidget {
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: AppColors.profileSheetBackgroundOf(
+              Theme.of(sheetContext).brightness,
+            ),
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius20),
             ),
           ),
@@ -171,7 +174,9 @@ class FlightsPanel extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: AppColors.reviewUncheckedOf(
+                        Theme.of(sheetContext).brightness,
+                      ),
                       borderRadius: AppRadius.handleBar,
                     ),
                   ),

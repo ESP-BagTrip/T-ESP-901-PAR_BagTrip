@@ -1,4 +1,6 @@
 import 'package:bagtrip/core/app_error.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/design/widgets/review/review_budget_reveal.dart';
 import 'package:bagtrip/design/widgets/review/review_cinematic_hero.dart';
 import 'package:bagtrip/design/widgets/review/review_day_timeline.dart';
@@ -33,7 +35,11 @@ void main() {
     mockBloc = _MockPlanTripBloc();
   });
 
-  Future<void> pump(WidgetTester tester, PlanTripState seed) async {
+  Future<void> pump(
+    WidgetTester tester,
+    PlanTripState seed, {
+    ThemeData? theme,
+  }) async {
     when(() => mockBloc.state).thenReturn(seed);
     whenListen(
       mockBloc,
@@ -47,6 +53,7 @@ void main() {
         child: const StepReviewView(),
       ),
       size: const Size(400, 2400),
+      theme: theme,
     );
     await tester.pump();
   }
@@ -116,6 +123,32 @@ void main() {
       expect(find.byType(ReviewDayTimeline), findsOneWidget);
       expect(find.byType(ReviewBudgetReveal), findsOneWidget);
       expect(find.byType(ReviewDecisionInline), findsOneWidget);
+    });
+
+    testWidgets('uses profile sheet background in dark mode', (tester) async {
+      await pump(
+        tester,
+        PlanTripState(
+          generatedPlan: fullPlan,
+          startDate: reviewDates['startDate'],
+          endDate: reviewDates['endDate'],
+          nbAdults: 2,
+        ),
+        theme: AppTheme.dark(),
+      );
+
+      final coloredBox = tester.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(StepReviewView),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
+      );
+      expect(
+        coloredBox.color,
+        AppColors.profileSheetBackgroundOf(Brightness.dark),
+      );
     });
 
     testWidgets('renders outbound + return inline flights across days', (

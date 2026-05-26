@@ -1,4 +1,5 @@
 import 'package:bagtrip/activities/widgets/activity_form.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -348,6 +349,9 @@ class ActivitiesPanel extends StatelessWidget {
     AppLocalizations l10n,
     List<Activity> source,
   ) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     final grouped = _groupByDayFor(source);
     final dayItems = _safeIndex < grouped.daily.length
         ? grouped.daily[_safeIndex]
@@ -377,7 +381,7 @@ class ActivitiesPanel extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: active ? ColorName.primaryDark : ColorName.surface,
+                      color: active ? ColorName.primaryDark : surfaceColor,
                     ),
                     child: Text(
                       'J${index + 1}',
@@ -385,7 +389,7 @@ class ActivitiesPanel extends StatelessWidget {
                         fontFamily: FontFamily.dMSerifDisplay,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: active ? ColorName.surface : ColorName.hint,
+                        color: active ? ColorName.surface : mutedColor,
                       ),
                     ),
                   ),
@@ -544,6 +548,9 @@ class _ViewModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.pill,
@@ -556,9 +563,7 @@ class _ViewModeChip extends StatelessWidget {
           color: isActive ? ColorName.primaryDark : Colors.transparent,
           borderRadius: AppRadius.pill,
           border: Border.all(
-            color: isActive
-                ? ColorName.primaryDark
-                : ColorName.primarySoftLight,
+            color: isActive ? ColorName.primaryDark : borderColor,
           ),
         ),
         child: Text(
@@ -568,7 +573,7 @@ class _ViewModeChip extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.4,
-            color: isActive ? ColorName.surface : ColorName.primaryDark,
+            color: isActive ? ColorName.surface : titleColor,
           ),
         ),
       ),
@@ -896,6 +901,9 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.pill,
@@ -908,7 +916,7 @@ class _FilterChip extends StatelessWidget {
           color: isActive ? ColorName.secondary : Colors.transparent,
           borderRadius: AppRadius.pill,
           border: Border.all(
-            color: isActive ? ColorName.secondary : ColorName.primarySoftLight,
+            color: isActive ? ColorName.secondary : borderColor,
           ),
         ),
         child: Row(
@@ -920,7 +928,7 @@ class _FilterChip extends StatelessWidget {
                 fontFamily: FontFamily.dMSans,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isActive ? ColorName.surface : ColorName.primaryDark,
+                color: isActive ? ColorName.surface : titleColor,
               ),
             ),
             if (trailingIcon != null) ...[
@@ -928,7 +936,7 @@ class _FilterChip extends StatelessWidget {
               Icon(
                 trailingIcon,
                 size: 12,
-                color: isActive ? ColorName.surface : ColorName.primaryDark,
+                color: isActive ? ColorName.surface : titleColor,
               ),
             ],
           ],
@@ -947,10 +955,13 @@ class _CategoryFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         top: false,
@@ -963,7 +974,7 @@ class _CategoryFilterSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: AppColors.reviewUncheckedOf(brightness),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -978,10 +989,10 @@ class _CategoryFilterSheet extends StatelessWidget {
                 children: [
                   Text(
                     l10n.activitiesFilterCategoriesTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSerifDisplay,
                       fontSize: 18,
-                      color: ColorName.primaryDark,
+                      color: titleColor,
                     ),
                   ),
                   TextButton(
@@ -1006,10 +1017,10 @@ class _CategoryFilterSheet extends StatelessWidget {
                       CheckboxListTile(
                         title: Text(
                           category.label(l10n),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.dMSans,
                             fontSize: 14,
-                            color: ColorName.primaryDark,
+                            color: titleColor,
                           ),
                         ),
                         secondary: Icon(category.icon),

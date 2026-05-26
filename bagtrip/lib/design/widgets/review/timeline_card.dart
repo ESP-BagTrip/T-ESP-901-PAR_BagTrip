@@ -38,13 +38,16 @@ class TimelineDot extends StatelessWidget {
       TimelineEventType.hotel => ColorName.primary,
       TimelineEventType.activity => ColorName.secondary,
     };
+    final cardSurface = AppColors.reviewCardSurfaceOf(
+      Theme.of(context).brightness,
+    );
     return Container(
       width: 12,
       height: 12,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(color: cardSurface, width: 2),
       ),
     );
   }
@@ -70,8 +73,8 @@ class TimelineCard extends StatelessWidget {
     final date = firstDate.add(Duration(days: event.dayOffset));
     final card = Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large24,
       ),
       child: Column(
@@ -79,21 +82,21 @@ class TimelineCard extends StatelessWidget {
         children: [
           Text(
             DateFormat('EEE d MMM').format(date).toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: ColorName.hint,
+              color: AppColors.textSecondaryOf(brightness),
             ),
           ),
           const SizedBox(height: AppSpacing.space4),
           Text(
             event.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ColorName.primaryDark,
+              color: AppColors.profileMenuTitleOf(brightness),
             ),
           ),
           if (event.subtitle.isNotEmpty) ...[

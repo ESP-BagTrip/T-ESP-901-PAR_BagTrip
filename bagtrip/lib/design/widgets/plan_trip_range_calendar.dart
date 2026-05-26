@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -100,6 +101,10 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
     final canPrev = !_visibleMonth.isBefore(
       DateTime(widget.firstDate.year, widget.firstDate.month),
     );
@@ -115,16 +120,18 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: ColorName.surface,
+            color: surfaceColor,
             borderRadius: AppRadius.large24,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.12),
-                blurRadius: 24,
-                offset: const Offset(0, 6),
-                spreadRadius: -1,
-              ),
-            ],
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: ColorName.primary.withValues(alpha: 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 6),
+                      spreadRadius: -1,
+                    ),
+                  ],
           ),
           child: ClipRRect(
             borderRadius: AppRadius.large20,
@@ -164,11 +171,11 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
                             ).format(_visibleMonth),
                             key: ValueKey(_visibleMonth),
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: FontFamily.dMSerifDisplay,
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
-                              color: ColorName.primaryDark,
+                              color: titleColor,
                             ),
                           ),
                         ),

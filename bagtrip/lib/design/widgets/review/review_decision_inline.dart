@@ -27,6 +27,9 @@ class ReviewDecisionInline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.reviewInkOf(brightness);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.space24,
@@ -46,7 +49,7 @@ class ReviewDecisionInline extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 3.2,
-                color: AppColors.reviewInk.withValues(alpha: 0.5),
+                color: ink.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -65,7 +68,7 @@ class ReviewDecisionInline extends StatelessWidget {
                   horizontal: AppSpacing.space16,
                   vertical: AppSpacing.space8,
                 ),
-                foregroundColor: AppColors.reviewSubtle,
+                foregroundColor: AppColors.reviewSubtleOf(brightness),
                 overlayColor: Colors.transparent,
               ),
               child: Text(
@@ -74,10 +77,10 @@ class ReviewDecisionInline extends StatelessWidget {
                   fontFamily: FontFamily.dMSans,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.reviewInk.withValues(alpha: 0.55),
+                  color: ink.withValues(alpha: 0.55),
                   decoration: TextDecoration.underline,
                   decorationThickness: 0.8,
-                  decorationColor: AppColors.reviewInk.withValues(alpha: 0.3),
+                  decorationColor: ink.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -113,6 +116,8 @@ class _InkCtaState extends State<_InkCta> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final accent = AppColors.reviewAccentSurfaceOf(brightness);
     final enabled = widget.onTap != null && !widget.isLoading;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -129,14 +134,12 @@ class _InkCtaState extends State<_InkCta> {
         duration: const Duration(milliseconds: 140),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: enabled
-                ? const Color(0xFF0D1F35)
-                : const Color(0xFF0D1F35).withValues(alpha: 0.4),
+            color: enabled ? accent : accent.withValues(alpha: 0.4),
             borderRadius: AppRadius.pill,
-            boxShadow: enabled
+            boxShadow: enabled && brightness != Brightness.dark
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF0D1F35).withValues(alpha: 0.28),
+                      color: accent.withValues(alpha: 0.28),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),

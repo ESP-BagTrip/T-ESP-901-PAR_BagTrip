@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -83,6 +84,11 @@ class _StepDestinationViewState extends State<StepDestinationView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final focused = _searchFocus.hasFocus;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final textColor = PersonalizationColors.textPrimaryOf(brightness);
 
     return BlocConsumer<PlanTripBloc, PlanTripState>(
       listenWhen: (prev, curr) =>
@@ -131,7 +137,7 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
                 borderRadius: AppRadius.large13,
-                boxShadow: focused
+                boxShadow: focused && !isDark
                     ? [
                         BoxShadow(
                           color: ColorName.secondary.withValues(alpha: 0.22),
@@ -143,6 +149,8 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                           blurRadius: 8,
                         ),
                       ]
+                    : isDark
+                    ? null
                     : [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -153,12 +161,12 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: ColorName.surface,
+                  color: surfaceColor,
                   borderRadius: AppRadius.large13,
                   border: Border.all(
                     color: focused
                         ? ColorName.secondary.withValues(alpha: 0.45)
-                        : ColorName.primarySoftLight,
+                        : borderColor,
                   ),
                 ),
                 child: Semantics(
@@ -168,10 +176,10 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                     focusNode: _searchFocus,
                     controller: _searchController,
                     onChanged: _onSearchChanged,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 16,
-                      color: PersonalizationColors.textPrimary,
+                      color: textColor,
                     ),
                     decoration: InputDecoration(
                       hintText: l10n.destinationPlaceholder,
@@ -348,21 +356,27 @@ class _SearchResultsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = PersonalizationColors.textPrimaryOf(brightness);
+    final subtitleColor = PersonalizationColors.textSecondaryOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
+
     return Material(
-      color: ColorName.surface,
+      color: surfaceColor,
       borderRadius: AppRadius.large13,
       clipBehavior: Clip.antiAlias,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: AppRadius.large13,
-          border: Border.all(color: ColorName.primarySoftLight),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < locations.length; i++) ...[
-              if (i > 0)
-                const Divider(height: 1, color: ColorName.primarySoftLight),
+              if (i > 0) Divider(height: 1, color: borderColor),
               InkWell(
                 onTap: () => onSelect(locations[i]),
                 child: Padding(
@@ -383,21 +397,21 @@ class _SearchResultsPanel extends StatelessWidget {
                           children: [
                             Text(
                               locations[i].name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: FontFamily.b612,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: PersonalizationColors.textPrimary,
+                                color: titleColor,
                               ),
                             ),
                             if (locations[i].countryName.isNotEmpty)
                               Text(
                                 locations[i].countryName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: FontFamily.b612,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
-                                  color: PersonalizationColors.textSecondary,
+                                  color: subtitleColor,
                                 ),
                               ),
                           ],
@@ -406,7 +420,7 @@ class _SearchResultsPanel extends StatelessWidget {
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 22,
-                        color: ColorName.hint.withValues(alpha: 0.7),
+                        color: mutedColor.withValues(alpha: 0.7),
                       ),
                     ],
                   ),

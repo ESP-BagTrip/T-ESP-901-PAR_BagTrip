@@ -51,6 +51,7 @@ Future<void> pumpLocalized(
   Widget child, {
   Locale locale = const Locale('en'),
   Size? size,
+  ThemeData? theme,
 }) async {
   if (size != null) {
     tester.view.physicalSize = Size(size.width, size.height);
@@ -60,6 +61,7 @@ Future<void> pumpLocalized(
 
   await tester.pumpWidget(
     MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: locale,

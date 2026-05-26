@@ -35,15 +35,20 @@ class ReviewInlineFlight extends StatelessWidget {
 
   final ReviewInlineFlightData data;
 
-  static const _ink = AppColors.reviewInk;
-
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.reviewInkOf(brightness);
+    final cardSurface = AppColors.reviewCardSurfaceOf(brightness);
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFFBFAF7),
+        color: cardSurface,
         borderRadius: AppRadius.large16,
-        border: Border.all(color: AppColors.reviewBorderLight, width: 0.5),
+        border: Border.all(
+          color: AppColors.reviewBorderLightOf(brightness),
+          width: 0.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
@@ -61,7 +66,7 @@ class ReviewInlineFlight extends StatelessWidget {
                   Icon(
                     Icons.flight_takeoff_rounded,
                     size: 12,
-                    color: _ink.withValues(alpha: 0.45),
+                    color: ink.withValues(alpha: 0.45),
                   ),
                   const SizedBox(width: AppSpacing.space8),
                   Text(
@@ -71,7 +76,7 @@ class ReviewInlineFlight extends StatelessWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2.4,
-                      color: _ink.withValues(alpha: 0.55),
+                      color: ink.withValues(alpha: 0.55),
                     ),
                   ),
                 ],
@@ -80,19 +85,33 @@ class ReviewInlineFlight extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _IataBlock(code: data.originIata, time: data.departureTime),
+                _IataBlock(
+                  code: data.originIata,
+                  time: data.departureTime,
+                  ink: ink,
+                ),
                 const SizedBox(width: AppSpacing.space16),
-                Expanded(child: _DashedPath(label: data.durationLabel)),
+                Expanded(
+                  child: _DashedPath(
+                    label: data.durationLabel,
+                    ink: ink,
+                    cardSurface: cardSurface,
+                  ),
+                ),
                 const SizedBox(width: AppSpacing.space16),
                 _IataBlock(
                   code: data.destinationIata,
                   time: data.arrivalTime,
                   alignRight: true,
+                  ink: ink,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.space16),
-            Container(height: 0.5, color: AppColors.reviewDividerFaint),
+            Container(
+              height: 0.5,
+              color: AppColors.reviewDividerFaintOf(brightness),
+            ),
             const SizedBox(height: AppSpacing.space8),
             Row(
               children: [
@@ -101,22 +120,22 @@ class ReviewInlineFlight extends StatelessWidget {
                     data.airline,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.reviewSubtle,
+                      color: AppColors.reviewSubtleOf(brightness),
                     ),
                   ),
                 ),
                 if (data.priceLabel.isNotEmpty)
                   Text(
                     data.priceLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSerifDisplay,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: _ink,
+                      color: ink,
                     ),
                   ),
               ],
@@ -132,11 +151,13 @@ class _IataBlock extends StatelessWidget {
   const _IataBlock({
     required this.code,
     required this.time,
+    required this.ink,
     this.alignRight = false,
   });
 
   final String code;
   final String time;
+  final Color ink;
   final bool alignRight;
 
   @override
@@ -149,13 +170,13 @@ class _IataBlock extends StatelessWidget {
       children: [
         Text(
           code.isEmpty ? '—' : code,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSerifDisplay,
             fontSize: 32,
             height: 1,
             fontWeight: FontWeight.w400,
             letterSpacing: 1.2,
-            color: AppColors.reviewInk,
+            color: ink,
           ),
         ),
         const SizedBox(height: 6),
@@ -166,7 +187,7 @@ class _IataBlock extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
-            color: AppColors.reviewInk.withValues(alpha: 0.55),
+            color: ink.withValues(alpha: 0.55),
           ),
         ),
       ],
@@ -175,9 +196,15 @@ class _IataBlock extends StatelessWidget {
 }
 
 class _DashedPath extends StatelessWidget {
-  const _DashedPath({required this.label});
+  const _DashedPath({
+    required this.label,
+    required this.ink,
+    required this.cardSurface,
+  });
 
   final String label;
+  final Color ink;
+  final Color cardSurface;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +221,7 @@ class _DashedPath extends StatelessWidget {
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 1.5,
-                color: AppColors.reviewInk.withValues(alpha: 0.4),
+                color: ink.withValues(alpha: 0.4),
               ),
             ),
           ),
@@ -206,20 +233,20 @@ class _DashedPath extends StatelessWidget {
               children: [
                 CustomPaint(
                   size: Size(constraints.maxWidth, 1),
-                  painter: _DashPainter(),
+                  painter: _DashPainter(ink: ink.withValues(alpha: 0.22)),
                 ),
                 Container(
                   width: 22,
                   height: 22,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFBFAF7),
+                  decoration: BoxDecoration(
+                    color: cardSurface,
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
                   child: Icon(
                     Icons.flight_rounded,
                     size: 13,
-                    color: AppColors.reviewInk.withValues(alpha: 0.55),
+                    color: ink.withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -233,10 +260,14 @@ class _DashedPath extends StatelessWidget {
 }
 
 class _DashPainter extends CustomPainter {
+  const _DashPainter({required this.ink});
+
+  final Color ink;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.reviewInk.withValues(alpha: 0.22)
+      ..color = ink
       ..strokeWidth = 0.8
       ..strokeCap = StrokeCap.round;
     const dashWidth = 3.5;
@@ -253,5 +284,6 @@ class _DashPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DashPainter oldDelegate) =>
+      oldDelegate.ink != ink;
 }

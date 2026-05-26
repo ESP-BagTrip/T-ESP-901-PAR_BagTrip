@@ -25,6 +25,9 @@ class ValidationBoardPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final cardBorder = AppColors.reviewBorderLightOf(brightness);
     final result = state.completionResult;
 
     // Phase 6 — synthesize a "Budget" row from the items list. The
@@ -92,11 +95,9 @@ class ValidationBoardPanel extends StatelessWidget {
           const SizedBox(height: AppSpacing.space24),
           DecoratedBox(
             decoration: BoxDecoration(
-              color: const Color(0xFFFBFAF7),
+              color: cardColor,
               borderRadius: AppRadius.large24,
-              border: Border.all(
-                color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
-              ),
+              border: Border.all(color: cardBorder),
             ),
             child: Column(
               children: [
@@ -107,12 +108,12 @@ class ValidationBoardPanel extends StatelessWidget {
                     l10n: l10n,
                   ),
                   if (i < rows.length - 1)
-                    const Divider(
+                    Divider(
                       height: 0.5,
                       thickness: 0.5,
                       indent: AppSpacing.space24,
                       endIndent: AppSpacing.space24,
-                      color: AppColors.reviewDividerFaint,
+                      color: AppColors.reviewDividerFaintOf(brightness),
                     ),
                 ],
               ],
@@ -146,17 +147,19 @@ class _OverallHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final inkColor = AppColors.reviewInkOf(brightness);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           l10n.validationBoardEyebrow.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.b612,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 3.2,
-            color: Color(0xFF6B7280),
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.space8),
@@ -165,24 +168,24 @@ class _OverallHeader extends StatelessWidget {
           children: [
             Text(
               '$percentage',
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.dMSerifDisplay,
                 fontSize: 72,
                 height: 1,
                 fontWeight: FontWeight.w400,
                 letterSpacing: -3,
-                color: AppColors.reviewInk,
+                color: inkColor,
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 14, left: 4),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14, left: 4),
               child: Text(
                 '%',
                 style: TextStyle(
                   fontFamily: FontFamily.dMSerifDisplay,
                   fontSize: 28,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.reviewInk,
+                  color: inkColor,
                 ),
               ),
             ),
@@ -194,7 +197,7 @@ class _OverallHeader extends StatelessWidget {
           style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 13,
-            color: AppColors.reviewInk.withValues(alpha: 0.55),
+            color: inkColor.withValues(alpha: 0.55),
           ),
         ),
       ],
@@ -215,7 +218,9 @@ class _BoardRowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = _statusCopy();
+    final brightness = Theme.of(context).brightness;
+    final inkColor = AppColors.reviewInkOf(brightness);
+    final state = _statusCopy(brightness);
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.large24,
@@ -243,12 +248,12 @@ class _BoardRowTile extends StatelessWidget {
                 children: [
                   Text(
                     row.label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSerifDisplay,
                       fontSize: 18,
                       fontWeight: FontWeight.w400,
                       letterSpacing: -0.2,
-                      color: AppColors.reviewInk,
+                      color: inkColor,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -268,7 +273,7 @@ class _BoardRowTile extends StatelessWidget {
             Icon(
               Icons.arrow_forward_rounded,
               size: 16,
-              color: AppColors.reviewInk.withValues(alpha: 0.35),
+              color: inkColor.withValues(alpha: 0.35),
             ),
           ],
         ),
@@ -276,18 +281,18 @@ class _BoardRowTile extends StatelessWidget {
     );
   }
 
-  _RowStatus _statusCopy() {
+  _RowStatus _statusCopy(Brightness brightness) {
     final segment = row.segment;
     if (segment.isSkipped) {
       return _RowStatus(
         label: l10n.validationBoardStatusSkipped,
-        accent: AppColors.reviewMuted,
+        accent: AppColors.reviewMutedOf(brightness),
       );
     }
     if (segment.total == 0) {
       return _RowStatus(
         label: l10n.validationBoardStatusNothing,
-        accent: AppColors.reviewMuted,
+        accent: AppColors.reviewMutedOf(brightness),
       );
     }
     if (segment.isComplete) {

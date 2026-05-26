@@ -255,6 +255,24 @@ class AppColors {
   static Color reviewDividerFaintOf(Brightness b) =>
       b == Brightness.dark ? reviewDividerFaintDark : reviewDividerFaint;
 
+  /// Review / trip-detail sheet scaffold (same as profile sheet zone).
+  static Color reviewSheetBackgroundOf(Brightness b) =>
+      profileSheetBackgroundOf(b);
+
+  // --- Review card surfaces (warm cream on light) ---
+  static const Color reviewCardSurface = Color(0xFFFBFAF7);
+  static const Color reviewCardSurfaceDark = Color(0xFF1F4772);
+
+  static Color reviewCardSurfaceOf(Brightness b) =>
+      b == Brightness.dark ? reviewCardSurfaceDark : reviewCardSurface;
+
+  // --- Review accent surfaces (navy cards / CTAs on light) ---
+  static const Color reviewAccentSurface = Color(0xFF0D1F35);
+  static const Color reviewAccentSurfaceDark = Color(0xFF2A3F5C);
+
+  static Color reviewAccentSurfaceOf(Brightness b) =>
+      b == Brightness.dark ? reviewAccentSurfaceDark : reviewAccentSurface;
+
   // --- Budget breakdown (review panel pastel ring chart) ---
   static const Color budgetTransport = Color(0xFFE8A4B8);
   static const Color budgetDefault = Color(0xFF8B8882);

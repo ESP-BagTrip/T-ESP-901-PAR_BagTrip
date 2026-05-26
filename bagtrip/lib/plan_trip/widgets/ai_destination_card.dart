@@ -33,17 +33,22 @@ class AiDestinationCard extends StatelessWidget {
     final hasWeather = weatherLabel != null && weatherLabel.isNotEmpty;
     final activityLabels = destination.topActivities;
 
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: AppRadius.large16,
-        color: ColorName.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
+        color: surfaceColor,
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
+                ),
+              ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(

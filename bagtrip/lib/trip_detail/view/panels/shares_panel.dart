@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
@@ -99,6 +100,9 @@ class SharesPanel extends StatelessWidget {
 
   Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
 
     if (shares.isEmpty) {
       return Padding(
@@ -133,8 +137,8 @@ class SharesPanel extends StatelessWidget {
               label: Text(l10n.panelInviteCollaborator),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
-                foregroundColor: ColorName.primaryDark,
-                side: const BorderSide(color: ColorName.primarySoftLight),
+                foregroundColor: titleColor,
+                side: BorderSide(color: borderColor),
                 shape: const RoundedRectangleBorder(
                   borderRadius: AppRadius.large16,
                 ),
@@ -180,8 +184,12 @@ class _ShareRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     return Material(
-      color: Colors.white,
+      color: surfaceColor,
       borderRadius: AppRadius.large16,
       child: InkWell(
         borderRadius: AppRadius.large16,
@@ -195,11 +203,11 @@ class _ShareRow extends StatelessWidget {
                 backgroundColor: ColorName.primary.withValues(alpha: 0.15),
                 child: Text(
                   _initials(share.userEmail),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: ColorName.primaryDark,
+                    color: titleColor,
                   ),
                 ),
               ),
@@ -212,11 +220,11 @@ class _ShareRow extends StatelessWidget {
                       share.userFullName ?? share.userEmail,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.dMSans,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: ColorName.primaryDark,
+                        color: titleColor,
                       ),
                     ),
                     if (share.userFullName != null)
@@ -224,10 +232,10 @@ class _ShareRow extends StatelessWidget {
                         share.userEmail,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.dMSans,
                           fontSize: 12,
-                          color: ColorName.hint,
+                          color: mutedColor,
                         ),
                       ),
                   ],

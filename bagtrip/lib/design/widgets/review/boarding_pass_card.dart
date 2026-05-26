@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -46,14 +47,17 @@ class BoardingPassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final card = ClipRRect(
       borderRadius: AppRadius.large16,
       child: Container(
-        decoration: const BoxDecoration(color: Colors.white),
+        decoration: BoxDecoration(
+          color: AppColors.reviewCardSurfaceOf(brightness),
+        ),
         child: Column(
           children: [
             Container(
-              color: ColorName.primaryDark,
+              color: AppColors.reviewAccentSurfaceOf(brightness),
               padding: const EdgeInsets.all(AppSpacing.space16),
               child: Column(
                 children: [
@@ -112,9 +116,9 @@ class BoardingPassCard extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         flight.subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
-                          color: ColorName.hint,
+                          color: AppColors.textSecondaryOf(brightness),
                         ),
                       ),
                     ),
@@ -127,6 +131,7 @@ class BoardingPassCard extends StatelessWidget {
                           )!.reviewFlightDeparture,
                           value: flight.departure,
                           date: flight.flightDate,
+                          brightness: brightness,
                         ),
                       ),
                       Expanded(
@@ -136,6 +141,7 @@ class BoardingPassCard extends StatelessWidget {
                           )!.reviewFlightArrival,
                           value: flight.arrival,
                           date: flight.flightDate,
+                          brightness: brightness,
                         ),
                       ),
                     ],
@@ -169,11 +175,13 @@ class FlightMeta extends StatelessWidget {
     required this.label,
     required this.value,
     required this.date,
+    required this.brightness,
   });
 
   final String label;
   final String value;
   final String date;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -182,32 +190,32 @@ class FlightMeta extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontWeight: FontWeight.w600,
             fontSize: 12,
             letterSpacing: 1,
-            color: ColorName.hint,
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSerifDisplay,
             fontSize: 24,
             fontWeight: FontWeight.w500,
-            color: ColorName.primaryDark,
+            color: AppColors.profileMenuTitleOf(brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.space4),
         Text(
           date.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 12,
             fontWeight: FontWeight.w500,
             letterSpacing: 1,
-            color: ColorName.hint,
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
       ],

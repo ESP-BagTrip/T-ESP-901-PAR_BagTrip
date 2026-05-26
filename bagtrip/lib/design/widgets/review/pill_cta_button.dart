@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -43,9 +44,10 @@ class _PillCtaButtonState extends State<PillCtaButton> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final enabled = widget.onTap != null && !widget.isLoading;
-    final decoration = _decorationFor(widget.variant, enabled);
-    final foreground = _foregroundFor(widget.variant, enabled);
+    final decoration = _decorationFor(widget.variant, enabled, brightness);
+    final foreground = _foregroundFor(widget.variant, enabled, brightness);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -98,13 +100,17 @@ class _PillCtaButtonState extends State<PillCtaButton> {
     );
   }
 
-  BoxDecoration _decorationFor(PillVariant variant, bool enabled) {
+  BoxDecoration _decorationFor(
+    PillVariant variant,
+    bool enabled,
+    Brightness brightness,
+  ) {
+    final accent = AppColors.reviewAccentSurfaceOf(brightness);
+    final title = AppColors.profileMenuTitleOf(brightness);
     switch (variant) {
       case PillVariant.filled:
         return BoxDecoration(
-          color: enabled
-              ? ColorName.primaryDark
-              : ColorName.primaryDark.withValues(alpha: 0.4),
+          color: enabled ? accent : accent.withValues(alpha: 0.4),
           borderRadius: AppRadius.pill,
         );
       case PillVariant.outlined:
@@ -112,9 +118,7 @@ class _PillCtaButtonState extends State<PillCtaButton> {
           color: Colors.transparent,
           borderRadius: AppRadius.pill,
           border: Border.all(
-            color: enabled
-                ? ColorName.primaryDark
-                : ColorName.primaryDark.withValues(alpha: 0.4),
+            color: enabled ? title : title.withValues(alpha: 0.4),
             width: 1.5,
           ),
         );
@@ -132,14 +136,17 @@ class _PillCtaButtonState extends State<PillCtaButton> {
     }
   }
 
-  Color _foregroundFor(PillVariant variant, bool enabled) {
+  Color _foregroundFor(
+    PillVariant variant,
+    bool enabled,
+    Brightness brightness,
+  ) {
+    final title = AppColors.profileMenuTitleOf(brightness);
     switch (variant) {
       case PillVariant.filled:
         return enabled ? Colors.white : Colors.white.withValues(alpha: 0.75);
       case PillVariant.outlined:
-        return enabled
-            ? ColorName.primaryDark
-            : ColorName.primaryDark.withValues(alpha: 0.5);
+        return enabled ? title : title.withValues(alpha: 0.5);
       case PillVariant.danger:
         return enabled
             ? ColorName.error

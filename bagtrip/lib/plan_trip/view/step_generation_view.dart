@@ -98,6 +98,9 @@ class _StepGenerationViewState extends State<StepGenerationView>
 
   Widget _buildErrorState(AppLocalizations l10n, PlanTripState state) {
     final isTimeout = _isTimedOut && state.generationError == null;
+    final brightness = Theme.of(context).brightness;
+    final titleColor = PersonalizationColors.textPrimaryOf(brightness);
+    final subtitleColor = PersonalizationColors.textSecondaryOf(brightness);
 
     return Center(
       child: Padding(
@@ -115,11 +118,11 @@ class _StepGenerationViewState extends State<StepGenerationView>
               isTimeout
                   ? l10n.generationTimeoutTitle
                   : l10n.generationErrorTitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.b612,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: PersonalizationColors.textPrimary,
+                color: titleColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -128,10 +131,10 @@ class _StepGenerationViewState extends State<StepGenerationView>
               isTimeout
                   ? l10n.generationTimeoutSubtitle
                   : l10n.generationErrorSubtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.b612,
                 fontSize: 14,
-                color: PersonalizationColors.textSecondary,
+                color: subtitleColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -145,6 +148,9 @@ class _StepGenerationViewState extends State<StepGenerationView>
 
   Widget _buildGeneratingState(AppLocalizations l10n, PlanTripState state) {
     final progressPercent = (state.generationProgress * 100).round();
+    final brightness = Theme.of(context).brightness;
+    final tertiaryColor = PersonalizationColors.textTertiaryOf(brightness);
+    final secondaryColor = PersonalizationColors.textSecondaryOf(brightness);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -163,11 +169,11 @@ class _StepGenerationViewState extends State<StepGenerationView>
           child: Text(
             state.generationMessage ?? '',
             key: ValueKey(state.generationMessage),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 15,
               fontWeight: FontWeight.w400,
-              color: PersonalizationColors.textTertiary,
+              color: tertiaryColor,
             ),
             textAlign: TextAlign.center,
           ),
@@ -181,11 +187,11 @@ class _StepGenerationViewState extends State<StepGenerationView>
           alignment: Alignment.centerRight,
           child: Text(
             l10n.generationProgressLabel(progressPercent),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 11,
               fontWeight: FontWeight.w300,
-              color: PersonalizationColors.textSecondary,
+              color: secondaryColor,
             ),
           ),
         ),
@@ -502,18 +508,25 @@ class _GenerationChecklist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: surfaceColor,
         borderRadius: AppRadius.large24,
-        border: Border.all(color: ColorName.primarySoftLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(color: borderColor),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
       ),
       child: ClipRRect(
         borderRadius: AppRadius.large24,
@@ -542,7 +555,11 @@ class _GenerationChecklist extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.space8),
-                      Icon(categoryIcon, size: 18, color: _iconColor(status)),
+                      Icon(
+                        categoryIcon,
+                        size: 18,
+                        color: _iconColor(status, brightness),
+                      ),
                       const SizedBox(width: AppSpacing.space8),
                       Expanded(
                         child: AnimatedSize(
@@ -559,7 +576,7 @@ class _GenerationChecklist extends StatelessWidget {
                                   fontWeight: status == StepStatus.completed
                                       ? FontWeight.w700
                                       : FontWeight.w600,
-                                  color: _textColor(status),
+                                  color: _textColor(status, brightness),
                                   height: 1.15,
                                 ),
                               ),
@@ -573,7 +590,7 @@ class _GenerationChecklist extends StatelessWidget {
                                     fontFamily: FontFamily.dMSans,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: _subtitleColor(status),
+                                    color: _subtitleColor(status, brightness),
                                   ),
                                 ),
                               ),
@@ -590,7 +607,7 @@ class _GenerationChecklist extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.space16,
                     ),
-                    color: ColorName.primarySoftLight.withValues(alpha: 0.9),
+                    color: borderColor.withValues(alpha: 0.9),
                   ),
               ],
             );
@@ -600,29 +617,29 @@ class _GenerationChecklist extends StatelessWidget {
     );
   }
 
-  Color _textColor(StepStatus status) {
+  Color _textColor(StepStatus status, Brightness brightness) {
     return switch (status) {
-      StepStatus.completed => PersonalizationColors.textPrimary,
+      StepStatus.completed => PersonalizationColors.textPrimaryOf(brightness),
       StepStatus.inProgress => AppColors.stepInProgress,
-      StepStatus.pending => ColorName.hint,
+      StepStatus.pending => AppColors.textSecondaryOf(brightness),
       StepStatus.error => AppColors.error,
     };
   }
 
-  Color _subtitleColor(StepStatus status) {
+  Color _subtitleColor(StepStatus status, Brightness brightness) {
     return switch (status) {
       StepStatus.completed => AppColors.stepCompletedSubtitle,
       StepStatus.inProgress => AppColors.stepInProgressSubtitle,
-      StepStatus.pending => PersonalizationColors.textTertiary,
+      StepStatus.pending => PersonalizationColors.textTertiaryOf(brightness),
       StepStatus.error => AppColors.error,
     };
   }
 
-  Color _iconColor(StepStatus status) {
+  Color _iconColor(StepStatus status, Brightness brightness) {
     return switch (status) {
-      StepStatus.completed => PersonalizationColors.textSecondary,
+      StepStatus.completed => PersonalizationColors.textSecondaryOf(brightness),
       StepStatus.inProgress => AppColors.stepInProgress,
-      StepStatus.pending => ColorName.hint,
+      StepStatus.pending => AppColors.textSecondaryOf(brightness),
       StepStatus.error => AppColors.error,
     };
   }

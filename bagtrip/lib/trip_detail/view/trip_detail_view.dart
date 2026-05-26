@@ -61,8 +61,9 @@ class TripDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: ColorName.surfaceVariant,
+      backgroundColor: AppColors.profileSheetBackgroundOf(brightness),
       body: BlocConsumer<TripDetailBloc, TripDetailState>(
         listener: (context, state) {
           final l10n = AppLocalizations.of(context)!;
@@ -553,10 +554,14 @@ class _LoadedTripViewState extends State<_LoadedTripView>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
+        final brightness = Theme.of(sheetCtx).brightness;
+        final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
+        final inkColor = AppColors.reviewInkOf(brightness);
+        final mutedInk = inkColor.withValues(alpha: 0.55);
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: sheetColor,
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius24),
             ),
           ),
@@ -569,7 +574,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
+                    color: AppColors.reviewUncheckedOf(brightness),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -578,11 +583,11 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                 padding: const EdgeInsets.all(AppSpacing.space16),
                 child: Text(
                   l10n.completionSegmentsSheetTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.primaryDark,
+                    color: AppColors.profileMenuTitleOf(brightness),
                   ),
                 ),
               ),
@@ -612,11 +617,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      size: 16,
-                      color: AppColors.reviewInk.withValues(alpha: 0.55),
-                    ),
+                    Icon(Icons.info_outline_rounded, size: 16, color: mutedInk),
                     const SizedBox(width: AppSpacing.space8),
                     Expanded(
                       child: Text(
@@ -625,7 +626,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           fontFamily: FontFamily.dMSans,
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
-                          color: AppColors.reviewInk.withValues(alpha: 0.55),
+                          color: mutedInk,
                         ),
                       ),
                     ),

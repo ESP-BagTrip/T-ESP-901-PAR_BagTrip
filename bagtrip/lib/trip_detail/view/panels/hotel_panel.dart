@@ -127,9 +127,11 @@ class HotelPanel extends StatelessWidget {
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: AppColors.profileSheetBackgroundOf(
+              Theme.of(sheetContext).brightness,
+            ),
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius20),
             ),
           ),
@@ -145,7 +147,9 @@ class HotelPanel extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: AppColors.reviewUncheckedOf(
+                        Theme.of(sheetContext).brightness,
+                      ),
                       borderRadius: AppRadius.handleBar,
                     ),
                   ),
@@ -503,6 +507,10 @@ class _HotelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     final checkIn = accommodation.checkIn;
     final checkOut = accommodation.checkOut;
     final nights = (checkIn != null && checkOut != null)
@@ -513,8 +521,8 @@ class _HotelCard extends StatelessWidget {
     final fmt = DateFormat('d MMM', locale);
 
     final card = Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: surfaceColor,
         borderRadius: AppRadius.large16,
       ),
       child: Column(
@@ -541,11 +549,11 @@ class _HotelCard extends StatelessWidget {
               children: [
                 Text(
                   accommodation.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.primaryDark,
+                    color: titleColor,
                   ),
                 ),
                 if (accommodation.address != null &&
@@ -555,12 +563,12 @@ class _HotelCard extends StatelessWidget {
                     accommodation.address!.toUpperCase(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 1,
-                      color: ColorName.hint,
+                      color: mutedColor,
                     ),
                   ),
                 ],

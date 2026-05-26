@@ -1,6 +1,9 @@
 // ignore_for_file: avoid_redundant_argument_values
 
 import 'package:bagtrip/config/service_locator.dart';
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_theme.dart';
+import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
@@ -88,8 +91,13 @@ void main() {
     await getIt.reset();
   });
 
-  Widget buildApp({LocationResult? initialDestination, Locale? locale}) {
+  Widget buildApp({
+    LocationResult? initialDestination,
+    Locale? locale,
+    ThemeData? theme,
+  }) {
     return MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: locale ?? const Locale('en'),
@@ -129,6 +137,37 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('When are you going?'), findsOneWidget);
+    });
+
+    testWidgets('uses wizard gradient background in dark mode on step 0', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp(theme: AppTheme.dark()));
+      await tester.pumpAndSettle();
+
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+      expect(
+        scaffold.backgroundColor,
+        PersonalizationColors.gradientStartOf(Brightness.dark),
+      );
+    });
+
+    testWidgets('uses profile sheet background in dark mode on review step', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp(theme: AppTheme.dark()));
+      await tester.pumpAndSettle();
+
+      final bloc = blocOf(tester);
+      bloc.add(const PlanTripEvent.goToStep(5));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+      expect(
+        scaffold.backgroundColor,
+        AppColors.profileSheetBackgroundOf(Brightness.dark),
+      );
     });
   });
 

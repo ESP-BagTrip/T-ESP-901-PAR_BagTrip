@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -120,11 +121,12 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           final indicatorCurrent = (state.currentStep + 1).clamp(1, 4).toInt();
 
           final isReviewStep = state.currentStep == 5;
+          final brightness = Theme.of(context).brightness;
 
           return Scaffold(
             backgroundColor: isReviewStep
-                ? ColorName.surfaceVariant
-                : PersonalizationColors.gradientStart,
+                ? AppColors.profileSheetBackgroundOf(brightness)
+                : PersonalizationColors.gradientStartOf(brightness),
             body: SafeArea(
               top: !isReviewStep,
               bottom: false,
@@ -395,6 +397,9 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final titleColor = PersonalizationColors.textPrimaryOf(brightness);
+
     return FadeTransition(
       opacity: _fade,
       child: SlideTransition(
@@ -434,11 +439,11 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontWeight: FontWeight.w700,
                           fontSize: 17,
-                          color: PersonalizationColors.textPrimary,
+                          color: titleColor,
                           height: 1.2,
                         ),
                       ),
@@ -469,6 +474,11 @@ class _PlanTripCloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final iconColor = PersonalizationColors.textPrimaryOf(brightness);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -478,27 +488,28 @@ class _PlanTripCloseButton extends StatelessWidget {
           width: AppSpacing.space40,
           height: AppSpacing.space40,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surfaceColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: ColorName.secondary.withValues(alpha: 0.08),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: isDark
+                ? Border.all(color: AppColors.surfaceGroupBorderOf(brightness))
+                : null,
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: ColorName.primary.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: ColorName.secondary.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.close_rounded,
-            size: 20,
-            color: PersonalizationColors.textPrimary,
-          ),
+          child: Icon(Icons.close_rounded, size: 20, color: iconColor),
         ),
       ),
     );
@@ -512,6 +523,11 @@ class _PlanTripBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final iconColor = PersonalizationColors.textPrimaryOf(brightness);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -521,27 +537,28 @@ class _PlanTripBackButton extends StatelessWidget {
           width: AppSpacing.space40,
           height: AppSpacing.space40,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surfaceColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: ColorName.secondary.withValues(alpha: 0.08),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: isDark
+                ? Border.all(color: AppColors.surfaceGroupBorderOf(brightness))
+                : null,
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: ColorName.primary.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: ColorName.secondary.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.arrow_back_rounded,
-            size: 22,
-            color: PersonalizationColors.textPrimary,
-          ),
+          child: Icon(Icons.arrow_back_rounded, size: 22, color: iconColor),
         ),
       ),
     );

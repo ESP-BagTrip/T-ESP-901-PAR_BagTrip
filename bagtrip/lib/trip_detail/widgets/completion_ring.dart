@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
@@ -42,8 +43,11 @@ class CompletionRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final clamped = percentage.clamp(0, 100);
-    final track = backgroundColor ?? Colors.white.withValues(alpha: 0.2);
+    final track =
+        backgroundColor ??
+        AppColors.reviewUncheckedOf(brightness).withValues(alpha: 0.45);
 
     final ring = TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: clamped / 100),

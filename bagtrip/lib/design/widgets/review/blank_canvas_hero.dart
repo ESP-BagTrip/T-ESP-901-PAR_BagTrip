@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
@@ -132,8 +133,12 @@ class _BlankCanvasHeroState extends State<BlankCanvasHero>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+
     return DecoratedBox(
-      decoration: const BoxDecoration(color: ColorName.surfaceVariant),
+      decoration: BoxDecoration(
+        color: AppColors.profileSheetBackgroundOf(brightness),
+      ),
       child: SafeArea(
         child: Stack(
           children: [
@@ -173,11 +178,11 @@ class _BlankCanvasHeroState extends State<BlankCanvasHero>
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.dMSerifDisplay,
                             fontSize: 26,
                             height: 1.2,
-                            color: ColorName.primaryDark,
+                            color: AppColors.profileMenuTitleOf(brightness),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.space12),
@@ -186,12 +191,12 @@ class _BlankCanvasHeroState extends State<BlankCanvasHero>
                           textAlign: TextAlign.center,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: FontFamily.dMSans,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             height: 1.5,
-                            color: ColorName.hint,
+                            color: AppColors.textSecondaryOf(brightness),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.space32),

@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
@@ -91,6 +92,7 @@ class ReviewHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final topPadding = MediaQuery.paddingOf(context).top;
     final heroHeight =
         MediaQuery.sizeOf(context).height * _viewportHeightFraction;
@@ -174,7 +176,7 @@ class ReviewHero extends StatelessWidget {
     );
 
     final backgroundColor = coverOverlay == ReviewHeroCoverOverlay.tripDetail
-        ? ColorName.primaryDark
+        ? AppColors.reviewAccentSurfaceOf(brightness)
         : Colors.transparent;
 
     return SizedBox(
@@ -184,7 +186,7 @@ class ReviewHero extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ..._coverLayers(hasImage),
+            ..._coverLayers(hasImage, brightness),
             Padding(
               padding: EdgeInsets.only(top: topPadding),
               child: Stack(
@@ -219,7 +221,8 @@ class ReviewHero extends StatelessWidget {
     );
   }
 
-  List<Widget> _coverLayers(bool hasImage) {
+  List<Widget> _coverLayers(bool hasImage, Brightness brightness) {
+    final accent = AppColors.reviewAccentSurfaceOf(brightness);
     switch (coverOverlay) {
       case ReviewHeroCoverOverlay.activeTripCard:
         return [
@@ -239,13 +242,16 @@ class ReviewHero extends StatelessWidget {
           if (hasImage)
             Positioned.fill(child: OptimizedImage.tripCover(coverImageUrl!)),
           if (hasImage)
-            const Positioned.fill(
+            Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xAA0D1F35), Color(0xDD0D1F35)],
+                    colors: [
+                      accent.withValues(alpha: 0.67),
+                      accent.withValues(alpha: 0.87),
+                    ],
                   ),
                 ),
               ),

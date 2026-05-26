@@ -1,5 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/widgets/compact_traveler_stepper.dart';
@@ -29,19 +29,24 @@ class TravelerBreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final dividerColor = AppColors.surfaceGroupBorderOf(brightness);
 
     return Container(
       decoration: BoxDecoration(
-        color: ColorName.surface,
+        color: AppColors.surfaceGroupOf(brightness),
         borderRadius: AppRadius.large24,
-        border: Border.all(color: ColorName.primarySoftLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
+        border: Border.all(color: AppColors.surfaceGroupBorderOf(brightness)),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  offset: const Offset(0, 2),
+                  blurRadius: 8,
+                ),
+              ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -53,8 +58,9 @@ class TravelerBreakdownCard extends StatelessWidget {
             min: 1,
             max: maxPerCategory,
             onChanged: onAdultsChanged,
+            brightness: brightness,
           ),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE8EAED)),
+          Divider(height: 1, thickness: 1, color: dividerColor),
           _Row(
             title: l10n.travelerTypeChildren,
             subtitle: l10n.travelerAgeChildrenSubtitle,
@@ -62,8 +68,9 @@ class TravelerBreakdownCard extends StatelessWidget {
             min: 0,
             max: maxPerCategory,
             onChanged: onChildrenChanged,
+            brightness: brightness,
           ),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFE8EAED)),
+          Divider(height: 1, thickness: 1, color: dividerColor),
           _Row(
             title: l10n.travelerTypeBabies,
             subtitle: l10n.travelerAgeBabiesSubtitle,
@@ -71,6 +78,7 @@ class TravelerBreakdownCard extends StatelessWidget {
             min: 0,
             max: maxPerCategory,
             onChanged: onBabiesChanged,
+            brightness: brightness,
           ),
         ],
       ),
@@ -86,6 +94,7 @@ class _Row extends StatelessWidget {
     required this.min,
     required this.max,
     required this.onChanged,
+    required this.brightness,
   });
 
   final String title;
@@ -94,9 +103,13 @@ class _Row extends StatelessWidget {
   final int min;
   final int max;
   final ValueChanged<int> onChanged;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.space16,
@@ -110,21 +123,21 @@ class _Row extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: ColorName.primaryDark,
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSans,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
-                    color: ColorName.hint,
+                    color: mutedColor,
                   ),
                 ),
               ],

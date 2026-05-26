@@ -3,6 +3,7 @@ import 'package:bagtrip/baggage/widgets/baggage_edit_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
 import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/elegant_empty_state.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
@@ -126,6 +127,9 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
 
   Widget _buildContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
     if (widget.items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
@@ -179,9 +183,9 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: surfaceColor,
                         borderRadius: AppRadius.large24,
-                        border: Border.all(color: ColorName.primarySoftLight),
+                        border: Border.all(color: borderColor),
                       ),
                       child: ClipRRect(
                         borderRadius: AppRadius.large24,
@@ -193,10 +197,7 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
                               idx++
                             ) ...[
                               if (idx > 0)
-                                const Divider(
-                                  height: 1,
-                                  color: ColorName.primarySoftLight,
-                                ),
+                                Divider(height: 1, color: borderColor),
                               _PackRow(
                                 item: section.value[idx],
                                 canEdit: widget.canEdit,
