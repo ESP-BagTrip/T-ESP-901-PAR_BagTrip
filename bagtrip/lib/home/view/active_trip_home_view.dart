@@ -9,6 +9,7 @@ import 'package:bagtrip/utils/destination_time.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
+import 'package:bagtrip/home/widgets/active_trip_hero_typography.dart';
 import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
@@ -195,23 +196,11 @@ class _ActiveTripHeroCard extends StatelessWidget {
                           children: [
                             Text(
                               destination,
-                              style: const TextStyle(
-                                fontFamily: FontFamily.dMSerifDisplay,
-                                fontSize: 30,
-                                fontWeight: FontWeight.w400,
-                                color: ColorName.surface,
-                              ),
+                              style: ActiveTripHeroTypography.city,
                             ),
                             Text(
                               dateRange,
-                              style: TextStyle(
-                                fontFamily: FontFamily.dMSans,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: ColorName.surface.withValues(
-                                  alpha: 0.82,
-                                ),
-                              ),
+                              style: ActiveTripHeroTypography.subtitle,
                             ),
                           ],
                         ),

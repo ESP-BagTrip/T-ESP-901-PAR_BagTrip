@@ -1,11 +1,14 @@
 import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
-/// Dark hero used by the wizard review step and by the trip-detail editor.
+/// Dark hero for trip-detail and active-trip programme screens. Occupies one
+/// third of the viewport height so the cover photo reads clearly; metadata sits
+/// on the bottom edge.
 ///
 /// All edit affordances are opt-in via nullable callbacks:
 /// * [onEditDates] — tap on the city/subtitle block or the budget opens the
@@ -17,6 +20,12 @@ import 'package:flutter/material.dart';
 /// 17 mai 2026 • 1 jour"). [trailing] is an optional slot on the hero row
 /// (e.g. completion ring). [statusBadge] surfaces in the upper-right corner
 /// (e.g. "READ-ONLY").
+///
+/// [coverOverlay] selects the darkening treatment. [ReviewHeroCoverOverlay.activeTripCard]
+/// matches the home active-trip card; [ReviewHeroCoverOverlay.tripDetail] keeps the
+/// editor scrim.
+enum ReviewHeroCoverOverlay { tripDetail, activeTripCard }
+
 class ReviewHero extends StatelessWidget {
   const ReviewHero({
     super.key,
@@ -24,6 +33,7 @@ class ReviewHero extends StatelessWidget {
     this.subtitle = '',
     required this.budgetLabel,
     this.coverImageUrl,
+    this.coverOverlay = ReviewHeroCoverOverlay.tripDetail,
     this.onEditDates,
     this.onBack,
     this.onClose,
@@ -31,16 +41,34 @@ class ReviewHero extends StatelessWidget {
     this.onChangeCover,
     this.trailing,
     this.statusBadge,
+    this.cityStyle,
+    this.subtitleStyle,
   });
 
   final String city;
   final String subtitle;
   final String budgetLabel;
 
+  /// Defaults to trip-detail typography (24 pt serif city, 16 pt serif subtitle).
+  final TextStyle? cityStyle;
+  final TextStyle? subtitleStyle;
+
+  static const TextStyle _defaultCityStyle = TextStyle(
+    fontFamily: FontFamily.dMSerifDisplay,
+    fontSize: 24,
+    color: ColorName.surface,
+  );
+
+  static const TextStyle _defaultSubtitleStyle = TextStyle(
+    fontFamily: FontFamily.dMSerifDisplay,
+    fontSize: 16,
+    color: ColorName.surface,
+  );
+
   /// Optional cover image rendered behind the metadata, with a gradient
-  /// overlay for legibility. When null, the hero falls back to the solid
-  /// `primaryDark` background.
+  /// overlay for legibility. When null, the hero falls back per [coverOverlay].
   final String? coverImageUrl;
+  final ReviewHeroCoverOverlay coverOverlay;
 
   final VoidCallback? onEditDates;
   final VoidCallback? onBack;
@@ -59,9 +87,13 @@ class ReviewHero extends StatelessWidget {
   /// Used by the editor to surface read-only / completed status.
   final Widget? statusBadge;
 
+  static const double _viewportHeightFraction = 1 / 3;
+
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    final topPadding = MediaQuery.paddingOf(context).top;
+    final heroHeight =
+        MediaQuery.sizeOf(context).height * _viewportHeightFraction;
     final navButtons = <Widget>[
       if (onBack != null) ...[
         HeroNavButton(icon: Icons.arrow_back_rounded, onPressed: onBack!),
@@ -82,6 +114,9 @@ class ReviewHero extends StatelessWidget {
         HeroNavButton(icon: Icons.more_horiz_rounded, onPressed: onOverflow!),
     ];
 
+    final resolvedCityStyle = cityStyle ?? _defaultCityStyle;
+    final resolvedSubtitleStyle = subtitleStyle ?? _defaultSubtitleStyle;
+
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -89,11 +124,7 @@ class ReviewHero extends StatelessWidget {
           city,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontFamily: FontFamily.dMSerifDisplay,
-            fontSize: 24,
-            color: ColorName.surface,
-          ),
+          style: resolvedCityStyle,
         ),
         if (subtitle.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.space8),
@@ -101,11 +132,7 @@ class ReviewHero extends StatelessWidget {
             subtitle,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontSize: 16,
-              color: ColorName.surface,
-            ),
+            style: resolvedSubtitleStyle,
           ),
         ],
       ],
@@ -127,11 +154,88 @@ class ReviewHero extends StatelessWidget {
         : null;
 
     final hasImage = coverImageUrl != null && coverImageUrl!.isNotEmpty;
-    return DecoratedBox(
-      decoration: const BoxDecoration(color: ColorName.primaryDark),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
+    final metadataRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: onEditDates != null
+              ? InkWell(onTap: onEditDates, child: titleBlock)
+              : titleBlock,
+        ),
+        if (budgetColumn != null) ...[
+          const SizedBox(width: AppSpacing.space12),
+          budgetColumn,
+        ],
+        if (trailing != null) ...[
+          const SizedBox(width: AppSpacing.space12),
+          trailing!,
+        ],
+      ],
+    );
+
+    final backgroundColor = coverOverlay == ReviewHeroCoverOverlay.tripDetail
+        ? ColorName.primaryDark
+        : Colors.transparent;
+
+    return SizedBox(
+      height: heroHeight,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: backgroundColor),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ..._coverLayers(hasImage),
+            Padding(
+              padding: EdgeInsets.only(top: topPadding),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: AppSpacing.space8,
+                    left: AppSpacing.space16,
+                    right: AppSpacing.space16,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: navButtons,
+                    ),
+                  ),
+                  Positioned(
+                    left: AppSpacing.space24,
+                    right: AppSpacing.space24,
+                    bottom: AppSpacing.space32,
+                    child: metadataRow,
+                  ),
+                  if (statusBadge != null)
+                    Positioned(
+                      top: AppSpacing.space12,
+                      right: AppSpacing.space16,
+                      child: statusBadge!,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _coverLayers(bool hasImage) {
+    switch (coverOverlay) {
+      case ReviewHeroCoverOverlay.activeTripCard:
+        return [
+          if (hasImage)
+            Positioned.fill(
+              child: OptimizedImage.tripCover(
+                coverImageUrl!,
+                errorWidget: const TripCoverHeroFallback(),
+              ),
+            )
+          else
+            const Positioned.fill(child: TripCoverHeroFallback()),
+          const Positioned.fill(child: TripCoverHeroScrim()),
+        ];
+      case ReviewHeroCoverOverlay.tripDetail:
+        return [
           if (hasImage)
             Positioned.fill(child: OptimizedImage.tripCover(coverImageUrl!)),
           if (hasImage)
@@ -146,64 +250,7 @@ class ReviewHero extends StatelessWidget {
                 ),
               ),
             ),
-          Padding(
-            padding: EdgeInsets.only(top: topPadding),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.space16,
-                        AppSpacing.space8,
-                        AppSpacing.space16,
-                        AppSpacing.space8,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: navButtons,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.space24,
-                        AppSpacing.space24,
-                        AppSpacing.space24,
-                        AppSpacing.space32,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: onEditDates != null
-                                ? InkWell(onTap: onEditDates, child: titleBlock)
-                                : titleBlock,
-                          ),
-                          if (budgetColumn != null) ...[
-                            const SizedBox(width: AppSpacing.space12),
-                            budgetColumn,
-                          ],
-                          if (trailing != null) ...[
-                            const SizedBox(width: AppSpacing.space12),
-                            trailing!,
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (statusBadge != null)
-                  Positioned(
-                    top: AppSpacing.space12,
-                    right: AppSpacing.space16,
-                    child: statusBadge!,
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+        ];
+    }
   }
 }

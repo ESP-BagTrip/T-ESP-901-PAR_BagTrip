@@ -14,17 +14,17 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
+import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trip_detail/widgets/cover_image_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
@@ -37,7 +37,6 @@ import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 /// New "wizard mirror" edit view: dark hero + pill chips bar + TabBarView
 /// with 7 domain panels. Replaces the legacy SliverAppBar + stacked-sections
@@ -175,10 +174,15 @@ class _LoadedTripViewState extends State<_LoadedTripView>
         Semantics(
           sortKey: const OrdinalSortKey(1),
           child: ReviewHero(
-            city: _heroCity(trip, l10n),
-            subtitle: _heroDateSubtitle(context, trip, l10n),
+            city: tripHeroCity(trip, l10n),
+            subtitle: tripHeroDateSubtitle(
+              context,
+              trip,
+              state.totalDays,
+              l10n,
+            ),
             budgetLabel: _heroBudgetLabel(),
-            coverImageUrl: _resolveCoverImage(trip),
+            coverImageUrl: tripHeroCoverImageUrl(trip),
             onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
             onBack: () => const HomeRoute().go(context),
             onOverflow: () => _handleOverflow(context),
@@ -293,46 +297,10 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     );
   }
 
-  // ── Hero helpers ────────────────────────────────────────────────────────
-
-  String _heroCity(Trip trip, AppLocalizations l10n) {
-    if (trip.destinationName != null && trip.destinationName!.isNotEmpty) {
-      return trip.destinationName!;
-    }
-    if (trip.title != null && trip.title!.isNotEmpty) return trip.title!;
-    return l10n.myTripFallback;
-  }
-
-  /// "16 mai 2026 - 17 mai 2026 • 1 jour" (locale-aware dates + [tripDurationDays]).
-  String _heroDateSubtitle(
-    BuildContext context,
-    Trip trip,
-    AppLocalizations l10n,
-  ) {
-    if (trip.startDate == null || trip.endDate == null) return '';
-    if (state.totalDays <= 0) return '';
-    final locale = Localizations.localeOf(context).languageCode;
-    final fmt = DateFormat('d MMM yyyy', locale);
-    final range =
-        '${fmt.format(trip.startDate!)} - ${fmt.format(trip.endDate!)}';
-    return '$range • ${l10n.tripDurationDays(state.totalDays)}';
-  }
-
   String _heroBudgetLabel() {
     final totalBudget = state.budgetSummary?.totalBudget;
     if (totalBudget == null || totalBudget <= 0) return '';
     return totalBudget.formatPrice();
-  }
-
-  /// Cover image for the hero. The backend's SMP-330 no-API-key pipeline
-  /// (Wikipedia → Wikidata → Commons) always populates [Trip.coverImageUrl]
-  /// when a destination is known, so the client no longer keeps a parallel
-  /// fallback. ``null`` here lets the hero widget render its gradient
-  /// placeholder, which is preferable to a wrong stock photo.
-  String? _resolveCoverImage(Trip trip) {
-    final fromBackend = trip.coverImageUrl;
-    if (fromBackend != null && fromBackend.isNotEmpty) return fromBackend;
-    return null;
   }
 
   Widget? _buildStatusBadge(AppLocalizations l10n) {

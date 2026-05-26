@@ -1,15 +1,17 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/selected_day_schedule.dart';
 import 'package:bagtrip/home/widgets/active_trip_day_navigator.dart';
-import 'package:bagtrip/home/widgets/active_trip_hero.dart';
-import 'package:bagtrip/home/widgets/active_trip_nav_pill.dart';
+import 'package:bagtrip/home/widgets/active_trip_hero_status.dart';
+import 'package:bagtrip/home/widgets/active_trip_hero_typography.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -70,144 +72,158 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
       locale,
     ).format(selectedCalDate);
 
-    // Scaffold provides the Material ancestor every Text descendant needs —
-    // without it Flutter renders the "missing Material" debug overlay (the
-    // yellow double-underline) under every label in this view.
     return Scaffold(
       backgroundColor: ColorName.surfaceLight,
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.space16,
-          MediaQuery.paddingOf(context).top + AppSpacing.space16,
-          AppSpacing.space16,
-          MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
-        ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back_rounded),
-              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+          ReviewHero(
+            coverOverlay: ReviewHeroCoverOverlay.activeTripCard,
+            city: tripHeroCity(trip, l10n),
+            subtitle: tripHeroDateSubtitle(context, trip, safeTotalDays, l10n),
+            cityStyle: ActiveTripHeroTypography.city,
+            subtitleStyle: ActiveTripHeroTypography.subtitle,
+            budgetLabel: '',
+            coverImageUrl: tripHeroCoverImageUrl(trip),
+            onBack: () => Navigator.of(context).pop(),
+            statusBadge: ActiveTripHeroStatus(
+              currentDay: state.currentDay,
+              totalDays: safeTotalDays,
+              weather: state.weatherData,
+              destinationTimezone: trip.destinationTimezone,
             ),
           ),
-          const SizedBox(height: AppSpacing.space8),
-          ActiveTripHero(
-            trip: trip,
-            currentDay: state.currentDay,
-            totalDays: totalDays,
-            weather: state.weatherData,
-          ),
-          const SizedBox(height: AppSpacing.space16),
-          ActiveTripNavPill(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          const SizedBox(height: AppSpacing.space24),
-          Text(
-            l10n.activeHomeProgrammeTitle,
-            style: const TextStyle(
-              fontFamily: FontFamily.dMSerifDisplay,
-              fontSize: 38,
-              fontWeight: FontWeight.w400,
-              color: ColorName.primaryTrueDark,
-              height: 1.05,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: AppSpacing.space12),
-          ActiveTripDayNavigator(
-            totalDays: safeTotalDays,
-            selectedDayIndex0: selectedDayIndex0,
-            tripStartDate: tripStartDate,
-            calendarTodayIndex0: calendarToday,
-            onDaySelected: (index) =>
-                setState(() => _selectedDayIndex0 = index),
-          ),
-          const SizedBox(height: AppSpacing.space12),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.space12,
-                  vertical: AppSpacing.space8,
-                ),
-                decoration: const BoxDecoration(
-                  color: ColorName.secondaryLight,
-                  borderRadius: AppRadius.pill,
-                ),
-                child: Text(
-                  l10n.timelineNow.toUpperCase(),
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: ColorName.secondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.space12),
-              Expanded(
-                child: Text(
-                  selectedDayLabel,
-                  style: const TextStyle(
-                    fontFamily: FontFamily.dMSans,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
-                    height: 1.1,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.space12),
-          if (timeline.isEmpty)
-            Container(
+          Expanded(
+            child: DecoratedBox(
               decoration: const BoxDecoration(
                 color: ColorName.surface,
-                borderRadius: AppRadius.large24,
-              ),
-              padding: const EdgeInsets.all(AppSpacing.space16),
-              child: Text(
-                l10n.activeHomeNoActivitiesDay,
-                style: const TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.cornerRadius24),
                 ),
               ),
-            )
-          else
-            ...timeline.asMap().entries.map((entry) {
-              final index = entry.key;
-              final activity = entry.value;
-              final isCurrent = schedule.currentActivity?.id == activity.id;
-              final isNext = schedule.nextActivity?.id == activity.id;
-              final isLast = index == timeline.length - 1;
-
-              return Column(
-                children: [
-                  if (schedule.dayKind == SelectedDayKind.today &&
-                      schedule.nowIndicatorIndex != null &&
-                      schedule.nowIndicatorIndex == index)
-                    const NowIndicatorRow(),
-                  TimelineActivityRow(
-                    activity: activity,
-                    isCurrent: isCurrent,
-                    isNext: isNext,
-                    isLast: isLast,
-                    isPast: schedule.dayKind == SelectedDayKind.beforeToday,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.cornerRadius24),
+                ),
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    AppSpacing.space16,
+                    MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
                   ),
-                ],
-              );
-            }),
-          const SizedBox(height: AppSpacing.space24),
+                  children: [
+                    Text(
+                      l10n.activeHomeProgrammeTitle,
+                      style: const TextStyle(
+                        fontFamily: FontFamily.dMSerifDisplay,
+                        fontSize: 38,
+                        fontWeight: FontWeight.w400,
+                        color: ColorName.primaryTrueDark,
+                        height: 1.05,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.space12),
+                    ActiveTripDayNavigator(
+                      totalDays: safeTotalDays,
+                      selectedDayIndex0: selectedDayIndex0,
+                      tripStartDate: tripStartDate,
+                      calendarTodayIndex0: calendarToday,
+                      onDaySelected: (index) =>
+                          setState(() => _selectedDayIndex0 = index),
+                    ),
+                    const SizedBox(height: AppSpacing.space12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space12,
+                            vertical: AppSpacing.space8,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: ColorName.secondaryLight,
+                            borderRadius: AppRadius.pill,
+                          ),
+                          child: Text(
+                            l10n.timelineNow.toUpperCase(),
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: ColorName.secondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.space12),
+                        Expanded(
+                          child: Text(
+                            selectedDayLabel,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textSecondary,
+                              height: 1.1,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.space12),
+                    if (timeline.isEmpty)
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: ColorName.surface,
+                          borderRadius: AppRadius.large24,
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.space16),
+                        child: Text(
+                          l10n.activeHomeNoActivitiesDay,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    else
+                      ...timeline.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final activity = entry.value;
+                        final isCurrent =
+                            schedule.currentActivity?.id == activity.id;
+                        final isNext = schedule.nextActivity?.id == activity.id;
+                        final isLast = index == timeline.length - 1;
+
+                        return Column(
+                          children: [
+                            if (schedule.dayKind == SelectedDayKind.today &&
+                                schedule.nowIndicatorIndex != null &&
+                                schedule.nowIndicatorIndex == index)
+                              const NowIndicatorRow(),
+                            TimelineActivityRow(
+                              activity: activity,
+                              isCurrent: isCurrent,
+                              isNext: isNext,
+                              isLast: isLast,
+                              isPast:
+                                  schedule.dayKind ==
+                                  SelectedDayKind.beforeToday,
+                            ),
+                          ],
+                        );
+                      }),
+                    const SizedBox(height: AppSpacing.space24),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
