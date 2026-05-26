@@ -33,6 +33,7 @@ class AppSpacing {
   /// Primary CTA vertical padding (Plan trip wizard).
   static const double space15 = 15.0;
   static const double space16 = 16.0;
+  static const double space20 = 20.0;
 
   /// Horizontal margin for Plan trip wizard screens (Ive-style density).
   static const double space22 = 22.0;

@@ -3,7 +3,6 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Small floating button mounted on a panel (inside [Stack] + [Positioned])
@@ -67,7 +66,7 @@ class _IosFab extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: AppShadows.card,
           ),
-          child: const Icon(CupertinoIcons.add, color: Colors.white, size: 22),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
       ),
     );

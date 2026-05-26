@@ -14,6 +14,8 @@ import 'package:bagtrip/models/trip_share.dart';
 import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
+import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trip_detail/widgets/review_shimmer.dart';
@@ -98,6 +100,7 @@ void main() {
   Future<void> pumpView(
     WidgetTester tester,
     TripDetailState seed, {
+    int? initialTabIndex,
     Size size = const Size(900, 2400),
   }) async {
     tester.view.physicalSize = Size(size.width, size.height);
@@ -118,7 +121,10 @@ void main() {
             BlocProvider<HomeBloc>.value(value: homeBloc),
             BlocProvider<TripManagementBloc>.value(value: managementBloc),
           ],
-          child: const TripDetailView(tripId: 'trip-1'),
+          child: TripDetailView(
+            tripId: 'trip-1',
+            initialTabIndex: initialTabIndex,
+          ),
         ),
       ),
     );
@@ -230,6 +236,22 @@ void main() {
       );
       await tester.pump();
       expect(find.text('73%'), findsOneWidget);
+    });
+
+    testWidgets('opens Activities panel when initialTabIndex is activities', (
+      tester,
+    ) async {
+      await pumpView(
+        tester,
+        _loaded(
+          trip: makeTrip(
+            startDate: DateTime(2026, 9),
+            endDate: DateTime(2026, 9, 5),
+          ),
+        ),
+        initialTabIndex: tripDetailActivitiesTabIndex,
+      );
+      expect(find.byType(ActivitiesPanel), findsOneWidget);
     });
 
     testWidgets('refresh indicator present on loaded state', (tester) async {

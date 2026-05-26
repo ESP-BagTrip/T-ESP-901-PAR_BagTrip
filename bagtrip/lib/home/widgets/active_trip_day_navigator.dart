@@ -61,15 +61,31 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
 
   void _scrollToSelected() {
     if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
     final itemWidth = ActiveTripDayNavigator._chipSize + AppSpacing.space8;
-    final offset = (widget.selectedDayIndex0 * itemWidth - 80).clamp(
-      0.0,
-      double.infinity,
-    );
+    final chipStart = AppSpacing.space16 + widget.selectedDayIndex0 * itemWidth;
+    final chipEnd = chipStart + ActiveTripDayNavigator._chipSize;
+
+    final viewportStart = position.pixels;
+    final viewportEnd = position.pixels + position.viewportDimension;
+
+    double? targetOffset;
+    if (chipStart < viewportStart) {
+      targetOffset = chipStart - AppSpacing.space16;
+    } else if (chipEnd > viewportEnd) {
+      targetOffset = chipEnd - position.viewportDimension + AppSpacing.space16;
+    } else {
+      return;
+    }
+
+    targetOffset = targetOffset.clamp(0.0, position.maxScrollExtent);
+    if ((targetOffset - position.pixels).abs() < 1) return;
+
     _scrollController.animateTo(
-      offset,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
+      targetOffset,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
     );
   }
 
@@ -98,6 +114,9 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
       child: ListView.separated(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
+        physics: const ClampingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+        clipBehavior: Clip.none,
         itemCount: widget.totalDays,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space8),
         itemBuilder: (context, i) {
@@ -140,7 +159,8 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
               widget.onDaySelected(i);
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
               width: ActiveTripDayNavigator._chipSize,
               height: ActiveTripDayNavigator._chipSize,
               decoration: BoxDecoration(

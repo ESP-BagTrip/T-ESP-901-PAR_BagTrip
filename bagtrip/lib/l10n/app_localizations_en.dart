@@ -2139,6 +2139,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeHomeProgrammeTitle => 'Schedule';
 
   @override
+  String get activeHomeEditProgrammeFab => 'Edit schedule';
+
+  @override
   String get activeHomeNoActivitiesDay => 'No activities on this day';
 
   @override

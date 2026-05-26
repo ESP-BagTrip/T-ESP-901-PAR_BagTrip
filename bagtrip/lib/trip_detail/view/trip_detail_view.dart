@@ -17,6 +17,7 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
@@ -37,14 +38,26 @@ import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+/// Pops when [context] was reached via push (e.g. active-trip programme →
+/// activities editor); otherwise falls back to home.
+void leaveTripDetail(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    const HomeRoute().go(context);
+  }
+}
 
 /// New "wizard mirror" edit view: dark hero + pill chips bar + TabBarView
 /// with 7 domain panels. Replaces the legacy SliverAppBar + stacked-sections
 /// layout.
 class TripDetailView extends StatelessWidget {
   final String tripId;
+  final int? initialTabIndex;
 
-  const TripDetailView({super.key, required this.tripId});
+  const TripDetailView({super.key, required this.tripId, this.initialTabIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +107,11 @@ class TripDetailView extends StatelessWidget {
             );
           }
           if (state is TripDetailLoaded) {
-            return _LoadedTripView(tripId: tripId, state: state);
+            return _LoadedTripView(
+              tripId: tripId,
+              state: state,
+              initialTabIndex: initialTabIndex,
+            );
           }
           return const SizedBox.shrink();
         },
@@ -104,10 +121,15 @@ class TripDetailView extends StatelessWidget {
 }
 
 class _LoadedTripView extends StatefulWidget {
-  const _LoadedTripView({required this.tripId, required this.state});
+  const _LoadedTripView({
+    required this.tripId,
+    required this.state,
+    this.initialTabIndex,
+  });
 
   final String tripId;
   final TripDetailLoaded state;
+  final int? initialTabIndex;
 
   @override
   State<_LoadedTripView> createState() => _LoadedTripViewState();
@@ -126,10 +148,17 @@ class _LoadedTripViewState extends State<_LoadedTripView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabCount, vsync: this);
+    _tabController = TabController(
+      length: _tabCount,
+      vsync: this,
+      initialIndex: _initialTabIndex,
+    );
     _tabController.addListener(_onTabChanged);
     _footerController = PanelFooterCtaController(vsync: this);
   }
+
+  int get _initialTabIndex =>
+      (widget.initialTabIndex ?? 0).clamp(0, _tabCount - 1);
 
   @override
   void didUpdateWidget(covariant _LoadedTripView oldWidget) {
@@ -184,7 +213,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
             budgetLabel: _heroBudgetLabel(),
             coverImageUrl: tripHeroCoverImageUrl(trip),
             onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
-            onBack: () => const HomeRoute().go(context),
+            onBack: () => leaveTripDetail(context),
             onOverflow: () => _handleOverflow(context),
             onChangeCover: _canEdit
                 ? () => showCoverImagePickerSheet(
@@ -632,7 +661,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return switch (type) {
       CompletionSegmentType.flights => 1,
       CompletionSegmentType.accommodation => 2,
-      CompletionSegmentType.activities => 3,
+      CompletionSegmentType.activities => tripDetailActivitiesTabIndex,
       CompletionSegmentType.baggage => 4,
     };
   }

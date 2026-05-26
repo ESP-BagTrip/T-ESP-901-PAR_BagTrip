@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -12,6 +13,7 @@ import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -167,6 +169,15 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
 
     return Scaffold(
       backgroundColor: ColorName.surfaceLight,
+      floatingActionButton: PanelFab(
+        label: l10n.activeHomeEditProgrammeFab,
+        icon: Icons.edit_outlined,
+        onTap: () => TripHomeRoute(
+          tripId: trip.id,
+          tab: TripDetailTab.activities,
+        ).push(context),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -201,28 +212,31 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                  AppSpacing.space16,
-                  bottomInset,
+                padding: EdgeInsets.only(
+                  top: AppSpacing.space16,
+                  bottom: bottomInset,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      l10n.activeHomeProgrammeTitle,
-                      style: const TextStyle(
-                        fontFamily: FontFamily.dMSerifDisplay,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w400,
-                        color: ColorName.primaryTrueDark,
-                        height: 1.05,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Text(
+                        l10n.activeHomeProgrammeTitle,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSerifDisplay,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w400,
+                          color: ColorName.primaryTrueDark,
+                          height: 1.05,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.space12),
+                    const SizedBox(height: AppSpacing.space20),
                     ActiveTripDayNavigator(
                       totalDays: safeTotalDays,
                       selectedDayIndex0: selectedDayIndex0,
@@ -232,52 +246,64 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                           setState(() => _selectedDayIndex0 = index),
                     ),
                     const SizedBox(height: AppSpacing.space12),
-                    if (timeline.isEmpty)
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: ColorName.surfaceLight,
-                          borderRadius: AppRadius.large24,
-                        ),
-                        padding: const EdgeInsets.all(AppSpacing.space16),
-                        child: Text(
-                          l10n.activeHomeNoActivitiesDay,
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      )
-                    else
-                      ...timeline.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final activity = entry.value;
-                        final isCurrent =
-                            schedule.currentActivity?.id == activity.id;
-                        final isNext = schedule.nextActivity?.id == activity.id;
-                        final isLast = index == timeline.length - 1;
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.space16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (timeline.isEmpty)
+                            Container(
+                              decoration: const BoxDecoration(
+                                color: ColorName.surfaceLight,
+                                borderRadius: AppRadius.large24,
+                              ),
+                              padding: const EdgeInsets.all(AppSpacing.space16),
+                              child: Text(
+                                l10n.activeHomeNoActivitiesDay,
+                                style: const TextStyle(
+                                  fontFamily: FontFamily.dMSans,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            )
+                          else
+                            ...timeline.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final activity = entry.value;
+                              final isCurrent =
+                                  schedule.currentActivity?.id == activity.id;
+                              final isNext =
+                                  schedule.nextActivity?.id == activity.id;
+                              final isLast = index == timeline.length - 1;
 
-                        return Column(
-                          key: ValueKey(activity.id),
-                          children: [
-                            if (schedule.dayKind == SelectedDayKind.today &&
-                                schedule.nowIndicatorIndex != null &&
-                                schedule.nowIndicatorIndex == index)
-                              const NowIndicatorRow(),
-                            TimelineActivityRow(
-                              activity: activity,
-                              isCurrent: isCurrent,
-                              isNext: isNext,
-                              isLast: isLast,
-                              isPast:
-                                  schedule.dayKind ==
-                                  SelectedDayKind.beforeToday,
-                              useProgrammeCapsuleColors: true,
-                            ),
-                          ],
-                        );
-                      }),
+                              return Column(
+                                key: ValueKey(activity.id),
+                                children: [
+                                  if (schedule.dayKind ==
+                                          SelectedDayKind.today &&
+                                      schedule.nowIndicatorIndex != null &&
+                                      schedule.nowIndicatorIndex == index)
+                                    const NowIndicatorRow(),
+                                  TimelineActivityRow(
+                                    activity: activity,
+                                    isCurrent: isCurrent,
+                                    isNext: isNext,
+                                    isLast: isLast,
+                                    isPast:
+                                        schedule.dayKind ==
+                                        SelectedDayKind.beforeToday,
+                                    useProgrammeCapsuleColors: true,
+                                  ),
+                                ],
+                              );
+                            }),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

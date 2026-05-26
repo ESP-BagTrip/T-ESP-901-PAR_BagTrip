@@ -30,6 +30,7 @@ import 'package:bagtrip/profile/view/settings_page.dart';
 import 'package:bagtrip/subscription/view/invoices_page.dart';
 import 'package:bagtrip/subscription/view/subscription_settings_page.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
 import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:flutter/material.dart';
@@ -228,15 +229,18 @@ class TripDetailRoute extends GoRouteData with $TripDetailRoute {
 }
 
 class TripHomeRoute extends GoRouteData with $TripHomeRoute {
-  const TripHomeRoute({required this.tripId});
+  const TripHomeRoute({required this.tripId, this.tab});
 
   final String tripId;
+
+  /// Opens [TripDetailView] on a specific panel (e.g. activities editor).
+  final TripDetailTab? tab;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: TripDetailView(tripId: tripId),
+        child: TripDetailView(tripId: tripId, initialTabIndex: tab?.tabIndex),
       );
 }
 

@@ -1057,6 +1057,7 @@
   "qaEndTrip": "Fin voyage",
   "homeTodayActivities": "Programme du jour",
   "activeHomeProgrammeTitle": "Programme",
+  "activeHomeEditProgrammeFab": "Modifier le programme",
   "activeHomeNoActivitiesDay": "Aucune activité ce jour-là",
   "activeHomeContextPast": "Passé",
   "activeHomeContextToday": "AUJOURD'HUI",

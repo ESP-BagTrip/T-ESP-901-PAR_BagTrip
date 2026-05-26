@@ -2155,6 +2155,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get activeHomeProgrammeTitle => 'Programme';
 
   @override
+  String get activeHomeEditProgrammeFab => 'Modifier le programme';
+
+  @override
   String get activeHomeNoActivitiesDay => 'Aucune activité ce jour-là';
 
   @override

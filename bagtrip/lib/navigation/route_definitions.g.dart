@@ -358,14 +358,24 @@ extension $TripDetailShellRouteExtension on TripDetailShellRoute {
 }
 
 mixin $TripHomeRoute on GoRouteData {
-  static TripHomeRoute _fromState(GoRouterState state) =>
-      TripHomeRoute(tripId: state.pathParameters['tripId']!);
+  static TripHomeRoute _fromState(GoRouterState state) => TripHomeRoute(
+    tripId: state.pathParameters['tripId']!,
+    tab: _$convertMapValue(
+      'tab',
+      state.uri.queryParameters,
+      _$TripDetailTabEnumMap._$fromName,
+    ),
+  );
 
   TripHomeRoute get _self => this as TripHomeRoute;
 
   @override
-  String get location =>
-      GoRouteData.$location('/home/${Uri.encodeComponent(_self.tripId)}');
+  String get location => GoRouteData.$location(
+    '/home/${Uri.encodeComponent(_self.tripId)}',
+    queryParams: {
+      if (_self.tab != null) 'tab': _$TripDetailTabEnumMap[_self.tab!],
+    },
+  );
 
   @override
   void go(BuildContext context) => context.go(location);
@@ -380,6 +390,8 @@ mixin $TripHomeRoute on GoRouteData {
   @override
   void replace(BuildContext context) => context.replace(location);
 }
+
+const _$TripDetailTabEnumMap = {TripDetailTab.activities: 'activities'};
 
 mixin $AccommodationsRoute on GoRouteData {
   static AccommodationsRoute _fromState(GoRouterState state) =>
@@ -548,6 +560,11 @@ T? _$convertMapValue<T>(
 ) {
   final value = map[key];
   return value == null ? null : converter(value);
+}
+
+extension<T extends Enum> on Map<T, String> {
+  T? _$fromName(String? value) =>
+      entries.where((element) => element.value == value).firstOrNull?.key;
 }
 
 bool _$boolConverter(String value) {

@@ -3914,6 +3914,12 @@ abstract class AppLocalizations {
   /// **'Programme'**
   String get activeHomeProgrammeTitle;
 
+  /// No description provided for @activeHomeEditProgrammeFab.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le programme'**
+  String get activeHomeEditProgrammeFab;
+
   /// No description provided for @activeHomeNoActivitiesDay.
   ///
   /// In fr, this message translates to:

@@ -1,12 +1,15 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
+import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../helpers/test_fixtures.dart';
 
@@ -82,5 +85,105 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('shows edit programme FAB with pen icon', (tester) async {
+    await tester.pumpWidget(buildHarness(makeOngoingState()));
+    await tester.pump();
+
+    expect(find.byType(PanelFab), findsOneWidget);
+    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.text('Edit schedule'), findsOneWidget);
+  });
+
+  testWidgets('edit programme FAB opens trip detail on activities tab', (
+    tester,
+  ) async {
+    final state = makeOngoingState();
+    final router = GoRouter(
+      initialLocation: '/programme',
+      routes: [
+        GoRoute(
+          path: '/programme',
+          builder: (_, _) => ActiveTripProgrammeView(state: state),
+        ),
+        GoRoute(
+          path: '/home/:tripId',
+          builder: (_, goState) => Scaffold(
+            body: Text(
+              'trip-detail-${goState.pathParameters['tripId']}-'
+              '${goState.uri.queryParameters['tab']}',
+            ),
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        routerConfig: router,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.byType(PanelFab));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('trip-detail-trip-1-activities'), findsOneWidget);
+  });
+
+  testWidgets('back from trip detail returns to programme when pushed', (
+    tester,
+  ) async {
+    final state = makeOngoingState();
+    final router = GoRouter(
+      initialLocation: '/programme',
+      routes: [
+        GoRoute(
+          path: '/programme',
+          builder: (_, _) => ActiveTripProgrammeView(state: state),
+        ),
+        GoRoute(
+          path: '/home/:tripId',
+          builder: (context, goState) => Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => leaveTripDetail(context)),
+            ),
+            body: Text(
+              'trip-detail-${goState.pathParameters['tripId']}-'
+              '${goState.uri.queryParameters['tab']}',
+            ),
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        routerConfig: router,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    await tester.tap(find.byType(PanelFab));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('trip-detail-trip-1-activities'), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Schedule'), findsOneWidget);
+    expect(find.text('trip-detail-trip-1-activities'), findsNothing);
   });
 }
