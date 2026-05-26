@@ -195,6 +195,10 @@ RouteBase get $homeRoute => GoRouteData.$route(
   routes: [
     GoRouteData.$route(path: 'plan', factory: $PlanTripRoute._fromState),
     GoRouteData.$route(
+      path: 'active-trip/programme',
+      factory: $ActiveTripProgrammeRoute._fromState,
+    ),
+    GoRouteData.$route(
       path: 'flight-search',
       factory: $TripFlightSearchRoute._fromState,
     ),
@@ -276,6 +280,27 @@ mixin $PlanTripRoute on GoRouteData {
   @override
   void replace(BuildContext context) =>
       context.replace(location, extra: _self.$extra);
+}
+
+mixin $ActiveTripProgrammeRoute on GoRouteData {
+  static ActiveTripProgrammeRoute _fromState(GoRouterState state) =>
+      const ActiveTripProgrammeRoute();
+
+  @override
+  String get location => GoRouteData.$location('/home/active-trip/programme');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
 }
 
 mixin $TripFlightSearchRoute on GoRouteData {

@@ -1,6 +1,38 @@
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
+/// Path segment watched by [ActiveTripHomeView] for post-programme tap guard.
+const kTestActiveTripProgrammePath = '/home/active-trip/programme';
+
+/// Minimal [GoRouter] for widget tests that call [GoRouter.of] without the
+/// full app router (e.g. active trip hero route listeners).
+GoRouter testGoRouter({required Widget home, String initialLocation = '/'}) {
+  return GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(path: '/', builder: (_, _) => home),
+      GoRoute(
+        path: kTestActiveTripProgrammePath,
+        builder: (_, _) => const SizedBox.shrink(),
+      ),
+    ],
+  );
+}
+
+/// [MaterialApp.router] with l10n and a [testGoRouter] around [child].
+Widget localizedRouterApp({
+  required Widget child,
+  Locale locale = const Locale('en'),
+}) {
+  return MaterialApp.router(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    locale: locale,
+    routerConfig: testGoRouter(home: child),
+  );
+}
 
 /// Pumps a widget wrapped in a minimal `MaterialApp` with localizations
 /// delegates registered. Use this for smoke tests that only need a

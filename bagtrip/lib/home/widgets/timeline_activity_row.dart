@@ -32,6 +32,10 @@ class TimelineActivityRow extends StatefulWidget {
   /// (pill + icon + text only — e.g. active trip hero bottom strip).
   final bool bare;
 
+  /// Programme screen: "Maintenant" capsules use [ColorName.secondary], others
+  /// use [ColorName.primaryDark]. Home hero (`bare: true`) must leave this false.
+  final bool useProgrammeCapsuleColors;
+
   const TimelineActivityRow({
     super.key,
     required this.activity,
@@ -46,6 +50,7 @@ class TimelineActivityRow extends StatefulWidget {
     this.strikeThroughTitle = false,
     this.contentDimAlpha,
     this.bare = false,
+    this.useProgrammeCapsuleColors = false,
   });
 
   @override
@@ -102,12 +107,22 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   }
 
   Color _accent(bool isDimmed) {
+    if (widget.useProgrammeCapsuleColors) {
+      final base = widget.isCurrent
+          ? ColorName.secondary
+          : ColorName.primaryDark;
+      return isDimmed ? base.withValues(alpha: 0.5) : base;
+    }
     final base = timelineCardAccent(
       activity: widget.activity,
       isNow: widget.isCurrent,
     );
     return isDimmed ? base.withValues(alpha: 0.5) : base;
   }
+
+  Color get _nowStripeColor => widget.useProgrammeCapsuleColors
+      ? ColorName.secondary
+      : timelineNowAccent;
 
   String? _subtitleLine(AppLocalizations l10n) {
     final desc = widget.activity.description?.trim();
@@ -323,9 +338,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ColoredBox(
-                color: timelineNowAccent,
-                child: SizedBox(height: 3, width: double.infinity),
+              ColoredBox(
+                color: _nowStripeColor,
+                child: const SizedBox(height: 3, width: double.infinity),
               ),
               ColoredBox(color: ColorName.surface, child: inner),
             ],
@@ -346,8 +361,21 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     );
   }
 
+  bool get _capsuleFilled =>
+      widget.isCurrent || widget.useProgrammeCapsuleColors;
+
+  Color _capsuleBackgroundColor(Color accent, bool filled) {
+    if (widget.useProgrammeCapsuleColors) return accent;
+    return filled ? accent : timelineCapsuleBackground(accent);
+  }
+
+  Color _capsuleForegroundColor(Color accent, bool filled) {
+    if (widget.useProgrammeCapsuleColors) return Colors.white;
+    return filled ? Colors.white : accent;
+  }
+
   Widget _timeCapsule(String label, Color accent, bool isDimmed) {
-    final filled = widget.isCurrent;
+    final filled = _capsuleFilled;
     if (widget.isCurrent && _pulseOpacity != null) {
       return AnimatedBuilder(
         animation: _pulseOpacity!,
@@ -375,7 +403,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: filled ? accent : timelineCapsuleBackground(accent),
+        color: _capsuleBackgroundColor(accent, filled),
         borderRadius: BorderRadius.circular(r),
       ),
       child: Text(
@@ -387,7 +415,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
           fontSize: 11,
           fontWeight: FontWeight.w700,
           height: 1.1,
-          color: filled ? Colors.white : accent,
+          color: _capsuleForegroundColor(accent, filled),
           letterSpacing: filled ? 0.35 : 0.15,
         ),
       ),
@@ -395,8 +423,22 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   }
 
   Widget _iconCircle(ThemeData theme, Color accent, bool isDimmed) {
-    final a = isDimmed ? accent.withValues(alpha: 0.55) : accent;
     final s = timelineActivityLeadingSize;
+    if (widget.useProgrammeCapsuleColors) {
+      final bg = isDimmed ? accent.withValues(alpha: 0.5) : accent;
+      return Container(
+        width: s,
+        height: s,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
+        alignment: Alignment.center,
+        child: Icon(
+          widget.activity.category.icon,
+          size: 16,
+          color: Colors.white.withValues(alpha: isDimmed ? 0.65 : 1),
+        ),
+      );
+    }
+    final a = isDimmed ? accent.withValues(alpha: 0.55) : accent;
     return Container(
       width: s,
       height: s,
@@ -432,7 +474,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: timelineNowAccent.withValues(alpha: 0.4),
+                        color: _nowStripeColor.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -443,9 +485,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             Container(
               width: 12,
               height: 12,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: timelineNowAccent,
+                color: _nowStripeColor,
               ),
             ),
           ],
@@ -454,10 +496,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     }
 
     if (widget.isNext) {
-      final accent = timelineCardAccent(
-        activity: widget.activity,
-        isNow: false,
-      );
+      final accent = widget.useProgrammeCapsuleColors
+          ? ColorName.primaryDark
+          : timelineCardAccent(activity: widget.activity, isNow: false);
       final c = isDimmed ? accent.withValues(alpha: 0.5) : accent;
       return Container(
         width: 14,

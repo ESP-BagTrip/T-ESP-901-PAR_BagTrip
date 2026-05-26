@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -59,5 +60,27 @@ void main() {
     // Smoke render — the title is above the fold; ListView lazily builds the
     // rest, so deeper assertions belong in dedicated panel tests.
     expect(find.text('Schedule'), findsOneWidget);
+  });
+
+  testWidgets('hero scrolls with programme content in one CustomScrollView', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildHarness(makeOngoingState()));
+    await tester.pump();
+
+    expect(
+      find.ancestor(
+        of: find.byType(ReviewHero),
+        matching: find.byType(CustomScrollView),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.ancestor(
+        of: find.text('Schedule'),
+        matching: find.byType(CustomScrollView),
+      ),
+      findsOneWidget,
+    );
   });
 }

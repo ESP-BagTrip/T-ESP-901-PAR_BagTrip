@@ -11,10 +11,10 @@ import 'package:bagtrip/home/widgets/active_trip_hero_typography.dart';
 import 'package:bagtrip/home/widgets/now_indicator_row.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 /// Full-day schedule for the active trip. Reads live [HomeActiveTrip] from
 /// [HomeBloc] when [state] is omitted (production navigation).
@@ -26,8 +26,60 @@ class ActiveTripProgrammeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (state != null) {
-      return _ActiveTripProgrammeBody(state: state!);
+    return _ActiveTripProgrammeShell(initialState: state);
+  }
+}
+
+/// Centralises leaving the programme route (back button, swipe-back, bloc exit).
+class _ActiveTripProgrammeShell extends StatefulWidget {
+  const _ActiveTripProgrammeShell({this.initialState});
+
+  final HomeActiveTrip? initialState;
+
+  @override
+  State<_ActiveTripProgrammeShell> createState() =>
+      _ActiveTripProgrammeShellState();
+}
+
+class _ActiveTripProgrammeShellState extends State<_ActiveTripProgrammeShell> {
+  bool _exitRequested = false;
+
+  /// Clears the nested `/home/active-trip/programme` location. [context.pop]
+  /// alone can leave the child path matched and immediately rebuild programme.
+  void _leaveProgramme() {
+    if (_exitRequested || !mounted) return;
+    _exitRequested = true;
+    const HomeRoute().go(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _leaveProgramme();
+      },
+      child: _buildContent(),
+    );
+
+    if (widget.initialState != null) {
+      return content;
+    }
+
+    return BlocListener<HomeBloc, HomeState>(
+      listenWhen: (previous, current) =>
+          previous is HomeActiveTrip &&
+          current is! HomeActiveTrip &&
+          current is! HomeLoading,
+      listener: (context, state) => _leaveProgramme(),
+      child: content,
+    );
+  }
+
+  Widget _buildContent() {
+    final initial = widget.initialState;
+    if (initial != null) {
+      return _ActiveTripProgrammeBody(state: initial, onBack: _leaveProgramme);
     }
 
     return BlocBuilder<HomeBloc, HomeState>(
@@ -39,21 +91,22 @@ class ActiveTripProgrammeView extends StatelessWidget {
                   previous.activeTrip.id != current.activeTrip.id)),
       builder: (context, homeState) {
         if (homeState is! HomeActiveTrip) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) Navigator.of(context).maybePop();
-          });
-          return const Scaffold(body: SizedBox.shrink());
+          return const SizedBox.shrink();
         }
-        return _ActiveTripProgrammeBody(state: homeState);
+        return _ActiveTripProgrammeBody(
+          state: homeState,
+          onBack: _leaveProgramme,
+        );
       },
     );
   }
 }
 
 class _ActiveTripProgrammeBody extends StatefulWidget {
-  const _ActiveTripProgrammeBody({required this.state});
+  const _ActiveTripProgrammeBody({required this.state, required this.onBack});
 
   final HomeActiveTrip state;
+  final VoidCallback onBack;
 
   @override
   State<_ActiveTripProgrammeBody> createState() =>
@@ -101,11 +154,6 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
       totalDays: safeTotalDays,
       now: now,
     );
-    final selectedCalDate = DateTime(
-      tripStartDate.year,
-      tripStartDate.month,
-      tripStartDate.day,
-    ).add(Duration(days: selectedDayIndex0));
     final schedule = buildScheduleForSelectedDay(
       allActivities: state.allActivities,
       trip: trip,
@@ -114,58 +162,59 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
       now: now,
     );
     final timeline = schedule.allTimeline;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final selectedDayLabel = DateFormat(
-      'EEEE d MMMM y',
-      locale,
-    ).format(selectedCalDate);
+    final bottomInset =
+        MediaQuery.paddingOf(context).bottom + AppSpacing.space24;
 
     return Scaffold(
       backgroundColor: ColorName.surfaceLight,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ReviewHero(
-            coverOverlay: ReviewHeroCoverOverlay.activeTripCard,
-            city: tripHeroCity(trip, l10n),
-            subtitle: tripHeroDateSubtitle(context, trip, safeTotalDays, l10n),
-            cityStyle: ActiveTripHeroTypography.city,
-            subtitleStyle: ActiveTripHeroTypography.subtitle,
-            budgetLabel: '',
-            coverImageUrl: tripHeroCoverImageUrl(trip),
-            onBack: () => Navigator.of(context).pop(),
-            statusBadge: ActiveTripHeroStatus(
-              currentDay: state.currentDay,
-              totalDays: safeTotalDays,
-              weather: state.weatherData,
-              destinationTimezone: trip.destinationTimezone,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: ReviewHero(
+              coverOverlay: ReviewHeroCoverOverlay.activeTripCard,
+              city: tripHeroCity(trip, l10n),
+              subtitle: tripHeroDateSubtitle(
+                context,
+                trip,
+                safeTotalDays,
+                l10n,
+              ),
+              cityStyle: ActiveTripHeroTypography.city,
+              subtitleStyle: ActiveTripHeroTypography.subtitle,
+              budgetLabel: '',
+              coverImageUrl: tripHeroCoverImageUrl(trip),
+              onBack: widget.onBack,
+              statusBadge: ActiveTripHeroStatus(
+                currentDay: state.currentDay,
+                totalDays: safeTotalDays,
+                weather: state.weatherData,
+                destinationTimezone: trip.destinationTimezone,
+              ),
             ),
           ),
-          Expanded(
+          SliverToBoxAdapter(
             child: DecoratedBox(
               decoration: const BoxDecoration(
-                color: ColorName.surface,
+                color: ColorName.surfaceLight,
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(AppRadius.cornerRadius24),
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.cornerRadius24),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  AppSpacing.space16,
+                  bottomInset,
                 ),
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    AppSpacing.space16,
-                    MediaQuery.paddingOf(context).bottom + AppSpacing.space24,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
                       l10n.activeHomeProgrammeTitle,
                       style: const TextStyle(
                         fontFamily: FontFamily.dMSerifDisplay,
-                        fontSize: 38,
+                        fontSize: 28,
                         fontWeight: FontWeight.w400,
                         color: ColorName.primaryTrueDark,
                         height: 1.05,
@@ -183,49 +232,10 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                           setState(() => _selectedDayIndex0 = index),
                     ),
                     const SizedBox(height: AppSpacing.space12),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.space12,
-                            vertical: AppSpacing.space8,
-                          ),
-                          decoration: const BoxDecoration(
-                            color: ColorName.secondaryLight,
-                            borderRadius: AppRadius.pill,
-                          ),
-                          child: Text(
-                            l10n.timelineNow.toUpperCase(),
-                            style: const TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: ColorName.secondary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.space12),
-                        Expanded(
-                          child: Text(
-                            selectedDayLabel,
-                            style: const TextStyle(
-                              fontFamily: FontFamily.dMSans,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.textSecondary,
-                              height: 1.1,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.space12),
                     if (timeline.isEmpty)
                       Container(
                         decoration: const BoxDecoration(
-                          color: ColorName.surface,
+                          color: ColorName.surfaceLight,
                           borderRadius: AppRadius.large24,
                         ),
                         padding: const EdgeInsets.all(AppSpacing.space16),
@@ -263,11 +273,11 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                               isPast:
                                   schedule.dayKind ==
                                   SelectedDayKind.beforeToday,
+                              useProgrammeCapsuleColors: true,
                             ),
                           ],
                         );
                       }),
-                    const SizedBox(height: AppSpacing.space24),
                   ],
                 ),
               ),
