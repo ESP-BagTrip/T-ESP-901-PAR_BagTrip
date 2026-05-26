@@ -2,7 +2,6 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/review_hero.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/selected_day_schedule.dart';
@@ -144,6 +143,13 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
+    final emptyCardColor = AppColors.surfaceGroupOf(brightness);
+    final emptyCardBorder = AppColors.surfaceGroupBorderOf(brightness);
     final l10n = AppLocalizations.of(context)!;
     final trip = state.activeTrip;
     final totalDays = state.totalDays;
@@ -168,7 +174,7 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
         MediaQuery.paddingOf(context).bottom + AppSpacing.space24;
 
     return Scaffold(
-      backgroundColor: ColorName.surfaceLight,
+      backgroundColor: sheetColor,
       floatingActionButton: PanelFab(
         label: l10n.activeHomeEditProgrammeFab,
         icon: Icons.edit_outlined,
@@ -205,10 +211,10 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
           ),
           SliverToBoxAdapter(
             child: DecoratedBox(
-              decoration: const BoxDecoration(
-                color: ColorName.surfaceLight,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.cornerRadius24),
+              decoration: BoxDecoration(
+                color: sheetColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.cornerRadius32),
                 ),
               ),
               child: Padding(
@@ -225,11 +231,11 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                       ),
                       child: Text(
                         l10n.activeHomeProgrammeTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.dMSerifDisplay,
                           fontSize: 28,
                           fontWeight: FontWeight.w400,
-                          color: ColorName.primaryTrueDark,
+                          color: titleColor,
                           height: 1.05,
                         ),
                         maxLines: 1,
@@ -255,18 +261,19 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
                         children: [
                           if (timeline.isEmpty)
                             Container(
-                              decoration: const BoxDecoration(
-                                color: ColorName.surfaceLight,
+                              decoration: BoxDecoration(
+                                color: emptyCardColor,
                                 borderRadius: AppRadius.large24,
+                                border: Border.all(color: emptyCardBorder),
                               ),
                               padding: const EdgeInsets.all(AppSpacing.space16),
                               child: Text(
                                 l10n.activeHomeNoActivitiesDay,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: FontFamily.dMSans,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
+                                  color: mutedColor,
                                 ),
                               ),
                             )

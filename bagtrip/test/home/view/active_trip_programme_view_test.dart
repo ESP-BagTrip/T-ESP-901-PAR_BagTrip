@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_redundant_argument_values
 
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/review_hero.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
@@ -55,6 +57,25 @@ void main() {
       expect(find.byType(Material), findsWidgets);
     },
   );
+
+  testWidgets('uses profile sheet colors in dark mode', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: ActiveTripProgrammeView(state: makeOngoingState()),
+      ),
+    );
+    await tester.pump();
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(
+      scaffold.backgroundColor,
+      AppColors.profileSheetBackgroundOf(Brightness.dark),
+    );
+  });
 
   testWidgets('renders the programme title', (tester) async {
     await tester.pumpWidget(buildHarness(makeOngoingState()));

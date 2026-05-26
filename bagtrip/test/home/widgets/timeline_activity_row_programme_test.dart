@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -7,8 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/test_fixtures.dart';
 
 void main() {
-  Widget buildHarness({required TimelineActivityRow row}) {
+  Widget buildHarness({required TimelineActivityRow row, ThemeData? theme}) {
     return MaterialApp(
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       locale: const Locale('en'),
@@ -94,4 +96,49 @@ void main() {
     );
     expect((capsule.decoration! as BoxDecoration).color, ColorName.primaryDark);
   });
+
+  testWidgets(
+    'programme timed activity capsule uses frosted glass in dark mode',
+    (tester) async {
+      final now = DateTime.now();
+      await tester.pumpWidget(
+        buildHarness(
+          theme: AppTheme.dark(),
+          row: TimelineActivityRow(
+            activity: makeActivity(
+              id: 'a3',
+              tripId: 't1',
+              title: 'Dinner',
+              date: DateTime(now.year, now.month, now.day),
+              startTime: '20:00',
+            ),
+            isLast: true,
+            useProgrammeCapsuleColors: true,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final capsuleFinder = find.ancestor(
+        of: find.text('20:00'),
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              w.constraints?.maxHeight == 28 &&
+              w.decoration is BoxDecoration &&
+              (w.decoration! as BoxDecoration).border != null,
+        ),
+      );
+      final capsule = tester.widget<Container>(capsuleFinder);
+      final decoration = capsule.decoration! as BoxDecoration;
+      expect(decoration.color, Colors.white.withValues(alpha: 0.22));
+      expect(
+        (decoration.border! as Border).top.color,
+        Colors.white.withValues(alpha: 0.28),
+      );
+
+      final label = tester.widget<Text>(find.text('20:00'));
+      expect(label.style?.color, Colors.white);
+    },
+  );
 }

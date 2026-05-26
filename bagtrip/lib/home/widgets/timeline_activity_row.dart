@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/timeline_activity_accent.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -211,7 +212,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
         children: [
           Row(
             children: [
-              _timeCapsule(capsuleLabel, accent, isDimmed),
+              _timeCapsule(capsuleLabel, accent, isDimmed, theme),
               const SizedBox(width: AppSpacing.space8),
               _iconCircle(theme, accent, isDimmed),
             ],
@@ -324,13 +325,17 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
       return inner;
     }
 
+    final cardColor = _cardBackgroundColor(theme);
+    final cardBorder = _cardBorderSide(theme);
+    final cardShadows = _cardBoxShadows(theme);
+
     if (widget.isCurrent) {
       return Container(
         margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
         decoration: BoxDecoration(
           borderRadius: AppRadius.large24,
-          border: Border.fromBorderSide(timelineCardBorderSide),
-          boxShadow: timelineCardBoxShadows,
+          border: Border.fromBorderSide(cardBorder),
+          boxShadow: cardShadows,
         ),
         child: ClipRRect(
           borderRadius: AppRadius.large24,
@@ -342,7 +347,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
                 color: _nowStripeColor,
                 child: const SizedBox(height: 3, width: double.infinity),
               ),
-              ColoredBox(color: ColorName.surface, child: inner),
+              ColoredBox(color: cardColor, child: inner),
             ],
           ),
         ),
@@ -352,13 +357,37 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     return Container(
       margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
       decoration: BoxDecoration(
-        color: ColorName.surface,
+        color: cardColor,
         borderRadius: AppRadius.large24,
-        border: Border.fromBorderSide(timelineCardBorderSide),
-        boxShadow: timelineCardBoxShadows,
+        border: Border.fromBorderSide(cardBorder),
+        boxShadow: cardShadows,
       ),
       child: inner,
     );
+  }
+
+  Color _cardBackgroundColor(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors) {
+      return AppColors.surfaceGroupOf(theme.brightness);
+    }
+    return ColorName.surface;
+  }
+
+  BorderSide _cardBorderSide(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors) {
+      return BorderSide(
+        color: AppColors.surfaceGroupBorderOf(theme.brightness),
+      );
+    }
+    return timelineCardBorderSide;
+  }
+
+  List<BoxShadow>? _cardBoxShadows(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors &&
+        theme.brightness == Brightness.dark) {
+      return null;
+    }
+    return timelineCardBoxShadows;
   }
 
   bool get _capsuleFilled =>
@@ -374,7 +403,20 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     return filled ? Colors.white : accent;
   }
 
-  Widget _timeCapsule(String label, Color accent, bool isDimmed) {
+  bool _programmeOutlinedCapsule(ThemeData theme) =>
+      widget.useProgrammeCapsuleColors &&
+      !widget.isCurrent &&
+      theme.brightness == Brightness.dark;
+
+  /// Frosted pill on dark surfaces — same treatment as [ActiveTripWeatherCard].
+  static const Color _programmeGlassTint = Colors.white;
+
+  Widget _timeCapsule(
+    String label,
+    Color accent,
+    bool isDimmed,
+    ThemeData theme,
+  ) {
     final filled = _capsuleFilled;
     if (widget.isCurrent && _pulseOpacity != null) {
       return AnimatedBuilder(
@@ -385,26 +427,57 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             label: label,
             accent: accent,
             filled: filled,
+            theme: theme,
+            isDimmed: isDimmed,
           ),
         ),
       );
     }
-    return _capsuleDecoration(label: label, accent: accent, filled: filled);
+    return _capsuleDecoration(
+      label: label,
+      accent: accent,
+      filled: filled,
+      theme: theme,
+      isDimmed: isDimmed,
+    );
   }
 
   Widget _capsuleDecoration({
     required String label,
     required Color accent,
     required bool filled,
+    required ThemeData theme,
+    required bool isDimmed,
   }) {
+    final outlined = _programmeOutlinedCapsule(theme);
+    final dimmedAlpha =
+        widget.contentDimAlpha ?? (widget.strikeThroughTitle ? 0.65 : 0.55);
+    final baseForeground = outlined
+        ? _programmeGlassTint
+        : _capsuleForegroundColor(accent, filled);
+    final foreground = isDimmed
+        ? baseForeground.withValues(alpha: dimmedAlpha)
+        : baseForeground;
+    final background = outlined
+        ? _programmeGlassTint.withValues(alpha: isDimmed ? 0.12 : 0.22)
+        : _capsuleBackgroundColor(accent, filled);
+    final border = outlined
+        ? Border.all(
+            color: _programmeGlassTint.withValues(
+              alpha: isDimmed ? 0.18 : 0.28,
+            ),
+          )
+        : null;
+
     final r = timelineActivityLeadingSize / 2;
     return Container(
       height: timelineActivityLeadingSize,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: _capsuleBackgroundColor(accent, filled),
+        color: background,
         borderRadius: BorderRadius.circular(r),
+        border: border,
       ),
       child: Text(
         label,
@@ -415,8 +488,8 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
           fontSize: 11,
           fontWeight: FontWeight.w700,
           height: 1.1,
-          color: _capsuleForegroundColor(accent, filled),
-          letterSpacing: filled ? 0.35 : 0.15,
+          color: foreground,
+          letterSpacing: filled && !outlined ? 0.35 : 0.15,
         ),
       ),
     );

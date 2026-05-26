@@ -138,8 +138,11 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
           Color backgroundColor;
           Border border;
           if (isSelected) {
-            backgroundColor = ColorName.primaryDark;
-            border = Border.all(color: ColorName.primaryDark, width: 1.5);
+            final selectedFill = theme.brightness == Brightness.dark
+                ? ColorName.secondary
+                : ColorName.primaryDark;
+            backgroundColor = selectedFill;
+            border = Border.all(color: selectedFill, width: 1.5);
           } else if (isCalendarToday) {
             backgroundColor = theme.colorScheme.surface;
             border = Border.all(color: ColorName.secondary, width: 1.5);
