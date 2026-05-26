@@ -129,7 +129,13 @@ class HomeService:
         """
         grouped = HomeService._grouped_trips(db, user.id)
 
-        active_trip: Trip | None = grouped["ongoing"][0][0] if grouped["ongoing"] else None
+        # Match the mobile bloc: earliest ongoing trip by start date (not list order).
+        active_trip: Trip | None = None
+        if grouped["ongoing"]:
+            active_trip = min(
+                (trip for trip, _ in grouped["ongoing"]),
+                key=lambda t: (t.start_date is None, t.start_date or _MIN_DATE),
+            )
 
         active_activities: list[Activity] = []
         active_weather: dict | None = None

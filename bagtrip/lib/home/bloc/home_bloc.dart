@@ -14,6 +14,7 @@ import 'package:bagtrip/models/home_summary.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/models/weather_summary.dart';
+import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/home_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/utils/destination_time.dart';
@@ -30,6 +31,7 @@ const String kHomeTripStatusReplayKey = 'trip:updateTripStatus';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _homeRepository;
   final TripRepository _tripRepository;
+  final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
   final PostTripDismissalStorage _dismissalStorage;
   final OfflineWriteQueue _offlineWriteQueue;
@@ -39,11 +41,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({
     HomeRepository? homeRepository,
     TripRepository? tripRepository,
+    ActivityRepository? activityRepository,
     ConnectivityService? connectivityService,
     PostTripDismissalStorage? dismissalStorage,
     OfflineWriteQueue? offlineWriteQueue,
   }) : _homeRepository = homeRepository ?? getIt<HomeRepository>(),
        _tripRepository = tripRepository ?? getIt<TripRepository>(),
+       _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
        _connectivityService =
            connectivityService ?? getIt<ConnectivityService>(),
        _dismissalStorage =
@@ -245,11 +249,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         return;
       }
 
-      // Activities + weather come from the aggregated `/home` payload (server
-      // computes them for the first ongoing trip). We still derive *today*'s
-      // slice client-side using the destination timezone, matching the prior
-      // behaviour.
-      final allActivities = activeTripActivities;
+      // Activities come from `/home` when they match [activeTrip] (same trip
+      // the bloc picked via `_pickEarliestTrip`). After a client-side
+      // PLANNED→ONGOING transition, or when server/client disagree on which
+      // ongoing trip is "active", the aggregated list can be empty or stale —
+      // fall back to a dedicated fetch (cached offline).
+      final allActivities = await _resolveActiveTripActivities(
+        activeTrip: activeTrip,
+        fromHome: activeTripActivities,
+      );
+      if (isClosed) return;
       final now = nowInDestination(activeTrip.destinationTimezone);
       final today = DateTime(now.year, now.month, now.day);
       final todayActivities =
@@ -350,6 +359,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     await _dismissalStorage.recordDismissal(event.tripId);
     add(RefreshHome());
+  }
+
+  /// Uses [fromHome] when it already targets [activeTrip]; otherwise loads
+  /// activities for the trip the UI will display.
+  Future<List<Activity>> _resolveActiveTripActivities({
+    required Trip activeTrip,
+    required List<Activity> fromHome,
+  }) async {
+    final forActiveTrip =
+        fromHome.isNotEmpty && fromHome.every((a) => a.tripId == activeTrip.id);
+    if (forActiveTrip) return fromHome;
+
+    final result = await _activityRepository.getActivities(activeTrip.id);
+    if (result case Success(:final data)) {
+      return data;
+    }
+
+    return fromHome.where((a) => a.tripId == activeTrip.id).toList();
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {

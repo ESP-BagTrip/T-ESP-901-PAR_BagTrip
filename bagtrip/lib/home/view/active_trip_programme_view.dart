@@ -13,35 +13,83 @@ import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-class ActiveTripProgrammeView extends StatefulWidget {
-  final HomeActiveTrip state;
+/// Full-day schedule for the active trip. Reads live [HomeActiveTrip] from
+/// [HomeBloc] when [state] is omitted (production navigation).
+class ActiveTripProgrammeView extends StatelessWidget {
+  const ActiveTripProgrammeView({super.key, this.state});
 
-  const ActiveTripProgrammeView({super.key, required this.state});
+  /// Test-only override; production passes null and listens to [HomeBloc].
+  final HomeActiveTrip? state;
 
   @override
-  State<ActiveTripProgrammeView> createState() =>
-      _ActiveTripProgrammeViewState();
+  Widget build(BuildContext context) {
+    if (state != null) {
+      return _ActiveTripProgrammeBody(state: state!);
+    }
+
+    return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.runtimeType != current.runtimeType ||
+          (current is HomeActiveTrip &&
+              (previous is! HomeActiveTrip ||
+                  previous.allActivities != current.allActivities ||
+                  previous.activeTrip.id != current.activeTrip.id)),
+      builder: (context, homeState) {
+        if (homeState is! HomeActiveTrip) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) Navigator.of(context).maybePop();
+          });
+          return const Scaffold(body: SizedBox.shrink());
+        }
+        return _ActiveTripProgrammeBody(state: homeState);
+      },
+    );
+  }
 }
 
-class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
+class _ActiveTripProgrammeBody extends StatefulWidget {
+  const _ActiveTripProgrammeBody({required this.state});
+
+  final HomeActiveTrip state;
+
+  @override
+  State<_ActiveTripProgrammeBody> createState() =>
+      _ActiveTripProgrammeBodyState();
+}
+
+class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
   late int _selectedDayIndex0;
+
+  HomeActiveTrip get state => widget.state;
 
   @override
   void initState() {
     super.initState();
     _selectedDayIndex0 = defaultSelectedDayIndex0(
-      trip: widget.state.activeTrip,
-      totalDays: widget.state.totalDays,
+      trip: state.activeTrip,
+      totalDays: state.totalDays,
       now: DateTime.now(),
     );
   }
 
   @override
+  void didUpdateWidget(covariant _ActiveTripProgrammeBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.state.activeTrip.id != state.activeTrip.id) {
+      _selectedDayIndex0 = defaultSelectedDayIndex0(
+        trip: state.activeTrip,
+        totalDays: state.totalDays,
+        now: DateTime.now(),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final state = widget.state;
     final trip = state.activeTrip;
     final totalDays = state.totalDays;
     final now = DateTime.now();
@@ -201,6 +249,7 @@ class _ActiveTripProgrammeViewState extends State<ActiveTripProgrammeView> {
                         final isLast = index == timeline.length - 1;
 
                         return Column(
+                          key: ValueKey(activity.id),
                           children: [
                             if (schedule.dayKind == SelectedDayKind.today &&
                                 schedule.nowIndicatorIndex != null &&

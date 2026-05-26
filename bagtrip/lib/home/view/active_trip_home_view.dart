@@ -95,9 +95,7 @@ class _ActiveTripHeroCard extends StatelessWidget {
   void _openProgramme(BuildContext context) {
     AppHaptics.light();
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ActiveTripProgrammeView(state: state),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const ActiveTripProgrammeView()),
     );
   }
 

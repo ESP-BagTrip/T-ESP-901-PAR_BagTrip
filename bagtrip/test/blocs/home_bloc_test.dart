@@ -16,6 +16,7 @@ class _FakePendingWriteOperation extends Fake
 void main() {
   late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
+  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivityService;
   late MockPostTripDismissalStorage mockDismissalStorage;
   late MockOfflineWriteQueue mockOfflineWriteQueue;
@@ -32,6 +33,7 @@ void main() {
   setUp(() {
     mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
+    mockActivityRepo = MockActivityRepository();
     mockConnectivityService = MockConnectivityService();
     mockDismissalStorage = MockPostTripDismissalStorage();
     mockOfflineWriteQueue = MockOfflineWriteQueue();
@@ -47,6 +49,9 @@ void main() {
       () => mockOfflineWriteQueue.registerHandler(any(), any()),
     ).thenReturn(null);
     when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
+    when(
+      () => mockActivityRepo.getActivities(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   /// Stub the aggregated `/home` read with the given grouped payload.
@@ -73,6 +78,7 @@ void main() {
   HomeBloc buildBloc() => HomeBloc(
     homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
+    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivityService,
     dismissalStorage: mockDismissalStorage,
     offlineWriteQueue: mockOfflineWriteQueue,
