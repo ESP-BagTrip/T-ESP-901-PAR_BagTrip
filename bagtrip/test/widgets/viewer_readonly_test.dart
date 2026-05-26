@@ -53,16 +53,24 @@ void main() {
     );
   }
 
-  Widget buildApp({required TripDetailLoaded state}) {
+  Future<void> pumpView(
+    WidgetTester tester, {
+    required TripDetailLoaded state,
+    Size size = const Size(900, 2400),
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     when(() => tripBloc.state).thenReturn(state);
     whenListen(
       tripBloc,
       const Stream<TripDetailState>.empty(),
       initialState: state,
     );
-    return MediaQuery(
-      data: const MediaQueryData(size: Size(900, 2400)),
-      child: MaterialApp(
+
+    await tester.pumpWidget(
+      MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
@@ -76,26 +84,24 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
   }
 
   group('Viewer read-only state', () {
     testWidgets('renders "READ ONLY" status pill for VIEWER', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeLoaded(role: 'VIEWER')));
-      await tester.pump();
+      await pumpView(tester, state: makeLoaded(role: 'VIEWER'));
       expect(find.text('READ ONLY'), findsOneWidget);
     });
 
     testWidgets('does not render status pill for OWNER of a planned trip', (
       tester,
     ) async {
-      await tester.pumpWidget(buildApp(state: makeLoaded()));
-      await tester.pump();
+      await pumpView(tester, state: makeLoaded());
       expect(find.text('READ ONLY'), findsNothing);
     });
 
     testWidgets('hides footer add CTA for VIEWER', (tester) async {
-      await tester.pumpWidget(buildApp(state: makeLoaded(role: 'VIEWER')));
-      await tester.pump();
+      await pumpView(tester, state: makeLoaded(role: 'VIEWER'));
       // Viewer cannot edit → footer hidden, so no add-flight label present
       expect(find.text('Add a flight'), findsNothing);
       expect(find.text('Add an activity'), findsNothing);
