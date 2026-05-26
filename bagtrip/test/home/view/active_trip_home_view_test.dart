@@ -1,7 +1,10 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
+import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
@@ -72,6 +75,44 @@ void main() {
       expect(
         find.byWidgetPredicate(
           (w) => w is ColoredBox && w.color == ColorName.primaryDark,
+        ),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('uses profile sheet colors in dark mode', (tester) async {
+      final state = HomeActiveTrip(
+        user: makeUser(),
+        activeTrip: makeTrip(status: TripStatus.ongoing),
+      );
+      when(() => mockHomeBloc.state).thenReturn(state);
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.dark(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: testGoRouter(
+            home: BlocProvider<HomeBloc>.value(
+              value: mockHomeBloc,
+              child: TickerMode(
+                enabled: false,
+                child: ActiveTripHomeView(state: state),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DecoratedBox &&
+              w.decoration is BoxDecoration &&
+              (w.decoration as BoxDecoration).color ==
+                  AppColors.profileSheetBackgroundOf(Brightness.dark),
         ),
         findsWidgets,
       );

@@ -1,5 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
@@ -75,6 +75,12 @@ class _OngoingTripResumeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final cardColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final foregroundColor = AppColors.profileMenuTitleOf(brightness);
     final l10n = AppLocalizations.of(context)!;
     return Material(
       color: Colors.transparent,
@@ -85,16 +91,18 @@ class _OngoingTripResumeBanner extends StatelessWidget {
         borderRadius: AppRadius.large16,
         child: Ink(
           decoration: BoxDecoration(
-            color: ColorName.surface,
+            color: cardColor,
             borderRadius: AppRadius.large16,
-            border: Border.all(color: ColorName.surface),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x140E1A2B),
-                blurRadius: 16,
-                offset: Offset(0, 8),
-              ),
-            ],
+            border: Border.all(color: borderColor),
+            boxShadow: isDark
+                ? null
+                : const [
+                    BoxShadow(
+                      color: Color(0x140E1A2B),
+                      blurRadius: 16,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -103,19 +111,20 @@ class _OngoingTripResumeBanner extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.flight_takeoff_rounded),
+                Icon(Icons.flight_takeoff_rounded, color: foregroundColor),
                 const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   child: Text(
                     l10n.homeResumeActiveTripSubtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: foregroundColor,
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Icon(Icons.chevron_right, color: foregroundColor),
               ],
             ),
           ),

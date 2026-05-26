@@ -1,5 +1,6 @@
 import 'package:bagtrip/components/bottom_tab_bar.dart';
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/widgets/home_greeting_header.dart';
@@ -27,6 +28,9 @@ class HomeTwoZoneLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sheetColor = AppColors.profileSheetBackgroundOf(
+      Theme.of(context).brightness,
+    );
     final topInset = includeTopSafeArea
         ? MediaQuery.paddingOf(context).top + AppSpacing.space16
         : AppSpacing.space24;
@@ -75,9 +79,9 @@ class HomeTwoZoneLayout extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: minSheetHeight),
                   child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      color: ColorName.surfaceLight,
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: sheetColor,
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(AppRadius.cornerRadius32),
                       ),
                     ),

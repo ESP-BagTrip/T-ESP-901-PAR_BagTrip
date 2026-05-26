@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -67,7 +68,6 @@ class ActiveTripHomeView extends StatelessWidget {
 }
 
 class _ActiveTripHeroCard extends StatefulWidget {
-  static const Color _progressPanelColor = ColorName.surface;
   static const double _borderWidth = 1.5;
 
   final HomeActiveTrip state;
@@ -149,6 +149,9 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final panelColor = isDark ? ColorName.primaryTrueDark : ColorName.surface;
     final l10n = AppLocalizations.of(context)!;
     final trip = state.activeTrip;
     final destination =
@@ -171,16 +174,18 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
         AppRadius.cornerRadius24 - _ActiveTripHeroCard._borderWidth;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _ActiveTripHeroCard._progressPanelColor,
+      decoration: BoxDecoration(
+        color: panelColor,
         borderRadius: AppRadius.large24,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A0E1A2B),
-            blurRadius: 22,
-            offset: Offset(0, 12),
-          ),
-        ],
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x1A0E1A2B),
+                  blurRadius: 22,
+                  offset: Offset(0, 12),
+                ),
+              ],
       ),
       padding: const EdgeInsets.all(_ActiveTripHeroCard._borderWidth),
       child: ClipRRect(
@@ -261,9 +266,7 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
                     ),
                   ),
                   Container(
-                    decoration: const BoxDecoration(
-                      color: _ActiveTripHeroCard._progressPanelColor,
-                    ),
+                    decoration: BoxDecoration(color: panelColor),
                     padding: const EdgeInsets.all(AppSpacing.space16),
                     child: highlight != null
                         ? TimelineActivityRow(
@@ -281,11 +284,13 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
                           )
                         : Text(
                             l10n.homeNoActivitiesToday,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: FontFamily.dMSans,
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: ColorName.textMutedLight,
+                              color: AppColors.textSecondaryOf(
+                                theme.brightness,
+                              ),
                             ),
                           ),
                   ),

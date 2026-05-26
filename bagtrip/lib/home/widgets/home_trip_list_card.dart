@@ -1,4 +1,5 @@
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -25,25 +26,23 @@ class HomeTripListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final titleColor = compactHeader
+        ? AppColors.textSecondaryOf(brightness)
+        : AppColors.profileMenuTitleOf(brightness);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: compactHeader
-              ? const TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.textMutedLight,
-                  letterSpacing: 1.2,
-                )
-              : const TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
-                ),
+          style: TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: titleColor,
+            letterSpacing: compactHeader ? 1.2 : 0,
+          ),
         ),
         const SizedBox(height: AppSpacing.space12),
         ...trips.map(
@@ -58,9 +57,6 @@ class HomeTripListSection extends StatelessWidget {
 }
 
 class HomeTripListCard extends StatelessWidget {
-  static const Color _frameColor = ColorName.surface;
-  static const double _borderWidth = 1.5;
-
   final Trip trip;
 
   const HomeTripListCard({super.key, required this.trip});
@@ -109,6 +105,8 @@ class HomeTripListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final destination =
         trip.destinationName ?? trip.title ?? l10n.myTripFallback;
@@ -117,23 +115,22 @@ class HomeTripListCard extends StatelessWidget {
     final hasCover =
         trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
     final travelerCount = trip.nbTravelers;
-    final innerRadius = AppRadius.cornerRadius24 - _borderWidth;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _frameColor,
+      decoration: BoxDecoration(
         borderRadius: AppRadius.large24,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A0E1A2B),
-            blurRadius: 22,
-            offset: Offset(0, 12),
-          ),
-        ],
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x1A0E1A2B),
+                  blurRadius: 22,
+                  offset: Offset(0, 12),
+                ),
+              ],
       ),
-      padding: const EdgeInsets.all(_borderWidth),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(innerRadius),
+        borderRadius: AppRadius.large24,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
