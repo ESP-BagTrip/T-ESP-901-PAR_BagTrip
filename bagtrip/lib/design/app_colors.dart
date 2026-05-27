@@ -137,9 +137,13 @@ class AppColors {
   static Color profileSheetBackgroundOf(Brightness b) =>
       b == Brightness.dark ? primaryTrueDark : surfaceLight;
 
-  /// Trip detail panel zone — profile menu card gray in light, navy sheet in dark.
-  static Color tripDetailPageBackgroundOf(Brightness b) =>
-      b == Brightness.dark ? profileSheetBackgroundOf(b) : surfaceGroup;
+  /// Trip detail panel zone — slightly darker than card surfaces so lists read
+  /// clearly in light mode; navy sheet in dark.
+  static const Color tripDetailPageBackgroundLight = Color(0xFFF2F4F7);
+
+  static Color tripDetailPageBackgroundOf(Brightness b) => b == Brightness.dark
+      ? profileSheetBackgroundOf(b)
+      : tripDetailPageBackgroundLight;
 
   /// Panel chips bar track behind unselected tabs.
   static Color panelChipsBarTrackOf(Brightness b) =>

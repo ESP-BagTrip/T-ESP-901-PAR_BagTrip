@@ -91,8 +91,6 @@ class ValidationBoardPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _OverallHeader(percentage: result.percentage, l10n: l10n),
-          const SizedBox(height: AppSpacing.space24),
           DecoratedBox(
             decoration: BoxDecoration(
               color: cardColor,
@@ -138,72 +136,6 @@ class _BoardRow {
   final String label;
   final CompletionSegment segment;
   final int tabIndex;
-}
-
-class _OverallHeader extends StatelessWidget {
-  const _OverallHeader({required this.percentage, required this.l10n});
-
-  final int percentage;
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final inkColor = AppColors.reviewInkOf(brightness);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.validationBoardEyebrow.toUpperCase(),
-          style: TextStyle(
-            fontFamily: FontFamily.b612,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 3.2,
-            color: AppColors.textSecondaryOf(brightness),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.space8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '$percentage',
-              style: TextStyle(
-                fontFamily: FontFamily.dMSerifDisplay,
-                fontSize: 72,
-                height: 1,
-                fontWeight: FontWeight.w400,
-                letterSpacing: -3,
-                color: inkColor,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 14, left: 4),
-              child: Text(
-                '%',
-                style: TextStyle(
-                  fontFamily: FontFamily.dMSerifDisplay,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                  color: inkColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.space4),
-        Text(
-          l10n.validationBoardSubtitle,
-          style: TextStyle(
-            fontFamily: FontFamily.dMSans,
-            fontSize: 13,
-            color: inkColor.withValues(alpha: 0.55),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _BoardRowTile extends StatelessWidget {

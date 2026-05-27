@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/activity_tile.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
@@ -182,7 +183,10 @@ void main() {
       );
       final tabBar = tester.widget<TabBar>(find.byType(TabBar));
       final deco = tabBar.indicator as BoxDecoration;
-      expect(deco.color, ColorName.surfaceGroup);
+      expect(
+        deco.color,
+        AppColors.tripDetailPageBackgroundOf(Brightness.light),
+      );
       expect(tabBar.labelColor, ColorName.primaryTrueDark);
       expect(tabBar.labelStyle?.fontWeight, FontWeight.w700);
       expect(tabBar.unselectedLabelColor, ColorName.surface);

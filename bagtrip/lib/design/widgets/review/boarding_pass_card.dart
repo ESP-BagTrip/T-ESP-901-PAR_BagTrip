@@ -38,12 +38,14 @@ class BoardingPassCard extends StatelessWidget {
     required this.flight,
     this.onTap,
     this.onLongPress,
+    this.showAiBadge = false,
   });
 
   final String title;
   final BoardingPassModel flight;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final bool showAiBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -72,16 +74,56 @@ class BoardingPassCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          flight.airlineLine.toUpperCase(),
-                          style: const TextStyle(
-                            fontFamily: FontFamily.dMSans,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            letterSpacing: 1,
-                            color: ColorName.hint,
+                        Expanded(
+                          child: Text(
+                            flight.airlineLine.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              letterSpacing: 1,
+                              color: ColorName.hint,
+                            ),
                           ),
                         ),
+                        if (showAiBadge) ...[
+                          const SizedBox(width: AppSpacing.space8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.space12,
+                              vertical: AppSpacing.space8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorName.secondary.withValues(
+                                alpha: 0.14,
+                              ),
+                              borderRadius: AppRadius.pill,
+                              border: Border.all(color: ColorName.secondary),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome_rounded,
+                                  size: 14,
+                                  color: ColorName.secondary,
+                                ),
+                                SizedBox(width: AppSpacing.space4),
+                                Text(
+                                  'IA',
+                                  style: TextStyle(
+                                    fontFamily: FontFamily.dMSans,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: ColorName.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     Row(

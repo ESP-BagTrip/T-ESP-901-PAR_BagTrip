@@ -6,7 +6,6 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/flight_validation_branch_sheet.dart';
-import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/flight_search/bloc/flight_search_bloc.dart';
@@ -89,6 +88,13 @@ class FlightsPanel extends StatelessWidget {
     AppHaptics.medium();
     context.read<TripDetailBloc>().add(
       DeleteFlightFromDetail(flightId: flight.id),
+    );
+  }
+
+  void _validate(BuildContext context, ManualFlight flight) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateFlightFromDetail(flightId: flight.id),
     );
   }
 
@@ -501,30 +507,33 @@ class FlightsPanel extends StatelessWidget {
               title: _flightTitle(flight, l10n),
               flight: _toBoardingPassModel(flight, l10n, locale),
               onTap: () => _showPreview(context, flight),
+              showAiBadge:
+                  flight.validationStatus == ValidationStatus.suggested,
             );
-            // Phase 1 — material truth: a SUGGESTED flight wears a halo
-            // chip so the user knows it's awaiting their review.
-            // VALIDATED + MANUAL stay chip-free to keep the list calm.
-            final card = flight.validationStatus == ValidationStatus.suggested
-                ? Stack(
-                    children: [
-                      boardingPass,
-                      const Positioned(
-                        top: AppSpacing.space8,
-                        right: AppSpacing.space8,
-                        child: ItemStatusChip(
-                          kind: ItemStatusChipKind.suggested,
-                        ),
-                      ),
-                    ],
-                  )
-                : boardingPass;
+            final card = boardingPass;
             if (!canEdit) return card;
+            final isSuggested =
+                flight.validationStatus == ValidationStatus.suggested;
             return Dismissible(
               key: ValueKey('flight-${flight.id}'),
-              direction: DismissDirection.endToStart,
-              background: const _DeleteBackground(),
-              confirmDismiss: (_) async {
+              direction: isSuggested
+                  ? DismissDirection.horizontal
+                  : DismissDirection.endToStart,
+              background: const _SwipeActionBackground(
+                color: ColorName.secondary,
+                icon: Icons.check_rounded,
+                alignment: Alignment.centerLeft,
+              ),
+              secondaryBackground: const _SwipeActionBackground(
+                color: ColorName.error,
+                icon: Icons.delete_outline_rounded,
+                alignment: Alignment.centerRight,
+              ),
+              confirmDismiss: (direction) async {
+                if (direction == DismissDirection.startToEnd) {
+                  _validate(context, flight);
+                  return false;
+                }
                 AppHaptics.medium();
                 return true;
               },
@@ -727,23 +736,25 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _DeleteBackground extends StatelessWidget {
-  const _DeleteBackground();
+class _SwipeActionBackground extends StatelessWidget {
+  const _SwipeActionBackground({
+    required this.color,
+    required this.icon,
+    required this.alignment,
+  });
+
+  final Color color;
+  final IconData icon;
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.centerRight,
-      decoration: const BoxDecoration(
-        color: ColorName.error,
-        borderRadius: AppRadius.large16,
-      ),
+      margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+      decoration: BoxDecoration(color: color, borderRadius: AppRadius.large16),
+      alignment: alignment,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
-      child: const Icon(
-        Icons.delete_outline_rounded,
-        color: Colors.white,
-        size: 24,
-      ),
+      child: Icon(icon, color: Colors.white, size: 28),
     );
   }
 }
