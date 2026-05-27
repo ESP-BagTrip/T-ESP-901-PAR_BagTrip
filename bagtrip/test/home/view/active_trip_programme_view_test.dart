@@ -149,11 +149,11 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
 
     await tester.tap(find.byType(PanelFab));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('trip-detail-trip-1-activities'), findsOneWidget);
   });
@@ -193,16 +193,16 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
 
     await tester.tap(find.byType(PanelFab));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('trip-detail-trip-1-activities'), findsOneWidget);
 
     await tester.tap(find.byType(BackButton));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Schedule'), findsOneWidget);
     expect(find.text('trip-detail-trip-1-activities'), findsNothing);
