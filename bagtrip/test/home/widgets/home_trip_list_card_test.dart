@@ -1,3 +1,4 @@
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
@@ -14,22 +15,31 @@ class MockTripManagementBloc
     extends MockBloc<TripManagementEvent, TripManagementState>
     implements TripManagementBloc {}
 
+class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
+
 void main() {
   late MockTripManagementBloc mockTripBloc;
+  late MockHomeBloc mockHomeBloc;
 
   setUpAll(() {
     registerFallbackValue(LoadTrips());
+    registerFallbackValue(RemoveUpcomingTrip(tripId: ''));
   });
 
   setUp(() {
     mockTripBloc = MockTripManagementBloc();
+    mockHomeBloc = MockHomeBloc();
     when(() => mockTripBloc.state).thenReturn(TripManagementInitial());
+    when(() => mockHomeBloc.state).thenReturn(HomeInitial());
   });
 
   Widget buildApp(List<Trip> trips) {
     return localizedRouterApp(
-      child: BlocProvider<TripManagementBloc>.value(
-        value: mockTripBloc,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<TripManagementBloc>.value(value: mockTripBloc),
+          BlocProvider<HomeBloc>.value(value: mockHomeBloc),
+        ],
         child: Scaffold(
           body: HomeTripListSection(
             title: 'Upcoming trips',
@@ -73,5 +83,16 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => mockTripBloc.add(any(that: isA<DeleteTrip>()))).called(1);
+    verify(
+      () => mockHomeBloc.add(
+        any(
+          that: isA<RemoveUpcomingTrip>().having(
+            (e) => e.tripId,
+            'tripId',
+            'trip-delete',
+          ),
+        ),
+      ),
+    ).called(1);
   });
 }

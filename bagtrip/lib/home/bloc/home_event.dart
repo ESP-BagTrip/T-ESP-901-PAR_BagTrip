@@ -34,3 +34,9 @@ class PreferIdleHomeOverview extends HomeEvent {}
 class ResumeActiveTripHome extends HomeEvent {}
 
 class CompleteActiveTrip extends HomeEvent {}
+
+/// Optimistically removes a planned trip from home lists after swipe-to-delete.
+class RemoveUpcomingTrip extends HomeEvent {
+  final String tripId;
+  RemoveUpcomingTrip({required this.tripId});
+}

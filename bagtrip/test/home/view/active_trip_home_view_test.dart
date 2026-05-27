@@ -190,5 +190,15 @@ void main() {
       expect(find.text('Upcoming trip'), findsOneWidget);
       expect(find.text('Paris'), findsOneWidget);
     });
+
+    testWidgets('keeps upcoming section title when no planned trips remain', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Upcoming trip'), findsOneWidget);
+      expect(find.text('Plan a trip'), findsOneWidget);
+    });
   });
 }

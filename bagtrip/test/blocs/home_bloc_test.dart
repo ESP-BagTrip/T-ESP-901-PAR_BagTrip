@@ -26,6 +26,7 @@ void main() {
     registerFallbackValue(PreferIdleHomeOverview());
     registerFallbackValue(ResumeActiveTripHome());
     registerFallbackValue(CompleteActiveTrip());
+    registerFallbackValue(RemoveUpcomingTrip(tripId: ''));
     registerFallbackValue(_FakePendingWriteOperation());
     registerFallbackValue((Map<String, dynamic> _) async => true);
   });
@@ -270,6 +271,73 @@ void main() {
               'nextTripCompletion',
               equals(0),
             ),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RemoveUpcomingTrip drops trip from HomeIdle upcomingTrips',
+      build: () {
+        final plannedA = makeTrip(
+          id: 'planned-a',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        final plannedB = makeTrip(
+          id: 'planned-b',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 10)),
+        );
+        stubHome(planned: [plannedA, plannedB]);
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadHome());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(RemoveUpcomingTrip(tripId: 'planned-a'));
+      },
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeIdle>().having((s) => s.upcomingTrips.length, 'count', 2),
+        isA<HomeIdle>()
+            .having((s) => s.upcomingTrips.length, 'count', 1)
+            .having((s) => s.nextTrip?.id, 'nextTrip.id', 'planned-b'),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RemoveUpcomingTrip drops trip from HomeActiveTrip upcomingTrips',
+      build: () {
+        final ongoing = makeTrip(
+          id: 'ongoing-1',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        final planned = makeTrip(
+          id: 'planned-next',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 10)),
+        );
+        stubHome(ongoing: [ongoing], planned: [planned]);
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadHome());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(RemoveUpcomingTrip(tripId: 'planned-next'));
+      },
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeActiveTrip>().having(
+          (s) => s.upcomingTrips.length,
+          'upcoming count',
+          1,
+        ),
+        isA<HomeActiveTrip>().having(
+          (s) => s.upcomingTrips,
+          'upcoming',
+          isEmpty,
+        ),
       ],
     );
 

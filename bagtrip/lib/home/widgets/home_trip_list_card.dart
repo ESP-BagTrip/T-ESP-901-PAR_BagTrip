@@ -5,6 +5,7 @@ import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
+import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -14,6 +15,12 @@ import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Section title for the upcoming-trips block (singular when 0–1 trips).
+String homeUpcomingSectionTitle(AppLocalizations l10n, int tripCount) =>
+    tripCount > 1
+    ? l10n.homeUpcomingTripsHeaderPlural
+    : l10n.homeUpcomingTripsHeaderSingle;
 
 class HomeTripListSection extends StatelessWidget {
   final String title;
@@ -90,6 +97,9 @@ class _HomeTripListCardShell extends StatelessWidget {
       ),
       confirmDismiss: (_) => _confirmDelete(context),
       onDismissed: (_) {
+        // Dismissible requires the item to leave the tree immediately; HomeBloc
+        // updates synchronously while [DeleteTrip] runs in the background.
+        context.read<HomeBloc>().add(RemoveUpcomingTrip(tripId: trip.id));
         context.read<TripManagementBloc>().add(DeleteTrip(tripId: trip.id));
       },
       child: card,

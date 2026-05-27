@@ -64,6 +64,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<PreferIdleHomeOverview>(_onPreferIdleHomeOverview);
     on<ResumeActiveTripHome>(_onResumeActiveTripHome);
     on<CompleteActiveTrip>(_onCompleteActiveTrip);
+    on<RemoveUpcomingTrip>(_onRemoveUpcomingTrip);
 
     // Persist the PLANNED→ONGOING offline transition in the central
     // OfflineWriteQueue (Hive-backed) so it survives an app kill and is
@@ -116,6 +117,50 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (isClosed) return;
     if (result case Success(:final data)) {
       _emitActiveTripWithActivities(emit, current, data);
+    }
+  }
+
+  void _onRemoveUpcomingTrip(
+    RemoveUpcomingTrip event,
+    Emitter<HomeState> emit,
+  ) {
+    final current = state;
+    if (current is HomeIdle) {
+      final filtered = current.upcomingTrips
+          .where((t) => t.id != event.tripId)
+          .toList();
+      if (filtered.length == current.upcomingTrips.length) return;
+      final nextTrip = filtered.isNotEmpty ? _pickEarliestTrip(filtered) : null;
+      emit(
+        HomeIdle(
+          user: current.user,
+          upcomingTrips: filtered,
+          completedTrips: current.completedTrips,
+          nextTrip: nextTrip,
+          nextTripCompletion: tripCompletion(nextTrip),
+          backgroundOngoingTrip: current.backgroundOngoingTrip,
+        ),
+      );
+      return;
+    }
+    if (current is HomeActiveTrip) {
+      final filtered = current.upcomingTrips
+          .where((t) => t.id != event.tripId)
+          .toList();
+      if (filtered.length == current.upcomingTrips.length) return;
+      emit(
+        HomeActiveTrip(
+          user: current.user,
+          activeTrip: current.activeTrip,
+          upcomingTrips: filtered,
+          todayActivities: current.todayActivities,
+          weatherSummary: current.weatherSummary,
+          weatherData: current.weatherData,
+          allActivities: current.allActivities,
+          pendingCompletionTrip: current.pendingCompletionTrip,
+          completedTripId: current.completedTripId,
+        ),
+      );
     }
   }
 
