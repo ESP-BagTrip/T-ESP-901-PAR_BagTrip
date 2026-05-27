@@ -17,6 +17,8 @@ class ProgressionCtaButton extends StatelessWidget {
     this.iconPosition = ProgressionCtaIconPosition.right,
     this.enabled = true,
     this.isLoading = false,
+    this.backgroundColor,
+    this.borderRadius = AppRadius.pill,
   });
 
   final String text;
@@ -25,6 +27,8 @@ class ProgressionCtaButton extends StatelessWidget {
   final ProgressionCtaIconPosition iconPosition;
   final bool enabled;
   final bool isLoading;
+  final Color? backgroundColor;
+  final BorderRadius borderRadius;
 
   bool get _isInteractive => enabled && !isLoading;
 
@@ -50,7 +54,7 @@ class ProgressionCtaButton extends StatelessWidget {
           child: DecoratedBox(
             decoration: _decoration(),
             child: ClipRRect(
-              borderRadius: AppRadius.pill,
+              borderRadius: borderRadius,
               child: CupertinoButton(
                 padding: EdgeInsets.zero,
                 color: Colors.transparent,
@@ -77,7 +81,7 @@ class ProgressionCtaButton extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: _isInteractive ? onPressed : null,
-              borderRadius: AppRadius.pill,
+              borderRadius: borderRadius,
               child: Center(child: child),
             ),
           ),
@@ -87,18 +91,21 @@ class ProgressionCtaButton extends StatelessWidget {
   }
 
   BoxDecoration _decoration() {
+    final activeColor = backgroundColor ?? ColorName.primary;
     return BoxDecoration(
-      gradient: _isInteractive
+      gradient: _isInteractive && backgroundColor == null
           ? const LinearGradient(
               colors: [ColorName.primary, ColorName.secondary],
             )
           : null,
-      color: _isInteractive ? null : ColorName.secondary.withValues(alpha: 0.1),
-      borderRadius: AppRadius.pill,
+      color: _isInteractive
+          ? backgroundColor
+          : activeColor.withValues(alpha: 0.1),
+      borderRadius: borderRadius,
       boxShadow: _isInteractive
           ? [
               BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.3),
+                color: activeColor.withValues(alpha: 0.3),
                 offset: const Offset(0, 6),
                 blurRadius: 16,
               ),

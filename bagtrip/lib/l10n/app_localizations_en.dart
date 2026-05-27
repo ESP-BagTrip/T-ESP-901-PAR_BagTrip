@@ -1866,6 +1866,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepGeneration => 'Generating...';
 
   @override
+  String get generationHeroTitle => 'Trip planning';
+
+  @override
   String get generationTitle => 'AI GENERATION';
 
   @override

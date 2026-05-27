@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
@@ -10,7 +11,9 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeTripListSection extends StatelessWidget {
   final String title;
@@ -48,11 +51,64 @@ class HomeTripListSection extends StatelessWidget {
         ...trips.map(
           (trip) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.space12),
-            child: HomeTripListCard(trip: trip),
+            child: _HomeTripListCardShell(trip: trip),
           ),
         ),
       ],
     );
+  }
+}
+
+class _HomeTripListCardShell extends StatelessWidget {
+  const _HomeTripListCardShell({required this.trip});
+
+  final Trip trip;
+
+  bool get _canSwipeToDelete => trip.role == 'OWNER';
+
+  @override
+  Widget build(BuildContext context) {
+    final card = HomeTripListCard(trip: trip);
+    if (!_canSwipeToDelete) return card;
+
+    final l10n = AppLocalizations.of(context)!;
+    return Dismissible(
+      key: ValueKey('home-trip-list-${trip.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.error,
+          borderRadius: AppRadius.large24,
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.onError,
+          semanticLabel: l10n.tripDeleteTitle,
+        ),
+      ),
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) {
+        context.read<TripManagementBloc>().add(DeleteTrip(tripId: trip.id));
+      },
+      child: card,
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    var confirmed = false;
+    await showAdaptiveAlertDialog(
+      context: context,
+      title: l10n.tripDeleteTitle,
+      content: l10n.tripDeleteConfirm,
+      confirmLabel: l10n.deleteButton,
+      cancelLabel: l10n.cancelButton,
+      isDestructive: true,
+      onConfirm: () => confirmed = true,
+    );
+    return confirmed;
   }
 }
 

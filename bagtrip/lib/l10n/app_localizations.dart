@@ -3446,6 +3446,12 @@ abstract class AppLocalizations {
   /// **'Génération...'**
   String get stepGeneration;
 
+  /// No description provided for @generationHeroTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planification de vol'**
+  String get generationHeroTitle;
+
   /// No description provided for @generationTitle.
   ///
   /// In fr, this message translates to:

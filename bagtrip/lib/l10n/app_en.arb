@@ -900,6 +900,7 @@
   "aiProposalsEmptySubtitle": "Go back and try again",
   "aiBadgeLabel": "AI",
   "stepGeneration": "Generating...",
+  "generationHeroTitle": "Trip planning",
   "generationTitle": "AI GENERATION",
   "generationStepDestinations": "Destinations",
   "generationStepActivities": "Activities",

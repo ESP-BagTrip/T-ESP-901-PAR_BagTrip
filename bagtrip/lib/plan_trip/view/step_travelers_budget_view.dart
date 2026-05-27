@@ -382,6 +382,8 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
             ProgressionCtaButton(
               text: l10n.continueButton,
               icon: Icons.arrow_forward_rounded,
+              backgroundColor: ColorName.secondary,
+              borderRadius: AppRadius.large16,
               onPressed: () {
                 AppHaptics.medium();
                 context.read<PlanTripBloc>().add(

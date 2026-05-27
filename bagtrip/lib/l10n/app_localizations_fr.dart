@@ -1882,6 +1882,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stepGeneration => 'Génération...';
 
   @override
+  String get generationHeroTitle => 'Planification de vol';
+
+  @override
   String get generationTitle => 'GÉNÉRATION IA';
 
   @override

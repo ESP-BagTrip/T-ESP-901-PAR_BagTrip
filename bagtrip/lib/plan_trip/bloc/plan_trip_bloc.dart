@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:bagtrip/config/service_locator.dart';
 import 'package:bagtrip/core/app_error.dart';
@@ -37,6 +38,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
   final GeoLocationService _geoService;
 
   StreamSubscription<Map<String, dynamic>>? _sseSubscription;
+  String _generationLocale = 'fr';
 
   PlanTripBloc({
     AiRepository? aiRepository,
@@ -623,6 +625,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
     PlanTripStartGeneration event,
     Emitter<PlanTripState> emit,
   ) async {
+    _generationLocale = event.locale;
     // Check AI quota
     final userResult = await _authRepository.getCurrentUser();
     if (isClosed) return;
@@ -726,10 +729,7 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
 
     switch (eventType) {
       case 'progress':
-        return state.copyWith(
-          generationMessage:
-              data['message'] as String? ?? state.generationMessage,
-        );
+        return _applyProgressEvent(state, data);
 
       case 'destinations':
         final updatedSteps = Map<String, StepStatus>.from(state.generationSteps)
@@ -782,8 +782,14 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       // accepting them prevents the "default" branch from no-op'ing
       // unknown events into a state freeze.
       case 'weather':
+        return state.copyWith(
+          generationProgress: math.max(state.generationProgress, 0.72),
+        );
+
       case 'transport':
-        return state;
+        return state.copyWith(
+          generationProgress: math.max(state.generationProgress, 0.78),
+        );
 
       case 'warning':
         final code = data['code'] as String? ?? 'WARNING';
@@ -822,6 +828,54 @@ class PlanTripBloc extends Bloc<PlanTripEvent, PlanTripState> {
       default:
         return state;
     }
+  }
+
+  PlanTripState _applyProgressEvent(
+    PlanTripState state,
+    Map<String, dynamic> data,
+  ) {
+    final phase = data['phase'] as String?;
+    final rawMessage = data['message'] as String?;
+    final percent = data['percent'];
+
+    double? nextProgress;
+    if (percent is num) {
+      nextProgress = (percent / 100).clamp(0.0, 1.0).toDouble();
+    } else {
+      nextProgress = _progressForSsePhase(phase);
+    }
+
+    final nextMessage = (rawMessage != null && rawMessage.isNotEmpty)
+        ? rawMessage
+        : _messageForSsePhase(phase, _generationLocale);
+
+    return state.copyWith(
+      generationProgress: nextProgress != null
+          ? math.max(state.generationProgress, nextProgress)
+          : state.generationProgress,
+      generationMessage: nextMessage ?? state.generationMessage,
+    );
+  }
+
+  static double? _progressForSsePhase(String? phase) {
+    return switch (phase) {
+      'starting' => 0.08,
+      'resolved' => 0.18,
+      'weather' => 0.28,
+      'parallel_planning' => 0.38,
+      _ => null,
+    };
+  }
+
+  static String? _messageForSsePhase(String? phase, String locale) {
+    final fr = locale.startsWith('fr');
+    return switch (phase) {
+      'resolved' => fr ? 'Lieux identifiés…' : 'Locations resolved…',
+      'weather' => fr ? 'Météo en cours…' : 'Fetching weather…',
+      'parallel_planning' =>
+        fr ? 'Planification de votre voyage…' : 'Planning your trip…',
+      _ => null,
+    };
   }
 
   Future<void> _onRetryGeneration(
