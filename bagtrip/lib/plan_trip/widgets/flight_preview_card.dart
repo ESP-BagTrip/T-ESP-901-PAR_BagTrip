@@ -26,20 +26,27 @@ class FlightPreviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isVerified = source.toLowerCase() == 'verified';
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final titleColor = PersonalizationColors.textPrimaryOf(brightness);
+    final subtitleColor = PersonalizationColors.textTertiaryOf(brightness);
 
     return StaggeredFadeIn(
       index: animationIndex,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: surfaceColor,
           borderRadius: AppRadius.large16,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -83,20 +90,20 @@ class FlightPreviewCard extends StatelessWidget {
                   children: [
                     Text(
                       route,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: PersonalizationColors.textPrimary,
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space4),
                     Text(
                       details,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        color: PersonalizationColors.textTertiary,
+                        color: subtitleColor,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space8),

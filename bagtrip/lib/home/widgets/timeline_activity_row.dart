@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/timeline_activity_accent.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -32,6 +33,10 @@ class TimelineActivityRow extends StatefulWidget {
   /// (pill + icon + text only — e.g. active trip hero bottom strip).
   final bool bare;
 
+  /// Programme screen: "Maintenant" capsules use [ColorName.secondary], others
+  /// use [ColorName.primaryDark]. Home hero (`bare: true`) must leave this false.
+  final bool useProgrammeCapsuleColors;
+
   const TimelineActivityRow({
     super.key,
     required this.activity,
@@ -46,6 +51,7 @@ class TimelineActivityRow extends StatefulWidget {
     this.strikeThroughTitle = false,
     this.contentDimAlpha,
     this.bare = false,
+    this.useProgrammeCapsuleColors = false,
   });
 
   @override
@@ -102,12 +108,26 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   }
 
   Color _accent(bool isDimmed) {
+    if (widget.bare && widget.isCurrent) {
+      final base = ColorName.secondary;
+      return isDimmed ? base.withValues(alpha: 0.5) : base;
+    }
+    if (widget.useProgrammeCapsuleColors) {
+      final base = widget.isCurrent
+          ? ColorName.secondary
+          : ColorName.primaryDark;
+      return isDimmed ? base.withValues(alpha: 0.5) : base;
+    }
     final base = timelineCardAccent(
       activity: widget.activity,
       isNow: widget.isCurrent,
     );
     return isDimmed ? base.withValues(alpha: 0.5) : base;
   }
+
+  Color get _nowStripeColor => widget.useProgrammeCapsuleColors
+      ? ColorName.secondary
+      : timelineNowAccent;
 
   String? _subtitleLine(AppLocalizations l10n) {
     final desc = widget.activity.description?.trim();
@@ -196,7 +216,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
         children: [
           Row(
             children: [
-              _timeCapsule(capsuleLabel, accent, isDimmed),
+              _timeCapsule(capsuleLabel, accent, isDimmed, theme),
               const SizedBox(width: AppSpacing.space8),
               _iconCircle(theme, accent, isDimmed),
             ],
@@ -309,13 +329,17 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
       return inner;
     }
 
+    final cardColor = _cardBackgroundColor(theme);
+    final cardBorder = _cardBorderSide(theme);
+    final cardShadows = _cardBoxShadows(theme);
+
     if (widget.isCurrent) {
       return Container(
         margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
         decoration: BoxDecoration(
           borderRadius: AppRadius.large24,
-          border: Border.fromBorderSide(timelineCardBorderSide),
-          boxShadow: timelineCardBoxShadows,
+          border: Border.fromBorderSide(cardBorder),
+          boxShadow: cardShadows,
         ),
         child: ClipRRect(
           borderRadius: AppRadius.large24,
@@ -323,11 +347,11 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ColoredBox(
-                color: timelineNowAccent,
-                child: SizedBox(height: 3, width: double.infinity),
+              ColoredBox(
+                color: _nowStripeColor,
+                child: const SizedBox(height: 3, width: double.infinity),
               ),
-              ColoredBox(color: ColorName.surface, child: inner),
+              ColoredBox(color: cardColor, child: inner),
             ],
           ),
         ),
@@ -337,17 +361,67 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     return Container(
       margin: const EdgeInsets.symmetric(vertical: AppSpacing.space4),
       decoration: BoxDecoration(
-        color: ColorName.surface,
+        color: cardColor,
         borderRadius: AppRadius.large24,
-        border: Border.fromBorderSide(timelineCardBorderSide),
-        boxShadow: timelineCardBoxShadows,
+        border: Border.fromBorderSide(cardBorder),
+        boxShadow: cardShadows,
       ),
       child: inner,
     );
   }
 
-  Widget _timeCapsule(String label, Color accent, bool isDimmed) {
-    final filled = widget.isCurrent;
+  Color _cardBackgroundColor(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors) {
+      return AppColors.surfaceGroupOf(theme.brightness);
+    }
+    return ColorName.surface;
+  }
+
+  BorderSide _cardBorderSide(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors) {
+      return BorderSide(
+        color: AppColors.surfaceGroupBorderOf(theme.brightness),
+      );
+    }
+    return timelineCardBorderSide;
+  }
+
+  List<BoxShadow>? _cardBoxShadows(ThemeData theme) {
+    if (widget.useProgrammeCapsuleColors &&
+        theme.brightness == Brightness.dark) {
+      return null;
+    }
+    return timelineCardBoxShadows;
+  }
+
+  bool get _capsuleFilled =>
+      widget.isCurrent || widget.useProgrammeCapsuleColors;
+
+  Color _capsuleBackgroundColor(Color accent, bool filled) {
+    if (widget.useProgrammeCapsuleColors) return accent;
+    return filled ? accent : timelineCapsuleBackground(accent);
+  }
+
+  Color _capsuleForegroundColor(Color accent, bool filled) {
+    if (widget.useProgrammeCapsuleColors) return Colors.white;
+    return filled ? Colors.white : accent;
+  }
+
+  bool _programmeOutlinedCapsule(ThemeData theme) =>
+      widget.useProgrammeCapsuleColors &&
+      !widget.isCurrent &&
+      theme.brightness == Brightness.dark;
+
+  /// Frosted pill on dark surfaces — same treatment as [ActiveTripWeatherCard].
+  static const Color _programmeGlassTint = Colors.white;
+
+  Widget _timeCapsule(
+    String label,
+    Color accent,
+    bool isDimmed,
+    ThemeData theme,
+  ) {
+    final filled = _capsuleFilled;
     if (widget.isCurrent && _pulseOpacity != null) {
       return AnimatedBuilder(
         animation: _pulseOpacity!,
@@ -357,26 +431,57 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             label: label,
             accent: accent,
             filled: filled,
+            theme: theme,
+            isDimmed: isDimmed,
           ),
         ),
       );
     }
-    return _capsuleDecoration(label: label, accent: accent, filled: filled);
+    return _capsuleDecoration(
+      label: label,
+      accent: accent,
+      filled: filled,
+      theme: theme,
+      isDimmed: isDimmed,
+    );
   }
 
   Widget _capsuleDecoration({
     required String label,
     required Color accent,
     required bool filled,
+    required ThemeData theme,
+    required bool isDimmed,
   }) {
+    final outlined = _programmeOutlinedCapsule(theme);
+    final dimmedAlpha =
+        widget.contentDimAlpha ?? (widget.strikeThroughTitle ? 0.65 : 0.55);
+    final baseForeground = outlined
+        ? _programmeGlassTint
+        : _capsuleForegroundColor(accent, filled);
+    final foreground = isDimmed
+        ? baseForeground.withValues(alpha: dimmedAlpha)
+        : baseForeground;
+    final background = outlined
+        ? _programmeGlassTint.withValues(alpha: isDimmed ? 0.12 : 0.22)
+        : _capsuleBackgroundColor(accent, filled);
+    final border = outlined
+        ? Border.all(
+            color: _programmeGlassTint.withValues(
+              alpha: isDimmed ? 0.18 : 0.28,
+            ),
+          )
+        : null;
+
     final r = timelineActivityLeadingSize / 2;
     return Container(
       height: timelineActivityLeadingSize,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space12),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: filled ? accent : timelineCapsuleBackground(accent),
+        color: background,
         borderRadius: BorderRadius.circular(r),
+        border: border,
       ),
       child: Text(
         label,
@@ -387,16 +492,30 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
           fontSize: 11,
           fontWeight: FontWeight.w700,
           height: 1.1,
-          color: filled ? Colors.white : accent,
-          letterSpacing: filled ? 0.35 : 0.15,
+          color: foreground,
+          letterSpacing: filled && !outlined ? 0.35 : 0.15,
         ),
       ),
     );
   }
 
   Widget _iconCircle(ThemeData theme, Color accent, bool isDimmed) {
-    final a = isDimmed ? accent.withValues(alpha: 0.55) : accent;
     final s = timelineActivityLeadingSize;
+    if (widget.useProgrammeCapsuleColors) {
+      final bg = isDimmed ? accent.withValues(alpha: 0.5) : accent;
+      return Container(
+        width: s,
+        height: s,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: bg),
+        alignment: Alignment.center,
+        child: Icon(
+          widget.activity.category.icon,
+          size: 16,
+          color: Colors.white.withValues(alpha: isDimmed ? 0.65 : 1),
+        ),
+      );
+    }
+    final a = isDimmed ? accent.withValues(alpha: 0.55) : accent;
     return Container(
       width: s,
       height: s,
@@ -432,7 +551,7 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: timelineNowAccent.withValues(alpha: 0.4),
+                        color: _nowStripeColor.withValues(alpha: 0.4),
                         width: 2,
                       ),
                     ),
@@ -443,9 +562,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
             Container(
               width: 12,
               height: 12,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: timelineNowAccent,
+                color: _nowStripeColor,
               ),
             ),
           ],
@@ -454,10 +573,9 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
     }
 
     if (widget.isNext) {
-      final accent = timelineCardAccent(
-        activity: widget.activity,
-        isNow: false,
-      );
+      final accent = widget.useProgrammeCapsuleColors
+          ? ColorName.primaryDark
+          : timelineCardAccent(activity: widget.activity, isNow: false);
       final c = isDimmed ? accent.withValues(alpha: 0.5) : accent;
       return Container(
         width: 14,

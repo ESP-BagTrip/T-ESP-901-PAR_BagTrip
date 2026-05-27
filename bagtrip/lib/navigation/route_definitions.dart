@@ -4,6 +4,7 @@ import 'package:bagtrip/flight_result_details/view/flight_result_details_page.da
 import 'package:bagtrip/flight_search/models/flight_search_prefill.dart';
 import 'package:bagtrip/flight_search_result/models/flight.dart';
 import 'package:bagtrip/flight_search_result/models/flight_search_arguments.dart';
+import 'package:bagtrip/home/view/active_trip_programme_view.dart';
 import 'package:bagtrip/home/view/home_page.dart';
 import 'package:bagtrip/navigation/page_transitions.dart';
 import 'package:bagtrip/notifications/view/notifications_page.dart';
@@ -21,8 +22,6 @@ import 'package:bagtrip/pages/reset_password_page.dart';
 import 'package:bagtrip/pages/splash_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_cancel_page.dart';
 import 'package:bagtrip/pages/subscription/subscription_success_page.dart';
-import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
-import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/plan_trip/models/plan_trip_prefill.dart';
 import 'package:bagtrip/plan_trip/view/plan_trip_flow_page.dart';
 import 'package:bagtrip/post_trip/view/post_trip_page.dart';
@@ -30,6 +29,9 @@ import 'package:bagtrip/profile/view/personal_info_page.dart';
 import 'package:bagtrip/profile/view/settings_page.dart';
 import 'package:bagtrip/subscription/view/invoices_page.dart';
 import 'package:bagtrip/subscription/view/subscription_settings_page.dart';
+import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
+import 'package:bagtrip/trip_detail/view/trip_detail_view.dart';
 import 'package:bagtrip/trips/view/trip_locations_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -125,6 +127,7 @@ class DeepLinkTripRoute extends GoRouteData with $DeepLinkTripRoute {
   path: '/home',
   routes: [
     TypedGoRoute<PlanTripRoute>(path: 'plan'),
+    TypedGoRoute<ActiveTripProgrammeRoute>(path: 'active-trip/programme'),
     TypedGoRoute<TripFlightSearchRoute>(path: 'flight-search'),
     TypedGoRoute<TripDetailRoute>(path: 'trip/:tripId'),
     TypedShellRoute<TripDetailShellRoute>(
@@ -188,6 +191,18 @@ class PlanTripRoute extends GoRouteData with $PlanTripRoute {
       );
 }
 
+class ActiveTripProgrammeRoute extends GoRouteData
+    with $ActiveTripProgrammeRoute {
+  const ActiveTripProgrammeRoute();
+
+  @override
+  Page<void> buildPage(BuildContext context, GoRouterState state) =>
+      MaterialPage<void>(
+        key: state.pageKey,
+        child: const ActiveTripProgrammeView(),
+      );
+}
+
 class TripFlightSearchRoute extends GoRouteData with $TripFlightSearchRoute {
   const TripFlightSearchRoute({this.$extra});
 
@@ -214,15 +229,18 @@ class TripDetailRoute extends GoRouteData with $TripDetailRoute {
 }
 
 class TripHomeRoute extends GoRouteData with $TripHomeRoute {
-  const TripHomeRoute({required this.tripId});
+  const TripHomeRoute({required this.tripId, this.tab});
 
   final String tripId;
+
+  /// Opens [TripDetailView] on a specific panel (e.g. activities editor).
+  final TripDetailTab? tab;
 
   @override
   Page<void> buildPage(BuildContext context, GoRouterState state) =>
       buildSlideTransitionPage<void>(
         state: state,
-        child: TripDetailView(tripId: tripId),
+        child: TripDetailView(tripId: tripId, initialTabIndex: tab?.tabIndex),
       );
 }
 

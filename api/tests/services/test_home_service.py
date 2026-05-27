@@ -105,6 +105,35 @@ async def test_get_home_groups_and_active_trip():
 
 
 @pytest.mark.asyncio
+async def test_get_home_picks_earliest_ongoing_by_start_date():
+    """Active trip is the ongoing trip with the earliest start_date, not list order."""
+    act_a = _activity(date(2027, 12, 1), time(8, 0))
+    act_b = _activity(date(2027, 12, 5), time(9, 0))
+    later_ongoing = _trip("ONGOING", activities=[act_b])
+    later_ongoing.start_date = date(2027, 12, 5)
+    earlier_ongoing = _trip("ONGOING", activities=[act_a])
+    earlier_ongoing.start_date = date(2027, 12, 1)
+
+    # List order puts the later trip first (e.g. created_at desc).
+    rows = [(later_ongoing, "OWNER"), (earlier_ongoing, "VIEWER")]
+    db = _db_returning(rows)
+    user = _user()
+
+    with (
+        _patch_user_enrichment(),
+        patch(
+            "src.services.weather_service.WeatherService.get_trip_weather",
+            new=AsyncMock(return_value={"avg_temp_c": 20.0}),
+        ) as mock_w,
+    ):
+        result = await HomeService.get_home(db, user)
+
+    assert result["active_trip"] is earlier_ongoing
+    assert result["active_trip_activities"] == [act_a]
+    mock_w.assert_awaited_once_with(earlier_ongoing)
+
+
+@pytest.mark.asyncio
 async def test_get_home_no_active_trip_skips_weather():
     """No ongoing trip → active_trip None, no activities, no weather call."""
     planned = _trip("PLANNED")

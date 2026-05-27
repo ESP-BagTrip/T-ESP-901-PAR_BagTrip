@@ -1,3 +1,4 @@
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Premium color palette for the personalization / onboarding flow.
@@ -49,23 +50,23 @@ class PersonalizationColors {
   // ──────────────────── Card states ────────────────────
   // Light (existing API, unchanged)
   static const Color cardUnselected = Color(0x14FFFFFF);
-  static const Color cardSelectedTint = Color(0x1A5B7CFD);
+  static const Color cardSelectedTint = Color(0x1A35A8B5);
   static const Color cardBorderUnselected = Color(0x1A000000);
-  static const Color cardBorderSelected = Color(0xFF5B7CFD);
+  static const Color cardBorderSelected = ColorName.secondary;
 
   // Dark variants
   static const Color _cardUnselectedDark = Color(0x14FFFFFF);
-  static const Color _cardSelectedTintDark = Color(0x335B7CFD);
+  static const Color _cardSelectedTintDark = Color(0x3335A8B5);
   static const Color _cardBorderUnselectedDark = Color(0x26FFFFFF);
 
   // ──────────────────── Chip ────────────────────
   // Light (existing API, unchanged)
   static const Color chipUnselected = Color(0x14FFFFFF);
-  static const Color chipSelected = Color(0x265B7CFD);
+  static const Color chipSelected = Color(0x2635A8B5);
 
   // Dark variants
   static const Color _chipUnselectedDark = Color(0x1AFFFFFF);
-  static const Color _chipSelectedDark = Color(0x335B7CFD);
+  static const Color _chipSelectedDark = Color(0x3335A8B5);
 
   // ══════════════════════════════════════════════════════════════
   // Brightness-aware resolvers

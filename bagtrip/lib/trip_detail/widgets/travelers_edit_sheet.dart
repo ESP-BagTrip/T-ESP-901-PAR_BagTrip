@@ -1,5 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/plan_trip/widgets/traveler_stepper.dart';
@@ -41,11 +41,13 @@ class _TravelersEditContentState extends State<_TravelersEditContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -56,7 +58,7 @@ class _TravelersEditContentState extends State<_TravelersEditContent> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
+                color: AppColors.reviewUncheckedOf(brightness),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -64,11 +66,11 @@ class _TravelersEditContentState extends State<_TravelersEditContent> {
           const SizedBox(height: AppSpacing.space16),
           Text(
             l10n.editTripTravelers,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.b612,
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: ColorName.primaryTrueDark,
+              color: AppColors.profileMenuTitleOf(brightness),
             ),
           ),
           const SizedBox(height: AppSpacing.space32),

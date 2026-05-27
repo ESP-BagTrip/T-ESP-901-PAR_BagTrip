@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
@@ -67,6 +68,7 @@ class ReviewBottomSheetScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return ClipRRect(
@@ -74,7 +76,7 @@ class ReviewBottomSheetScaffold extends StatelessWidget {
         top: Radius.circular(AppRadius.cornerRadius24),
       ),
       child: Container(
-        color: ColorName.surfaceVariant,
+        color: AppColors.profileSheetBackgroundOf(brightness),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -92,7 +94,7 @@ class ReviewBottomSheetScaffold extends StatelessWidget {
             const SizedBox(height: AppSpacing.space8),
             // Dark mini hero
             Container(
-              color: ColorName.primaryDark,
+              color: AppColors.reviewAccentSurfaceOf(brightness),
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.space16,
                 AppSpacing.space16,
@@ -150,7 +152,7 @@ class ReviewBottomSheetScaffold extends StatelessWidget {
             ),
             // Footer
             Container(
-              color: ColorName.surface,
+              color: AppColors.reviewCardSurfaceOf(brightness),
               child: SafeArea(
                 top: false,
                 child: Padding(
@@ -175,7 +177,7 @@ class ReviewBottomSheetScaffold extends StatelessWidget {
                           style: TextButton.styleFrom(
                             foregroundColor: isSecondaryDestructive
                                 ? ColorName.error
-                                : ColorName.primaryDark,
+                                : AppColors.profileMenuTitleOf(brightness),
                           ),
                           child: Text(
                             secondaryLabel!,

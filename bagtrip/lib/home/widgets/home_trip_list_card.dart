@@ -1,4 +1,6 @@
+import 'package:bagtrip/components/adaptive/adaptive_dialog.dart';
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -9,7 +11,9 @@ import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeTripListSection extends StatelessWidget {
   final String title;
@@ -25,31 +29,29 @@ class HomeTripListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final titleColor = compactHeader
+        ? AppColors.textSecondaryOf(brightness)
+        : AppColors.profileMenuTitleOf(brightness);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: compactHeader
-              ? const TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.textMutedLight,
-                  letterSpacing: 1.2,
-                )
-              : const TextStyle(
-                  fontFamily: FontFamily.dMSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
-                ),
+          style: TextStyle(
+            fontFamily: FontFamily.dMSans,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: titleColor,
+            letterSpacing: compactHeader ? 1.2 : 0,
+          ),
         ),
         const SizedBox(height: AppSpacing.space12),
         ...trips.map(
           (trip) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.space12),
-            child: HomeTripListCard(trip: trip),
+            child: _HomeTripListCardShell(trip: trip),
           ),
         ),
       ],
@@ -57,10 +59,60 @@ class HomeTripListSection extends StatelessWidget {
   }
 }
 
-class HomeTripListCard extends StatelessWidget {
-  static const Color _frameColor = ColorName.surface;
-  static const double _borderWidth = 1.5;
+class _HomeTripListCardShell extends StatelessWidget {
+  const _HomeTripListCardShell({required this.trip});
 
+  final Trip trip;
+
+  bool get _canSwipeToDelete => trip.role == 'OWNER';
+
+  @override
+  Widget build(BuildContext context) {
+    final card = HomeTripListCard(trip: trip);
+    if (!_canSwipeToDelete) return card;
+
+    final l10n = AppLocalizations.of(context)!;
+    return Dismissible(
+      key: ValueKey('home-trip-list-${trip.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.error,
+          borderRadius: AppRadius.large24,
+        ),
+        child: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).colorScheme.onError,
+          semanticLabel: l10n.tripDeleteTitle,
+        ),
+      ),
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) {
+        context.read<TripManagementBloc>().add(DeleteTrip(tripId: trip.id));
+      },
+      child: card,
+    );
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    var confirmed = false;
+    await showAdaptiveAlertDialog(
+      context: context,
+      title: l10n.tripDeleteTitle,
+      content: l10n.tripDeleteConfirm,
+      confirmLabel: l10n.deleteButton,
+      cancelLabel: l10n.cancelButton,
+      isDestructive: true,
+      onConfirm: () => confirmed = true,
+    );
+    return confirmed;
+  }
+}
+
+class HomeTripListCard extends StatelessWidget {
   final Trip trip;
 
   const HomeTripListCard({super.key, required this.trip});
@@ -109,6 +161,8 @@ class HomeTripListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final destination =
         trip.destinationName ?? trip.title ?? l10n.myTripFallback;
@@ -117,23 +171,22 @@ class HomeTripListCard extends StatelessWidget {
     final hasCover =
         trip.coverImageUrl != null && trip.coverImageUrl!.isNotEmpty;
     final travelerCount = trip.nbTravelers;
-    final innerRadius = AppRadius.cornerRadius24 - _borderWidth;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: _frameColor,
+      decoration: BoxDecoration(
         borderRadius: AppRadius.large24,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A0E1A2B),
-            blurRadius: 22,
-            offset: Offset(0, 12),
-          ),
-        ],
+        boxShadow: isDark
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x1A0E1A2B),
+                  blurRadius: 22,
+                  offset: Offset(0, 12),
+                ),
+              ],
       ),
-      padding: const EdgeInsets.all(_borderWidth),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(innerRadius),
+        borderRadius: AppRadius.large24,
         child: Material(
           color: Colors.transparent,
           child: InkWell(

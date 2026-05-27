@@ -964,6 +964,38 @@ void main() {
       await bloc.close();
     });
 
+    test('progress phase updates progress and localized message', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+
+      controller.add({
+        'event': 'progress',
+        'data': {'phase': 'parallel_planning'},
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.38);
+      expect(bloc.state.generationMessage, 'Planification de votre voyage…');
+
+      await controller.close();
+      await bloc.close();
+    });
+
+    test('progress percent updates generationProgress', () async {
+      final controller = StreamController<Map<String, dynamic>>();
+      final bloc = await bootGeneratingBloc(controller);
+
+      controller.add({
+        'event': 'progress',
+        'data': {'percent': 42, 'message': 'Almost there'},
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(bloc.state.generationProgress, 0.42);
+      expect(bloc.state.generationMessage, 'Almost there');
+
+      await controller.close();
+      await bloc.close();
+    });
+
     test('destinations → activities step cascade sets progress 0.2', () async {
       final controller = StreamController<Map<String, dynamic>>();
       final bloc = await bootGeneratingBloc(controller);

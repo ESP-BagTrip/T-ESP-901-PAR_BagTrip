@@ -37,11 +37,18 @@ class ReviewInlineHotel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.reviewInkOf(brightness);
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFFBFAF7),
+        color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
-        border: Border.all(color: AppColors.reviewBorderLight, width: 0.5),
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
+        ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space16),
@@ -53,7 +60,7 @@ class ReviewInlineHotel extends StatelessWidget {
                 Icon(
                   Icons.hotel_outlined,
                   size: 12,
-                  color: AppColors.reviewInk.withValues(alpha: 0.45),
+                  color: ink.withValues(alpha: 0.45),
                 ),
                 const SizedBox(width: AppSpacing.space8),
                 Text(
@@ -63,11 +70,11 @@ class ReviewInlineHotel extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.4,
-                    color: AppColors.reviewInk.withValues(alpha: 0.55),
+                    color: ink.withValues(alpha: 0.55),
                   ),
                 ),
                 const Spacer(),
-                if (data.rating > 0) _StarsRow(count: data.rating),
+                if (data.rating > 0) _StarsRow(count: data.rating, ink: ink),
               ],
             ),
             const SizedBox(height: AppSpacing.space12),
@@ -75,13 +82,13 @@ class ReviewInlineHotel extends StatelessWidget {
               data.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: FontFamily.dMSerifDisplay,
                 fontSize: 22,
                 height: 1.15,
                 fontWeight: FontWeight.w400,
                 letterSpacing: -0.4,
-                color: AppColors.reviewInk,
+                color: ink,
               ),
             ),
             if (_composedSubtitle().isNotEmpty) ...[
@@ -90,11 +97,11 @@ class ReviewInlineHotel extends StatelessWidget {
                 _composedSubtitle(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSans,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.reviewSubtle,
+                  color: AppColors.reviewSubtleOf(brightness),
                 ),
               ),
             ],
@@ -114,9 +121,10 @@ class ReviewInlineHotel extends StatelessWidget {
 }
 
 class _StarsRow extends StatelessWidget {
-  const _StarsRow({required this.count});
+  const _StarsRow({required this.count, required this.ink});
 
   final int count;
+  final Color ink;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +135,7 @@ class _StarsRow extends StatelessWidget {
         (_) => Icon(
           Icons.star_rounded,
           size: 12,
-          color: AppColors.reviewInk.withValues(alpha: 0.65),
+          color: ink.withValues(alpha: 0.65),
         ),
       ),
     );

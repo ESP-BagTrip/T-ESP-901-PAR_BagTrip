@@ -5,7 +5,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/home/view/home_view.dart';
 import 'package:bagtrip/home/view/idle_home_view.dart';
-import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -14,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/pump_widget.dart';
 import '../../helpers/test_fixtures.dart';
 
 class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
@@ -34,11 +34,8 @@ void main() {
 
   Widget buildApp(HomeState state) {
     when(() => mockHomeBloc.state).thenReturn(state);
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: MultiBlocProvider(
+    return localizedRouterApp(
+      child: MultiBlocProvider(
         providers: [
           BlocProvider<HomeBloc>.value(value: mockHomeBloc),
           BlocProvider<TripManagementBloc>.value(value: mockTripBloc),

@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/progression_cta_button.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -13,7 +16,6 @@ import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shimmer/shimmer.dart';
 
 class StepDestinationView extends StatefulWidget {
   const StepDestinationView({super.key});
@@ -83,6 +85,11 @@ class _StepDestinationViewState extends State<StepDestinationView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final focused = _searchFocus.hasFocus;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final textColor = PersonalizationColors.textPrimaryOf(brightness);
 
     return BlocConsumer<PlanTripBloc, PlanTripState>(
       listenWhen: (prev, curr) =>
@@ -131,7 +138,7 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
                 borderRadius: AppRadius.large13,
-                boxShadow: focused
+                boxShadow: focused && !isDark
                     ? [
                         BoxShadow(
                           color: ColorName.secondary.withValues(alpha: 0.22),
@@ -143,6 +150,8 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                           blurRadius: 8,
                         ),
                       ]
+                    : isDark
+                    ? null
                     : [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -153,12 +162,12 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: ColorName.surface,
+                  color: surfaceColor,
                   borderRadius: AppRadius.large13,
                   border: Border.all(
                     color: focused
                         ? ColorName.secondary.withValues(alpha: 0.45)
-                        : ColorName.primarySoftLight,
+                        : borderColor,
                   ),
                 ),
                 child: Semantics(
@@ -168,10 +177,10 @@ class _StepDestinationViewState extends State<StepDestinationView> {
                     focusNode: _searchFocus,
                     controller: _searchController,
                     onChanged: _onSearchChanged,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 16,
-                      color: PersonalizationColors.textPrimary,
+                      color: textColor,
                     ),
                     decoration: InputDecoration(
                       hintText: l10n.destinationPlaceholder,
@@ -234,6 +243,8 @@ class _StepDestinationViewState extends State<StepDestinationView> {
               ProgressionCtaButton(
                 text: l10n.continueButton,
                 icon: Icons.arrow_forward_rounded,
+                backgroundColor: ColorName.secondary,
+                borderRadius: AppRadius.large16,
                 onPressed: () {
                   AppHaptics.medium();
                   context.read<PlanTripBloc>().add(
@@ -348,21 +359,27 @@ class _SearchResultsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = PersonalizationColors.textPrimaryOf(brightness);
+    final subtitleColor = PersonalizationColors.textSecondaryOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
+
     return Material(
-      color: ColorName.surface,
+      color: surfaceColor,
       borderRadius: AppRadius.large13,
       clipBehavior: Clip.antiAlias,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: AppRadius.large13,
-          border: Border.all(color: ColorName.primarySoftLight),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < locations.length; i++) ...[
-              if (i > 0)
-                const Divider(height: 1, color: ColorName.primarySoftLight),
+              if (i > 0) Divider(height: 1, color: borderColor),
               InkWell(
                 onTap: () => onSelect(locations[i]),
                 child: Padding(
@@ -383,21 +400,21 @@ class _SearchResultsPanel extends StatelessWidget {
                           children: [
                             Text(
                               locations[i].name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: FontFamily.b612,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: PersonalizationColors.textPrimary,
+                                color: titleColor,
                               ),
                             ),
                             if (locations[i].countryName.isNotEmpty)
                               Text(
                                 locations[i].countryName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: FontFamily.b612,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
-                                  color: PersonalizationColors.textSecondary,
+                                  color: subtitleColor,
                                 ),
                               ),
                           ],
@@ -406,7 +423,7 @@ class _SearchResultsPanel extends StatelessWidget {
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 22,
-                        color: ColorName.hint.withValues(alpha: 0.7),
+                        color: mutedColor.withValues(alpha: 0.7),
                       ),
                     ],
                   ),
@@ -507,42 +524,29 @@ class _InspireMeButtonState extends State<_InspireMeButton>
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.large16,
         boxShadow: [
           BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.3),
+            color: ColorName.secondary.withValues(alpha: 0.3),
             offset: const Offset(0, 6),
             blurRadius: 16,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.large16,
         child: Stack(
           alignment: Alignment.center,
           children: [
             const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [ColorName.primary, ColorName.secondary],
-                ),
-              ),
+              decoration: BoxDecoration(color: ColorName.secondary),
               child: SizedBox(height: 52, width: double.infinity),
             ),
-            if (!widget.isLoading)
-              Positioned.fill(
-                child: Shimmer.fromColors(
-                  baseColor: ColorName.shimmerBase.withValues(alpha: 0.15),
-                  highlightColor: Colors.white.withValues(alpha: 0.35),
-                  period: const Duration(milliseconds: 2000),
-                  child: Container(color: Colors.white.withValues(alpha: 0.06)),
-                ),
-              ),
             Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: widget.onPressed,
-                borderRadius: AppRadius.pill,
+                borderRadius: AppRadius.large16,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppSpacing.space15,
@@ -710,54 +714,67 @@ class _PopularDestinationCard extends StatelessWidget {
           onTap();
         },
         borderRadius: AppRadius.large13,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: spot.gradient,
-            ),
-            borderRadius: AppRadius.large13,
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned(
-                left: 10,
-                bottom: 10,
-                right: 8,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      flag,
-                      style: const TextStyle(fontSize: 20, height: 1.1),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      spot.location.name,
-                      style: TextStyle(
-                        fontFamily: FontFamily.dMSans,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            blurRadius: 6,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            OptimizedImage.activityImage(
+              spot.imageUrl,
+              errorWidget: _PopularDestinationImageFallback(
+                gradient: spot.fallbackGradient,
               ),
-            ],
-          ),
+            ),
+            const Positioned.fill(child: TripCoverHeroScrim()),
+            Positioned(
+              left: 10,
+              bottom: 10,
+              right: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(flag, style: const TextStyle(fontSize: 20, height: 1.1)),
+                  const SizedBox(height: 4),
+                  Text(
+                    spot.location.name,
+                    style: TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularDestinationImageFallback extends StatelessWidget {
+  const _PopularDestinationImageFallback({required this.gradient});
+
+  final List<Color> gradient;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:bagtrip/components/optimized_image.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -160,12 +161,16 @@ class _GradientPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DecoratedBox(
+    final accent = AppColors.reviewAccentSurfaceOf(
+      Theme.of(context).brightness,
+    );
+
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0E2135), ColorName.primaryDark],
+          colors: [accent, ColorName.primaryDark],
         ),
       ),
     );

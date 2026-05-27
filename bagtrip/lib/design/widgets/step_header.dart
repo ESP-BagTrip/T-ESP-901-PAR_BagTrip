@@ -63,37 +63,47 @@ class _StepHeaderState extends State<StepHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: _toggle,
       child: Container(
         padding: AppSpacing.allEdgeInsetSpace16,
         decoration: BoxDecoration(
-          color: ColorName.surface,
+          color: AppColors.surfaceGroupOf(brightness),
           borderRadius: AppRadius.large24,
-          border: Border.all(color: ColorName.primarySoftLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-            ),
-          ],
+          border: Border.all(color: AppColors.surfaceGroupBorderOf(brightness)),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                  ),
+                ],
         ),
         child: AnimatedCrossFade(
           duration: AppAnimations.cardTransition,
           crossFadeState: _expanded
               ? CrossFadeState.showSecond
               : CrossFadeState.showFirst,
-          firstChild: _buildCollapsed(),
-          secondChild: _buildExpanded(),
+          firstChild: _buildCollapsed(brightness),
+          secondChild: _buildExpanded(brightness),
         ),
       ),
     );
   }
 
-  Widget _buildCollapsed() {
+  Widget _buildCollapsed(Brightness brightness) {
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     if (widget.enrichedSplitCollapsed && widget.items.length >= 2) {
-      return _buildEnrichedSplitCollapsed(widget.items[0], widget.items[1]);
+      return _buildEnrichedSplitCollapsed(
+        widget.items[0],
+        widget.items[1],
+        brightness,
+      );
     }
     return Row(
       children: [
@@ -108,13 +118,15 @@ class _StepHeaderState extends State<StepHeader> {
                   color: AppColors.secondary,
                 ),
                 const SizedBox(width: AppSpacing.space16),
-                Flexible(child: _collapsedValueText(widget.items[i])),
+                Flexible(
+                  child: _collapsedValueText(widget.items[i], brightness),
+                ),
               ],
             ],
           ),
         ),
         const SizedBox(width: AppSpacing.space8),
-        const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.hint),
+        Icon(Icons.keyboard_arrow_down, size: 18, color: mutedColor),
       ],
     );
   }
@@ -122,7 +134,10 @@ class _StepHeaderState extends State<StepHeader> {
   Widget _buildEnrichedSplitCollapsed(
     StepSummaryItem dates,
     StepSummaryItem travelers,
+    Brightness brightness,
   ) {
+    final dividerColor = AppColors.surfaceGroupBorderOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,13 +146,14 @@ class _StepHeaderState extends State<StepHeader> {
             icon: dates.icon,
             primary: dates.value,
             secondary: dates.subtitle,
+            brightness: brightness,
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.space8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space8),
           child: SizedBox(
             height: 44,
-            child: VerticalDivider(width: 1, color: ColorName.primarySoftLight),
+            child: VerticalDivider(width: 1, color: dividerColor),
           ),
         ),
         Expanded(
@@ -145,15 +161,16 @@ class _StepHeaderState extends State<StepHeader> {
             icon: travelers.icon,
             primary: travelers.value,
             secondary: travelers.subtitle,
+            brightness: brightness,
           ),
         ),
         const SizedBox(width: AppSpacing.space4),
-        const Padding(
-          padding: EdgeInsets.only(top: 2),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
           child: Icon(
             Icons.keyboard_arrow_down_rounded,
             size: 18,
-            color: AppColors.hint,
+            color: mutedColor,
           ),
         ),
       ],
@@ -164,7 +181,10 @@ class _StepHeaderState extends State<StepHeader> {
     required IconData icon,
     required String primary,
     required String? secondary,
+    required Brightness brightness,
   }) {
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,11 +197,11 @@ class _StepHeaderState extends State<StepHeader> {
             children: [
               Text(
                 primary,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSans,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
+                  color: titleColor,
                   height: 1.2,
                 ),
                 maxLines: 2,
@@ -191,11 +211,11 @@ class _StepHeaderState extends State<StepHeader> {
                 const SizedBox(height: 2),
                 Text(
                   secondary,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSans,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: ColorName.hint,
+                    color: mutedColor,
                     height: 1.2,
                   ),
                   maxLines: 2,
@@ -209,7 +229,9 @@ class _StepHeaderState extends State<StepHeader> {
     );
   }
 
-  Widget _collapsedValueText(StepSummaryItem item) {
+  Widget _collapsedValueText(StepSummaryItem item, Brightness brightness) {
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     if (item.subtitle != null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,11 +239,11 @@ class _StepHeaderState extends State<StepHeader> {
         children: [
           Text(
             item.value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ColorName.primaryDark,
+              color: titleColor,
               height: 1.2,
             ),
             overflow: TextOverflow.ellipsis,
@@ -229,11 +251,11 @@ class _StepHeaderState extends State<StepHeader> {
           ),
           Text(
             item.subtitle!,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: ColorName.hint,
+              color: mutedColor,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
@@ -243,39 +265,45 @@ class _StepHeaderState extends State<StepHeader> {
     }
     return Text(
       item.value,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: FontFamily.b612,
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: ColorName.primaryTrueDark,
+        color: titleColor,
       ),
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
     );
   }
 
-  Widget _buildExpanded() {
+  Widget _buildExpanded(Brightness brightness) {
+    final mutedColor = AppColors.textSecondaryOf(brightness);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < widget.items.length; i++) ...[
           if (i > 0) const SizedBox(height: AppSpacing.space12),
-          _buildExpandedRow(widget.items[i]),
+          _buildExpandedRow(widget.items[i], brightness),
         ],
         const SizedBox(height: AppSpacing.space8),
-        const Icon(Icons.keyboard_arrow_up, size: 20, color: AppColors.hint),
+        Icon(Icons.keyboard_arrow_up, size: 20, color: mutedColor),
       ],
     );
   }
 
-  Widget _buildExpandedRow(StepSummaryItem item) {
+  Widget _buildExpandedRow(StepSummaryItem item, Brightness brightness) {
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
+    final iconBg = brightness == Brightness.dark
+        ? AppColors.surfaceGroupBorderOf(brightness)
+        : ColorName.primaryLight;
     return Row(
       children: [
         Container(
           width: 40,
           height: 40,
-          decoration: const BoxDecoration(
-            color: ColorName.primaryLight,
+          decoration: BoxDecoration(
+            color: iconBg,
             borderRadius: AppRadius.medium8,
           ),
           alignment: Alignment.center,
@@ -288,33 +316,33 @@ class _StepHeaderState extends State<StepHeader> {
             children: [
               Text(
                 item.label.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: ColorName.hint,
+                  color: mutedColor,
                   letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: AppSpacing.space4),
               Text(
                 item.value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: ColorName.primaryTrueDark,
+                  color: titleColor,
                 ),
               ),
               if (item.subtitle != null) ...[
                 const SizedBox(height: AppSpacing.space4),
                 Text(
                   item.subtitle!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                    color: ColorName.hint,
+                    color: mutedColor,
                   ),
                 ),
               ],

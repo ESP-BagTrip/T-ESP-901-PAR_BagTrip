@@ -1,6 +1,17 @@
 import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:flutter/material.dart';
 
+/// Wikimedia Commons thumbnail used for curated popular tiles (same sources as
+/// the server cover pipeline). [fileName] is the Commons file title.
+String manualPopularCoverImageUrl(String fileName) {
+  return Uri(
+    scheme: 'https',
+    host: 'commons.wikimedia.org',
+    path: '/wiki/Special:FilePath/${Uri.encodeComponent(fileName)}',
+    queryParameters: const {'width': '640'},
+  ).toString();
+}
+
 /// Fixed set of destinations for the plan-trip destination step (local search).
 abstract final class ManualDestinationCatalog {
   static const List<LocationResult> all = [
@@ -126,10 +137,10 @@ abstract final class ManualDestinationCatalog {
     ),
   ];
 
-  /// Six featured tiles (subset of [all]) with card gradients.
-  static const List<ManualPopularDestination> popular = [
+  /// Six featured tiles (subset of [all]) with cover imagery.
+  static final List<ManualPopularDestination> popular = [
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'Marrakech',
         iataCode: 'RAK',
         city: 'Marrakech',
@@ -137,10 +148,11 @@ abstract final class ManualDestinationCatalog {
         countryName: 'Morocco',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFFE67E22), Color(0xFFC87E4A)],
+      imageUrl: manualPopularCoverImageUrl('Jemaa_el-Fnaa_at_night.jpg'),
+      fallbackGradient: const [Color(0xFFE67E22), Color(0xFFC87E4A)],
     ),
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'Bali',
         iataCode: 'DPS',
         city: 'Denpasar',
@@ -148,10 +160,11 @@ abstract final class ManualDestinationCatalog {
         countryName: 'Indonesia',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFF1E8449), Color(0xFF145A32)],
+      imageUrl: manualPopularCoverImageUrl('Pura_Ulun_Danu_Bratan.jpg'),
+      fallbackGradient: const [Color(0xFF1E8449), Color(0xFF145A32)],
     ),
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'Tokyo',
         iataCode: 'NRT',
         city: 'Tokyo',
@@ -159,10 +172,13 @@ abstract final class ManualDestinationCatalog {
         countryName: 'Japan',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFFE91E8C), Color(0xFF7B1FA2)],
+      imageUrl: manualPopularCoverImageUrl(
+        'Skyscrapers_of_Shinjuku_2009_January.jpg',
+      ),
+      fallbackGradient: const [Color(0xFFE91E8C), Color(0xFF7B1FA2)],
     ),
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'New York',
         iataCode: 'JFK',
         city: 'New York',
@@ -170,10 +186,13 @@ abstract final class ManualDestinationCatalog {
         countryName: 'United States',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFF5DADE2), Color(0xFF1A5276)],
+      imageUrl: manualPopularCoverImageUrl(
+        'New_york_times_square-terabass.jpg',
+      ),
+      fallbackGradient: const [Color(0xFF5DADE2), Color(0xFF1A5276)],
     ),
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'Lisbon',
         iataCode: 'LIS',
         city: 'Lisbon',
@@ -181,10 +200,11 @@ abstract final class ManualDestinationCatalog {
         countryName: 'Portugal',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFFF4D03F), Color(0xFFB7950B)],
+      imageUrl: manualPopularCoverImageUrl('Lisboa_-_panoramio.jpg'),
+      fallbackGradient: const [Color(0xFFF4D03F), Color(0xFFB7950B)],
     ),
     ManualPopularDestination(
-      location: LocationResult(
+      location: const LocationResult(
         name: 'Kyoto',
         iataCode: 'KIX',
         city: 'Kyoto',
@@ -192,7 +212,8 @@ abstract final class ManualDestinationCatalog {
         countryName: 'Japan',
         subType: 'CITY',
       ),
-      gradient: [Color(0xFFE57373), Color(0xFFC62828)],
+      imageUrl: manualPopularCoverImageUrl('Kiyomizu-dera_in_Kyoto.jpg'),
+      fallbackGradient: const [Color(0xFFE57373), Color(0xFFC62828)],
     ),
   ];
 
@@ -213,9 +234,11 @@ abstract final class ManualDestinationCatalog {
 class ManualPopularDestination {
   const ManualPopularDestination({
     required this.location,
-    required this.gradient,
+    required this.imageUrl,
+    required this.fallbackGradient,
   });
 
   final LocationResult location;
-  final List<Color> gradient;
+  final String imageUrl;
+  final List<Color> fallbackGradient;
 }

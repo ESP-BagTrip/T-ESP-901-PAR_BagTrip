@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -37,113 +38,170 @@ class BoardingPassCard extends StatelessWidget {
     required this.flight,
     this.onTap,
     this.onLongPress,
+    this.showAiBadge = false,
   });
 
   final String title;
   final BoardingPassModel flight;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final bool showAiBadge;
 
   @override
   Widget build(BuildContext context) {
-    final card = ClipRRect(
-      borderRadius: AppRadius.large16,
-      child: Container(
-        decoration: const BoxDecoration(color: Colors.white),
-        child: Column(
-          children: [
-            Container(
-              color: ColorName.primaryDark,
-              padding: const EdgeInsets.all(AppSpacing.space16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        flight.airlineLine.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          letterSpacing: 1,
-                          color: ColorName.hint,
+    final brightness = Theme.of(context).brightness;
+    final card = Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
+        ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.large16,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.reviewCardSurfaceOf(brightness),
+          ),
+          child: Column(
+            children: [
+              Container(
+                color: AppColors.reviewAccentSurfaceOf(brightness),
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            flight.airlineLine.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: FontFamily.dMSans,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              letterSpacing: 1,
+                              color: ColorName.hint,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        flight.origin,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: ColorName.surface,
-                        ),
-                      ),
-                      const Expanded(
-                        child: Divider(
-                          color: ColorName.hint,
-                          indent: 10,
-                          endIndent: 10,
-                        ),
-                      ),
-                      Text(
-                        flight.destination,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: ColorName.surface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.space16),
-              child: Column(
-                children: [
-                  if (flight.subtitle.isNotEmpty)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        flight.subtitle,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.b612,
-                          color: ColorName.hint,
-                        ),
-                      ),
+                        if (showAiBadge) ...[
+                          const SizedBox(width: AppSpacing.space8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.space12,
+                              vertical: AppSpacing.space8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorName.secondary.withValues(
+                                alpha: 0.14,
+                              ),
+                              borderRadius: AppRadius.pill,
+                              border: Border.all(color: ColorName.secondary),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome_rounded,
+                                  size: 14,
+                                  color: ColorName.secondary,
+                                ),
+                                SizedBox(width: AppSpacing.space4),
+                                Text(
+                                  'IA',
+                                  style: TextStyle(
+                                    fontFamily: FontFamily.dMSans,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: ColorName.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FlightMeta(
-                          label: AppLocalizations.of(
-                            context,
-                          )!.reviewFlightDeparture,
-                          value: flight.departure,
-                          date: flight.flightDate,
+                    Row(
+                      children: [
+                        Text(
+                          flight.origin,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: ColorName.surface,
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: FlightMeta(
-                          label: AppLocalizations.of(
-                            context,
-                          )!.reviewFlightArrival,
-                          value: flight.arrival,
-                          date: flight.flightDate,
+                        const Expanded(
+                          child: Divider(
+                            color: ColorName.hint,
+                            indent: 10,
+                            endIndent: 10,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          flight.destination,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: ColorName.surface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                child: Column(
+                  children: [
+                    if (flight.subtitle.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          flight.subtitle,
+                          style: TextStyle(
+                            fontFamily: FontFamily.b612,
+                            color: AppColors.textSecondaryOf(brightness),
+                          ),
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FlightMeta(
+                            label: AppLocalizations.of(
+                              context,
+                            )!.reviewFlightDeparture,
+                            value: flight.departure,
+                            date: flight.flightDate,
+                            brightness: brightness,
+                          ),
+                        ),
+                        Expanded(
+                          child: FlightMeta(
+                            label: AppLocalizations.of(
+                              context,
+                            )!.reviewFlightArrival,
+                            value: flight.arrival,
+                            date: flight.flightDate,
+                            brightness: brightness,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -169,11 +227,13 @@ class FlightMeta extends StatelessWidget {
     required this.label,
     required this.value,
     required this.date,
+    required this.brightness,
   });
 
   final String label;
   final String value;
   final String date;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -182,32 +242,32 @@ class FlightMeta extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontWeight: FontWeight.w600,
             fontSize: 12,
             letterSpacing: 1,
-            color: ColorName.hint,
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSerifDisplay,
             fontSize: 24,
             fontWeight: FontWeight.w500,
-            color: ColorName.primaryDark,
+            color: AppColors.profileMenuTitleOf(brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.space4),
         Text(
           date.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 12,
             fontWeight: FontWeight.w500,
             letterSpacing: 1,
-            color: ColorName.hint,
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
       ],

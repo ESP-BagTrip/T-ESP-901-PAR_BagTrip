@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/pill_cta_button.dart';
@@ -75,17 +76,24 @@ class QuickPreviewSheet extends StatelessWidget {
       maxChildSize: maxChildSize,
       expand: false,
       builder: (sheetContext, scrollController) {
+        final brightness = Theme.of(sheetContext).brightness;
+
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: AppColors.reviewCardSurfaceOf(brightness),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SafeArea(
             top: false,
             child: Column(
               children: [
-                const _Handle(),
-                _Header(icon: icon, title: title, subtitle: subtitle),
+                _Handle(brightness: brightness),
+                _Header(
+                  icon: icon,
+                  title: title,
+                  subtitle: subtitle,
+                  brightness: brightness,
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     controller: scrollController,
@@ -99,6 +107,7 @@ class QuickPreviewSheet extends StatelessWidget {
                   ),
                 ),
                 _Actions(
+                  brightness: brightness,
                   // When validateAction is provided, it takes the primary
                   // slot and the previous primary becomes the secondary so
                   // the original Edit/etc. CTA stays reachable.
@@ -126,7 +135,9 @@ class QuickPreviewSheet extends StatelessWidget {
 }
 
 class _Handle extends StatelessWidget {
-  const _Handle();
+  const _Handle({required this.brightness});
+
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +148,7 @@ class _Handle extends StatelessWidget {
           width: 40,
           height: 4,
           decoration: BoxDecoration(
-            color: ColorName.hint.withValues(alpha: 0.3),
+            color: AppColors.reviewMutedOf(brightness).withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -151,11 +162,13 @@ class _Header extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    required this.brightness,
   });
 
   final IconData icon;
   final String title;
   final String? subtitle;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -186,12 +199,12 @@ class _Header extends StatelessWidget {
                 if (subtitle != null) ...[
                   Text(
                     subtitle!.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.4,
-                      color: ColorName.hint,
+                      color: AppColors.textSecondaryOf(brightness),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -200,10 +213,10 @@ class _Header extends StatelessWidget {
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 22,
-                    color: ColorName.primaryDark,
+                    color: AppColors.profileMenuTitleOf(brightness),
                     height: 1.15,
                   ),
                 ),
@@ -218,6 +231,7 @@ class _Header extends StatelessWidget {
 
 class _Actions extends StatelessWidget {
   const _Actions({
+    required this.brightness,
     required this.primary,
     required this.secondary,
     required this.destructive,
@@ -225,6 +239,7 @@ class _Actions extends StatelessWidget {
     required this.onOpenFull,
   });
 
+  final Brightness brightness;
   final QuickPreviewAction? primary;
   final QuickPreviewAction? secondary;
   final QuickPreviewAction? destructive;
@@ -234,9 +249,11 @@ class _Actions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: ColorName.primarySoftLight)),
+      decoration: BoxDecoration(
+        color: AppColors.reviewCardSurfaceOf(brightness),
+        border: Border(
+          top: BorderSide(color: AppColors.surfaceGroupBorderOf(brightness)),
+        ),
       ),
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.space16,
@@ -264,7 +281,7 @@ class _Actions extends StatelessWidget {
                   Expanded(
                     child: _GhostButton(
                       action: secondary!,
-                      color: ColorName.primaryDark,
+                      color: AppColors.profileMenuTitleOf(brightness),
                     ),
                   ),
                 if (secondary != null && destructive != null)
@@ -288,18 +305,18 @@ class _Actions extends StatelessWidget {
                 children: [
                   Text(
                     openFullLabel!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: ColorName.hint,
+                      color: AppColors.textSecondaryOf(brightness),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_rounded,
                     size: 14,
-                    color: ColorName.hint,
+                    color: AppColors.textSecondaryOf(brightness),
                   ),
                 ],
               ),

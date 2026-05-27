@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,13 @@ class ReviewShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final sheetColor = AppColors.tripDetailPageBackgroundOf(brightness);
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final isDark = brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top;
     return ColoredBox(
-      color: ColorName.surfaceVariant,
+      color: sheetColor,
       child: Column(
         children: [
           // Dark hero placeholder
@@ -79,8 +84,12 @@ class ReviewShimmer extends StatelessWidget {
           // Content placeholders
           Expanded(
             child: Shimmer.fromColors(
-              baseColor: Colors.grey.shade200,
-              highlightColor: Colors.grey.shade100,
+              baseColor: isDark
+                  ? cardColor.withValues(alpha: 0.55)
+                  : Colors.grey.shade200,
+              highlightColor: isDark
+                  ? cardColor.withValues(alpha: 0.85)
+                  : Colors.grey.shade100,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.space16,
@@ -88,8 +97,19 @@ class ReviewShimmer extends StatelessWidget {
                 itemCount: 4,
                 separatorBuilder: (_, _) =>
                     const SizedBox(height: AppSpacing.space12),
-                itemBuilder: (_, _) =>
-                    _shimmerBox(height: 96, radius: AppRadius.cornerRaidus16),
+                itemBuilder: (_, _) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      AppRadius.cornerRaidus16,
+                    ),
+                    boxShadow: AppColors.reviewCardShadowOf(brightness),
+                  ),
+                  child: _shimmerBox(
+                    height: 96,
+                    radius: AppRadius.cornerRaidus16,
+                    color: cardColor,
+                  ),
+                ),
               ),
             ),
           ),
@@ -98,12 +118,17 @@ class ReviewShimmer extends StatelessWidget {
     );
   }
 
-  Widget _shimmerBox({double? width, double height = 12, double radius = 8}) {
+  Widget _shimmerBox({
+    double? width,
+    double height = 12,
+    double radius = 8,
+    Color color = Colors.white,
+  }) {
     return Container(
       width: width ?? double.infinity,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: color,
         borderRadius: BorderRadius.circular(radius),
       ),
     );

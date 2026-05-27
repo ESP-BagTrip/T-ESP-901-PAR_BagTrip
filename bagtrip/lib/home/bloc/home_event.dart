@@ -6,6 +6,17 @@ class LoadHome extends HomeEvent {}
 
 class RefreshHome extends HomeEvent {}
 
+/// Reloads activities for the current [HomeActiveTrip] (e.g. after editing
+/// schedule from trip detail while programme is still on the nav stack).
+class RefreshActiveTripActivities extends HomeEvent {}
+
+/// Pushes the in-memory activity list from [TripDetailBloc] into home state
+/// before popping back to programme (avoids stale /home aggregate).
+class SyncActiveTripActivities extends HomeEvent {
+  final List<Activity> activities;
+  SyncActiveTripActivities(this.activities);
+}
+
 class ResetHome extends HomeEvent {}
 
 class ConfirmTripCompletion extends HomeEvent {

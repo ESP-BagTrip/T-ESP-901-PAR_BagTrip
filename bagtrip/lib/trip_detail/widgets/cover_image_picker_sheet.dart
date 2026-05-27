@@ -49,10 +49,12 @@ class _CoverImagePickerSheet extends StatelessWidget {
         }
         final trip = state.trip;
         final candidates = trip.coverImageCandidates;
+        final brightness = Theme.of(context).brightness;
+        final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: sheetColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Padding(
             padding: EdgeInsets.only(
@@ -67,7 +69,7 @@ class _CoverImagePickerSheet extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: AppColors.reviewUncheckedOf(brightness),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -95,7 +97,9 @@ class _CoverImagePickerSheet extends StatelessWidget {
                     child: Text(
                       l10n.coverPickerEmpty,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.hint),
+                      style: TextStyle(
+                        color: AppColors.textSecondaryOf(brightness),
+                      ),
                     ),
                   )
                 else

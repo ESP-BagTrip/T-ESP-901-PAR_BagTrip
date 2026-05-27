@@ -5,6 +5,7 @@ import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/widgets/review/boarding_pass_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
@@ -25,6 +26,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(CreateFlightFromDetail(data: <String, dynamic>{}));
     registerFallbackValue(DeleteFlightFromDetail(flightId: 'x'));
+    registerFallbackValue(ValidateFlightFromDetail(flightId: 'x'));
   });
 
   setUp(() {
@@ -110,6 +112,27 @@ void main() {
     expect(find.byType(BoardingPassCard), findsNWidgets(2));
   });
 
+  testWidgets('suggested flight shows IA capsule on card', (tester) async {
+    final flights = [
+      makeManualFlight(
+        id: 'f1',
+        flightNumber: 'AF123',
+        validationStatus: ValidationStatus.suggested,
+      ),
+    ];
+    await pump(
+      tester,
+      FlightsPanel(
+        tripId: 'trip-1',
+        flights: flights,
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+    expect(find.text('IA'), findsOneWidget);
+  });
+
   testWidgets('PanelFab visible in edit mode', (tester) async {
     await pump(
       tester,
@@ -166,5 +189,59 @@ void main() {
         .toList();
     expect(cards, hasLength(2));
     expect(cards.first.flight.airlineLine, contains('AF111'));
+  });
+
+  testWidgets(
+    'suggested flight uses horizontal dismissible and validates on right swipe',
+    (tester) async {
+      final suggested = makeManualFlight(
+        id: 's1',
+        validationStatus: ValidationStatus.suggested,
+      );
+      await pump(
+        tester,
+        FlightsPanel(
+          tripId: 'trip-1',
+          flights: [suggested],
+          canEdit: true,
+          isCompleted: false,
+          role: 'OWNER',
+        ),
+      );
+
+      final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+      expect(dismissible.direction, DismissDirection.horizontal);
+      expect(dismissible.background, isNotNull);
+      expect(dismissible.secondaryBackground, isNotNull);
+
+      await tester.drag(find.byType(BoardingPassCard), const Offset(400, 0));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(any(that: isA<ValidateFlightFromDetail>())),
+      ).called(1);
+    },
+  );
+
+  testWidgets('manual flight only allows delete swipe direction', (
+    tester,
+  ) async {
+    final manual = makeManualFlight(
+      id: 'm1',
+      validationStatus: ValidationStatus.manual,
+    );
+    await pump(
+      tester,
+      FlightsPanel(
+        tripId: 'trip-1',
+        flights: [manual],
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    expect(dismissible.direction, DismissDirection.endToStart);
   });
 }

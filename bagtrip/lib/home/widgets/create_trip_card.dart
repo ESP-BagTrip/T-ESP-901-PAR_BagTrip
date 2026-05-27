@@ -14,7 +14,15 @@ class CreateTripCard extends StatefulWidget {
   final bool isFirstTrip;
   final String? subtitle;
 
-  const CreateTripCard({super.key, this.isFirstTrip = false, this.subtitle});
+  /// Soft white glow when the card sits on the dark home top zone (empty state).
+  final bool lightShadow;
+
+  const CreateTripCard({
+    super.key,
+    this.isFirstTrip = false,
+    this.subtitle,
+    this.lightShadow = false,
+  });
 
   @override
   State<CreateTripCard> createState() => _CreateTripCardState();
@@ -60,15 +68,35 @@ class _CreateTripCardState extends State<CreateTripCard>
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             borderRadius: AppRadius.large28,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x1A0E1A2B),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
-            ],
+            border: widget.lightShadow
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.32),
+                    width: 2,
+                  )
+                : null,
+            boxShadow: widget.lightShadow
+                ? [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      blurRadius: 40,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : const [
+                    BoxShadow(
+                      color: Color(0x1A0E1A2B),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
           ),
           child: ClipRRect(
             borderRadius: AppRadius.large24,

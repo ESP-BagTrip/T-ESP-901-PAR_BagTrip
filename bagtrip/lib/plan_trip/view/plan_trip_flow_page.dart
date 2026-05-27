@@ -1,8 +1,12 @@
+import 'dart:ui';
+
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/design/widgets/step_header.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -10,7 +14,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/plan_trip/bloc/plan_trip_bloc.dart';
-import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:bagtrip/plan_trip/helpers/traveler_breakdown_format.dart';
 import 'package:bagtrip/plan_trip/models/budget_preset.dart';
 import 'package:bagtrip/plan_trip/models/date_mode.dart';
@@ -23,6 +26,7 @@ import 'package:bagtrip/plan_trip/view/step_destination_view.dart';
 import 'package:bagtrip/plan_trip/view/step_generation_view.dart';
 import 'package:bagtrip/plan_trip/view/step_review_view.dart';
 import 'package:bagtrip/plan_trip/view/step_travelers_budget_view.dart';
+import 'package:bagtrip/trips/bloc/trip_management_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -120,74 +124,91 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
           final indicatorCurrent = (state.currentStep + 1).clamp(1, 4).toInt();
 
           final isReviewStep = state.currentStep == 5;
+          final brightness = Theme.of(context).brightness;
 
           return Scaffold(
             backgroundColor: isReviewStep
-                ? ColorName.surfaceVariant
-                : PersonalizationColors.gradientStart,
-            body: SafeArea(
-              top: !isReviewStep,
-              bottom: false,
-              left: false,
-              right: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!isReviewStep)
-                    _WizardNavAnimatedColumn(
-                      currentStep: state.currentStep,
-                      totalSteps: state.totalSteps,
-                      title: _stepTitle(state.currentStep, l10n),
-                      showBack: state.currentStep > 0,
-                      showStepIndicator: showWizardIndicator,
-                      indicatorCurrent: indicatorCurrent,
-                      indicatorTotal: 4,
-                      onBack: () {
-                        if (isGenerationStep) {
-                          context.read<PlanTripBloc>().add(
-                            const PlanTripEvent.backToProposals(),
-                          );
-                          return;
-                        }
-                        context.read<PlanTripBloc>().add(
-                          const PlanTripEvent.previousStep(),
-                        );
-                      },
-                      onClose: () {
-                        if (isGenerationStep) {
-                          context.read<PlanTripBloc>().add(
-                            const PlanTripEvent.backToProposals(),
-                          );
-                        }
-                        const HomeRoute().go(context);
-                      },
-                    ),
-                  if (state.currentStep > 0 && state.currentStep < 4)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.space16,
-                      ),
-                      child: StepHeader(
-                        enrichedSplitCollapsed: state.currentStep == 2,
-                        items: _buildSummaryItems(context, state, l10n),
-                      ),
-                    ),
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: const [
-                        StepDatesView(),
-                        StepTravelersBudgetView(),
-                        StepDestinationView(),
-                        StepAiProposalsView(),
-                        StepGenerationView(),
-                        StepReviewView(),
-                      ],
-                    ),
+                ? AppColors.profileSheetBackgroundOf(brightness)
+                : isGenerationStep
+                ? Colors.transparent
+                : PersonalizationColors.gradientStartOf(brightness),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (isGenerationStep)
+                  const IgnorePointer(child: StepAiProposalsView()),
+                if (isGenerationStep)
+                  const Positioned.fill(
+                    child: IgnorePointer(child: _GenerationScrimOverlay()),
                   ),
-                ],
-              ),
+                if (isGenerationStep)
+                  const Positioned.fill(child: StepGenerationView()),
+                SafeArea(
+                  top: !isReviewStep,
+                  bottom: false,
+                  left: false,
+                  right: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!isReviewStep)
+                        _WizardNavAnimatedColumn(
+                          currentStep: state.currentStep,
+                          totalSteps: state.totalSteps,
+                          title: _stepTitle(state.currentStep, l10n),
+                          showBack: state.currentStep > 0,
+                          showStepIndicator: showWizardIndicator,
+                          indicatorCurrent: indicatorCurrent,
+                          indicatorTotal: 4,
+                          darkOverlay: isGenerationStep,
+                          onBack: () {
+                            if (isGenerationStep) {
+                              context.read<PlanTripBloc>().add(
+                                const PlanTripEvent.backToProposals(),
+                              );
+                              return;
+                            }
+                            context.read<PlanTripBloc>().add(
+                              const PlanTripEvent.previousStep(),
+                            );
+                          },
+                          onClose: () {
+                            if (isGenerationStep) {
+                              context.read<PlanTripBloc>().add(
+                                const PlanTripEvent.backToProposals(),
+                              );
+                            }
+                            const HomeRoute().go(context);
+                          },
+                        ),
+                      if (state.currentStep > 0 && state.currentStep < 4)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.space16,
+                          ),
+                          child: StepHeader(
+                            enrichedSplitCollapsed: state.currentStep == 2,
+                            items: _buildSummaryItems(context, state, l10n),
+                          ),
+                        ),
+                      Expanded(
+                        child: PageView(
+                          controller: _pageController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: const [
+                            StepDatesView(),
+                            StepTravelersBudgetView(),
+                            StepDestinationView(),
+                            StepAiProposalsView(),
+                            SizedBox.shrink(),
+                            StepReviewView(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -324,6 +345,21 @@ class _PlanTripFlowPageState extends State<PlanTripFlowPage> {
   }
 }
 
+/// Semi-transparent navy scrim over the frozen proposals step (active-trip card style).
+class _GenerationScrimOverlay extends StatelessWidget {
+  const _GenerationScrimOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: const TripCoverHeroScrim(),
+      ),
+    );
+  }
+}
+
 class _WizardNavAnimatedColumn extends StatefulWidget {
   const _WizardNavAnimatedColumn({
     required this.currentStep,
@@ -333,6 +369,7 @@ class _WizardNavAnimatedColumn extends StatefulWidget {
     required this.showStepIndicator,
     required this.indicatorCurrent,
     required this.indicatorTotal,
+    this.darkOverlay = false,
     required this.onBack,
     required this.onClose,
   });
@@ -344,6 +381,7 @@ class _WizardNavAnimatedColumn extends StatefulWidget {
   final bool showStepIndicator;
   final int indicatorCurrent;
   final int indicatorTotal;
+  final bool darkOverlay;
   final VoidCallback onBack;
   final VoidCallback onClose;
 
@@ -395,6 +433,11 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final titleColor = widget.darkOverlay
+        ? Colors.white
+        : PersonalizationColors.textPrimaryOf(brightness);
+
     return FadeTransition(
       opacity: _fade,
       child: SlideTransition(
@@ -419,10 +462,16 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (widget.showBack) ...[
-                            _PlanTripBackButton(onPressed: widget.onBack),
+                            _PlanTripBackButton(
+                              onPressed: widget.onBack,
+                              darkOverlay: widget.darkOverlay,
+                            ),
                             const SizedBox(width: AppSpacing.space8),
                           ],
-                          _PlanTripCloseButton(onPressed: widget.onClose),
+                          _PlanTripCloseButton(
+                            onPressed: widget.onClose,
+                            darkOverlay: widget.darkOverlay,
+                          ),
                           const SizedBox(width: AppSpacing.space8),
                         ],
                       ),
@@ -434,11 +483,11 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: FontFamily.b612,
                           fontWeight: FontWeight.w700,
                           fontSize: 17,
-                          color: PersonalizationColors.textPrimary,
+                          color: titleColor,
                           height: 1.2,
                         ),
                       ),
@@ -463,12 +512,28 @@ class _WizardNavAnimatedColumnState extends State<_WizardNavAnimatedColumn>
 }
 
 class _PlanTripCloseButton extends StatelessWidget {
-  const _PlanTripCloseButton({required this.onPressed});
+  const _PlanTripCloseButton({
+    required this.onPressed,
+    this.darkOverlay = false,
+  });
 
   final VoidCallback onPressed;
+  final bool darkOverlay;
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = darkOverlay
+        ? Colors.white.withValues(alpha: 0.12)
+        : AppColors.surfaceGroupOf(brightness);
+    final iconColor = darkOverlay
+        ? Colors.white
+        : PersonalizationColors.textPrimaryOf(brightness);
+    final borderColor = darkOverlay
+        ? Colors.white.withValues(alpha: 0.2)
+        : AppColors.surfaceGroupBorderOf(brightness);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -478,27 +543,28 @@ class _PlanTripCloseButton extends StatelessWidget {
           width: AppSpacing.space40,
           height: AppSpacing.space40,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surfaceColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: ColorName.secondary.withValues(alpha: 0.08),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: (isDark || darkOverlay)
+                ? Border.all(color: borderColor)
+                : null,
+            boxShadow: (isDark || darkOverlay)
+                ? null
+                : [
+                    BoxShadow(
+                      color: ColorName.primary.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: ColorName.secondary.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.close_rounded,
-            size: 20,
-            color: PersonalizationColors.textPrimary,
-          ),
+          child: Icon(Icons.close_rounded, size: 20, color: iconColor),
         ),
       ),
     );
@@ -506,12 +572,28 @@ class _PlanTripCloseButton extends StatelessWidget {
 }
 
 class _PlanTripBackButton extends StatelessWidget {
-  const _PlanTripBackButton({required this.onPressed});
+  const _PlanTripBackButton({
+    required this.onPressed,
+    this.darkOverlay = false,
+  });
 
   final VoidCallback onPressed;
+  final bool darkOverlay;
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = darkOverlay
+        ? Colors.white.withValues(alpha: 0.12)
+        : AppColors.surfaceGroupOf(brightness);
+    final iconColor = darkOverlay
+        ? Colors.white
+        : PersonalizationColors.textPrimaryOf(brightness);
+    final borderColor = darkOverlay
+        ? Colors.white.withValues(alpha: 0.2)
+        : AppColors.surfaceGroupBorderOf(brightness);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -521,27 +603,28 @@ class _PlanTripBackButton extends StatelessWidget {
           width: AppSpacing.space40,
           height: AppSpacing.space40,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surfaceColor,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: ColorName.primary.withValues(alpha: 0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-              BoxShadow(
-                color: ColorName.secondary.withValues(alpha: 0.08),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: (isDark || darkOverlay)
+                ? Border.all(color: borderColor)
+                : null,
+            boxShadow: (isDark || darkOverlay)
+                ? null
+                : [
+                    BoxShadow(
+                      color: ColorName.primary.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: ColorName.secondary.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.arrow_back_rounded,
-            size: 22,
-            color: PersonalizationColors.textPrimary,
-          ),
+          child: Icon(Icons.arrow_back_rounded, size: 22, color: iconColor),
         ),
       ),
     );

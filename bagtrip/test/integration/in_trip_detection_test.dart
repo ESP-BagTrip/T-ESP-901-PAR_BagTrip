@@ -17,6 +17,7 @@ class _FakePendingWriteOperation extends Fake
 void main() {
   late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
+  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivity;
   late MockPostTripDismissalStorage mockDismissalStorage;
   late MockOfflineWriteQueue mockOfflineWriteQueue;
@@ -24,6 +25,7 @@ void main() {
   setUp(() {
     mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
+    mockActivityRepo = MockActivityRepository();
     mockConnectivity = MockConnectivityService();
     mockDismissalStorage = MockPostTripDismissalStorage();
     mockOfflineWriteQueue = MockOfflineWriteQueue();
@@ -43,11 +45,15 @@ void main() {
       () => mockOfflineWriteQueue.registerHandler(any(), any()),
     ).thenReturn(null);
     when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
+    when(
+      () => mockActivityRepo.getActivities(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   HomeBloc buildBloc() => HomeBloc(
     homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
+    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivity,
     dismissalStorage: mockDismissalStorage,
     offlineWriteQueue: mockOfflineWriteQueue,
@@ -126,6 +132,20 @@ void main() {
           () => mockTripRepo.updateTripStatus('transition-trip', 'ongoing'),
         ).thenAnswer((_) async => Success(ongoingTrip));
 
+        when(
+          () => mockActivityRepo.getActivities('transition-trip'),
+        ).thenAnswer(
+          (_) async => Success([
+            makeActivity(
+              id: 'a-transition',
+              tripId: 'transition-trip',
+              title: 'Museum visit',
+              date: DateTime(now.year, now.month, now.day),
+              startTime: '10:00',
+            ),
+          ]),
+        );
+
         return buildBloc();
       },
       act: (bloc) => bloc.add(LoadHome()),
@@ -134,6 +154,11 @@ void main() {
       verify: (bloc) {
         final state = bloc.state as HomeActiveTrip;
         expect(state.activeTrip.id, 'transition-trip');
+        expect(state.allActivities, hasLength(1));
+        expect(state.allActivities.first.title, 'Museum visit');
+        verify(
+          () => mockActivityRepo.getActivities('transition-trip'),
+        ).called(1);
       },
     );
 
