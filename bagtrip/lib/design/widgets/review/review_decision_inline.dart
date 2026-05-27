@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 
 /// Final decision at the end of the scroll.
 ///
-/// A solid ink pill (no screaming gradient) paired with a quiet text link
+/// A solid ink CTA (rounded rectangle, no screaming gradient) paired with a
+/// quiet text link
 /// for the alternative path. Luxury via restraint.
 class ReviewDecisionInline extends StatelessWidget {
   const ReviewDecisionInline({
@@ -135,7 +136,7 @@ class _InkCtaState extends State<_InkCta> {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: enabled ? accent : accent.withValues(alpha: 0.4),
-            borderRadius: AppRadius.pill,
+            borderRadius: AppRadius.large16,
             boxShadow: enabled && brightness != Brightness.dark
                 ? [
                     BoxShadow(

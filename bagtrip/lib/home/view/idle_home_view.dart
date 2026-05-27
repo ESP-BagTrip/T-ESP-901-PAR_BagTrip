@@ -19,34 +19,33 @@ class IdleHomeView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final trips = state.upcomingTrips;
     final hasTrips = trips.isNotEmpty;
+    final showUpcomingSection = !state.isNewUser;
 
     final topChildren = <Widget>[
       if (state.backgroundOngoingTrip != null) const _OngoingTripResumeBanner(),
     ];
 
     final bottomChildren = <Widget>[
-      if (!hasTrips)
+      if (!showUpcomingSection)
         CreateTripCard(
-          isFirstTrip: state.isNewUser,
+          isFirstTrip: true,
           subtitle: l10n.homeCreateFirstTripSubtitle,
           lightShadow: true,
         )
       else ...[
         HomeTripListSection(
           compactHeader: true,
-          title: trips.length == 1
-              ? l10n.homeUpcomingTripsHeaderSingle
-              : l10n.homeUpcomingTripsHeaderPlural,
+          title: homeUpcomingSectionTitle(l10n, trips.length),
           trips: trips,
         ),
-        const SizedBox(height: AppSpacing.space8),
+        if (hasTrips) const SizedBox(height: AppSpacing.space8),
         CreateTripCard(isFirstTrip: state.isNewUser),
       ],
     ];
 
     return HomeTwoZoneLayout(
       includeTopSafeArea: true,
-      showBottomSheet: hasTrips,
+      showBottomSheet: showUpcomingSection,
       greeting: _timeAwareGreeting(state.displayName, l10n),
       subtitle: _subtitleText(l10n, trips.length),
       topChildren: topChildren,

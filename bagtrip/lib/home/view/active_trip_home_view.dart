@@ -35,16 +35,12 @@ class ActiveTripHomeView extends StatelessWidget {
       subtitle: _subtitleText(l10n, upcomingTrips.length),
       topChildren: [_ActiveTripHeroCard(state: state)],
       bottomChildren: [
-        if (upcomingTrips.isNotEmpty) ...[
-          HomeTripListSection(
-            compactHeader: true,
-            title: upcomingTrips.length == 1
-                ? l10n.homeUpcomingTripsHeaderSingle
-                : l10n.homeUpcomingTripsHeaderPlural,
-            trips: upcomingTrips,
-          ),
-          const SizedBox(height: AppSpacing.space8),
-        ],
+        HomeTripListSection(
+          compactHeader: true,
+          title: homeUpcomingSectionTitle(l10n, upcomingTrips.length),
+          trips: upcomingTrips,
+        ),
+        if (upcomingTrips.isNotEmpty) const SizedBox(height: AppSpacing.space8),
         const CreateTripCard(),
       ],
     );
