@@ -228,11 +228,11 @@ class _PlanTripRangeCalendarState extends State<PlanTripRangeCalendar> {
                 child: Text(
                   l,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: FontFamily.b612,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.secondary.withValues(alpha: 0.65),
+                    color: ColorName.secondary,
                   ),
                 ),
               ),
@@ -366,6 +366,10 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+
     final dateOnly = DateUtils.dateOnly(date);
     final firstOnly = DateUtils.dateOnly(firstDate);
     final lastOnly = DateUtils.dateOnly(lastDate);
@@ -383,6 +387,13 @@ class _DayCell extends StatelessWidget {
     if (s != null && e != null) {
       inBetween = dateOnly.isAfter(s) && dateOnly.isBefore(e);
     }
+
+    // In dark mode, keep day numbers readable on the dark surface by using
+    // the same "title" white tone as the month label.
+    final disabledDayColor = isDark
+        ? titleColor.withValues(alpha: 0.35)
+        : ColorName.hint;
+    final defaultDayColor = isDark ? titleColor : ColorName.primaryDark;
 
     final showCircle = isStart || isEnd;
     final diameter = (cellSize * 0.72).clamp(28.0, 40.0);
@@ -447,12 +458,12 @@ class _DayCell extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
                       color: isDisabled
-                          ? ColorName.hint
+                          ? disabledDayColor
                           : (inBetween
-                                ? ColorName.primaryDark
+                                ? defaultDayColor
                                 : (isToday
                                       ? ColorName.secondary
-                                      : ColorName.primaryDark)),
+                                      : defaultDayColor)),
                     ),
                   ),
                   if (isToday && !showCircle && !inBetween)

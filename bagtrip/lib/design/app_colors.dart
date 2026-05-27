@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
@@ -136,6 +137,14 @@ class AppColors {
   static Color profileSheetBackgroundOf(Brightness b) =>
       b == Brightness.dark ? primaryTrueDark : surfaceLight;
 
+  /// Trip detail panel zone — profile menu card gray in light, navy sheet in dark.
+  static Color tripDetailPageBackgroundOf(Brightness b) =>
+      b == Brightness.dark ? profileSheetBackgroundOf(b) : surfaceGroup;
+
+  /// Panel chips bar track behind unselected tabs.
+  static Color panelChipsBarTrackOf(Brightness b) =>
+      b == Brightness.dark ? primaryDark : primaryTrueDark;
+
   /// Primary label on profile menu rows and booking cards.
   static Color profileMenuTitleOf(Brightness b) =>
       b == Brightness.dark ? surface : primaryTrueDark;
@@ -259,12 +268,20 @@ class AppColors {
   static Color reviewSheetBackgroundOf(Brightness b) =>
       profileSheetBackgroundOf(b);
 
-  // --- Review card surfaces (warm cream on light) ---
-  static const Color reviewCardSurface = Color(0xFFFBFAF7);
+  // --- Review card surfaces (profile surfaceGroup on light) ---
+  static const Color reviewCardSurface = ColorName.surfaceGroup;
   static const Color reviewCardSurfaceDark = Color(0xFF1F4772);
 
   static Color reviewCardSurfaceOf(Brightness b) =>
       b == Brightness.dark ? reviewCardSurfaceDark : reviewCardSurface;
+
+  static Color reviewCardBorderOf(Brightness b) => b == Brightness.dark
+      ? reviewBorderLightDark
+      : ColorName.surfaceGroupBorder;
+
+  /// Profile-style elevation for review / trip-detail cards (light only).
+  static List<BoxShadow>? reviewCardShadowOf(Brightness b) =>
+      b == Brightness.dark ? null : AppShadows.card;
 
   // --- Review accent surfaces (navy cards / CTAs on light) ---
   static const Color reviewAccentSurface = Color(0xFF0D1F35);

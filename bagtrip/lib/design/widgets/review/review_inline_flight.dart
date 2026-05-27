@@ -46,9 +46,10 @@ class ReviewInlineFlight extends StatelessWidget {
         color: cardSurface,
         borderRadius: AppRadius.large16,
         border: Border.all(
-          color: AppColors.reviewBorderLightOf(brightness),
+          color: AppColors.reviewCardBorderOf(brightness),
           width: 0.5,
         ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(

@@ -89,15 +89,7 @@ class BudgetStripe extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
-        boxShadow: brightness == Brightness.dark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space16),

@@ -88,6 +88,7 @@ class _RecommendationCard extends StatelessWidget {
         color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
         border: Border.all(color: AppColors.surfaceGroupBorderOf(brightness)),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

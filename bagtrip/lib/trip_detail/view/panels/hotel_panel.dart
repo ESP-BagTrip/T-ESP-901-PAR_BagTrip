@@ -524,6 +524,11 @@ class _HotelCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: surfaceColor,
         borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
+        ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

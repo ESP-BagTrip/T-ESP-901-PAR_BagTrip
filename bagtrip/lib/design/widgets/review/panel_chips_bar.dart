@@ -35,7 +35,7 @@ class PanelChipsBar extends StatelessWidget {
     Brightness brightness,
   ) {
     final r = const Radius.circular(AppRadius.cornerRaidus8);
-    final indicatorColor = AppColors.profileSheetBackgroundOf(brightness);
+    final indicatorColor = AppColors.tripDetailPageBackgroundOf(brightness);
     if (tabCount <= 1) {
       return BoxDecoration(
         color: indicatorColor,
@@ -57,9 +57,13 @@ class PanelChipsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final tabCount = labels.length;
+    final isDark = brightness == Brightness.dark;
+    final selectedLabelColor = isDark
+        ? ColorName.surface
+        : ColorName.primaryTrueDark;
 
     return ColoredBox(
-      color: ColorName.primaryTrueDark,
+      color: AppColors.panelChipsBarTrackOf(brightness),
       child: SizedBox(
         height: 44,
         width: double.infinity,
@@ -77,7 +81,7 @@ class PanelChipsBar extends StatelessWidget {
               labelStyle: const TextStyle(
                 fontFamily: FontFamily.dMSans,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
               unselectedLabelStyle: const TextStyle(
                 fontFamily: FontFamily.dMSans,
@@ -85,7 +89,7 @@ class PanelChipsBar extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
               unselectedLabelColor: ColorName.surface,
-              labelColor: ColorName.primaryTrueDark,
+              labelColor: selectedLabelColor,
               dividerColor: Colors.transparent,
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: _indicatorDecoration(

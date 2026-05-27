@@ -167,7 +167,26 @@ void main() {
       },
     );
 
-    testWidgets('uses profile sheet background in dark mode when loaded', (
+    testWidgets('uses trip detail page background when loaded', (tester) async {
+      await pumpView(
+        tester,
+        _loaded(
+          trip: makeTrip(
+            startDate: DateTime(2026, 9),
+            endDate: DateTime(2026, 9, 5),
+          ),
+        ),
+      );
+
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+      expect(
+        scaffold.backgroundColor,
+        AppColors.tripDetailPageBackgroundOf(Brightness.light),
+      );
+      expect(find.byType(PanelChipsBar), findsOneWidget);
+    });
+
+    testWidgets('uses navy sheet background in dark mode when loaded', (
       tester,
     ) async {
       await pumpView(
@@ -184,7 +203,7 @@ void main() {
       final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
       expect(
         scaffold.backgroundColor,
-        AppColors.profileSheetBackgroundOf(Brightness.dark),
+        AppColors.tripDetailPageBackgroundOf(Brightness.dark),
       );
       expect(find.byType(PanelChipsBar), findsOneWidget);
     });

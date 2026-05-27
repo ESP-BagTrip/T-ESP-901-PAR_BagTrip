@@ -75,8 +75,10 @@ class FlexibleDatePicker extends StatelessWidget {
       width: double.infinity,
       padding: AppSpacing.allEdgeInsetSpace4,
       decoration: BoxDecoration(
-        color: AppColors.surfaceGroupOf(brightness),
-        borderRadius: AppRadius.pill,
+        color: isDark
+            ? AppColors.surfaceGroupOf(brightness)
+            : ColorName.surface,
+        borderRadius: AppRadius.large16,
         boxShadow: isDark
             ? null
             : [
@@ -160,13 +162,22 @@ class _SegmentChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final mutedColor = AppColors.textSecondaryOf(brightness);
+    final isDark = brightness == Brightness.dark;
+
+    // Light mode: preserve original palette (hint / primaryDark).
+    final labelColor = selected
+        ? (isDark
+              ? AppColors.profileMenuTitleOf(brightness)
+              : ColorName.primaryDark)
+        : (isDark ? AppColors.textSecondaryOf(brightness) : ColorName.hint);
+
+    final fontWeight = selected && isDark ? FontWeight.w700 : FontWeight.w600;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.medium8,
         child: AnimatedContainer(
           duration: AppAnimations.microInteraction,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
@@ -174,7 +185,7 @@ class _SegmentChip extends StatelessWidget {
             color: selected
                 ? ColorName.secondary.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: AppRadius.pill,
+            borderRadius: AppRadius.medium8,
           ),
           alignment: Alignment.center,
           child: Text(
@@ -185,8 +196,8 @@ class _SegmentChip extends StatelessWidget {
             style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: selected ? ColorName.primaryDark : mutedColor,
+              fontWeight: fontWeight,
+              color: labelColor,
             ),
           ),
         ),
@@ -374,7 +385,7 @@ class _DateCard extends StatelessWidget {
     final surfaceColor = AppColors.surfaceGroupOf(brightness);
     final borderColor = AppColors.surfaceGroupBorderOf(brightness);
     final titleColor = AppColors.profileMenuTitleOf(brightness);
-    final mutedColor = AppColors.textSecondaryOf(brightness);
+    final placeholderColor = isDark ? titleColor : ColorName.hint;
 
     return Material(
       color: Colors.transparent,
@@ -443,7 +454,7 @@ class _DateCard extends StatelessWidget {
                           fontFamily: FontFamily.dMSerifDisplay,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: hasDate ? titleColor : mutedColor,
+                          color: hasDate ? titleColor : placeholderColor,
                         ),
                       ),
                     ],

@@ -27,7 +27,7 @@ class ValidationBoardPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final brightness = Theme.of(context).brightness;
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
-    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
     final result = state.completionResult;
 
     // Phase 6 — synthesize a "Budget" row from the items list. The
@@ -98,6 +98,7 @@ class ValidationBoardPanel extends StatelessWidget {
               color: cardColor,
               borderRadius: AppRadius.large24,
               border: Border.all(color: cardBorder),
+              boxShadow: AppColors.reviewCardShadowOf(brightness),
             ),
             child: Column(
               children: [
@@ -236,7 +237,7 @@ class _BoardRowTile extends StatelessWidget {
               height: 36,
               decoration: BoxDecoration(
                 color: state.accent.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
+                borderRadius: AppRadius.medium8,
               ),
               alignment: Alignment.center,
               child: Icon(row.icon, size: 18, color: state.accent),
@@ -263,7 +264,9 @@ class _BoardRowTile extends StatelessWidget {
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       letterSpacing: 0.2,
-                      color: state.accent,
+                      color: brightness == Brightness.dark
+                          ? ColorName.surface
+                          : state.accent,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

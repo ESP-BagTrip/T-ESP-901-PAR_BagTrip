@@ -161,7 +161,7 @@ void main() {
       expect(br(0, 1).topRight, r);
     });
 
-    testWidgets('uses surfaceVariant indicator and label colors', (
+    testWidgets('light mode uses page background indicator and navy label', (
       tester,
     ) async {
       late TabController controller;
@@ -182,10 +182,70 @@ void main() {
       );
       final tabBar = tester.widget<TabBar>(find.byType(TabBar));
       final deco = tabBar.indicator as BoxDecoration;
-      expect(deco.color, ColorName.surfaceVariant);
+      expect(deco.color, ColorName.surfaceGroup);
       expect(tabBar.labelColor, ColorName.primaryTrueDark);
+      expect(tabBar.labelStyle?.fontWeight, FontWeight.w700);
       expect(tabBar.unselectedLabelColor, ColorName.surface);
+      expect(
+        find
+            .ancestor(
+              of: find.byType(TabBar),
+              matching: find.byType(ColoredBox),
+            )
+            .evaluate()
+            .first
+            .widget,
+        isA<ColoredBox>().having(
+          (w) => w.color,
+          'color',
+          ColorName.primaryTrueDark,
+        ),
+      );
     });
+
+    testWidgets(
+      'dark mode uses page indicator, white label, primaryDark track',
+      (tester) async {
+        late TabController controller;
+        await pumpLocalized(
+          tester,
+          Theme(
+            data: ThemeData.dark(),
+            child: DefaultTabController(
+              length: 2,
+              child: Builder(
+                builder: (context) {
+                  controller = DefaultTabController.of(context);
+                  return PanelChipsBar(
+                    labels: const ['A', 'B'],
+                    controller: controller,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+        final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+        final deco = tabBar.indicator as BoxDecoration;
+        expect(deco.color, ColorName.primaryTrueDark);
+        expect(tabBar.labelColor, ColorName.surface);
+        expect(
+          find
+              .ancestor(
+                of: find.byType(TabBar),
+                matching: find.byType(ColoredBox),
+              )
+              .evaluate()
+              .first
+              .widget,
+          isA<ColoredBox>().having(
+            (w) => w.color,
+            'color',
+            ColorName.primaryDark,
+          ),
+        );
+      },
+    );
   });
 
   group('HotelStatsGrid', () {

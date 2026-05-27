@@ -420,6 +420,8 @@ class _BudgetEstimationBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final range = estimateBudget(
       preset: preset,
       nbTravelers: nbTravelers,
@@ -428,18 +430,25 @@ class _BudgetEstimationBadge extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
+      width: double.infinity,
       padding: AppSpacing.allEdgeInsetSpace16,
-      decoration: const BoxDecoration(
-        color: ColorName.primaryLight,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.surfaceGroupOf(brightness)
+            : ColorName.primaryLight,
         borderRadius: AppRadius.large16,
+        border: isDark
+            ? Border.all(color: AppColors.surfaceGroupBorderOf(brightness))
+            : null,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.budgetEstimationLabel,
             style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 11,
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: ColorName.secondary,
               letterSpacing: 0.5,
@@ -452,11 +461,13 @@ class _BudgetEstimationBadge extends StatelessWidget {
               range.max.toStringAsFixed(0),
               '€',
             ),
-            style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 18,
+            style: TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ColorName.primaryTrueDark,
+              color: isDark
+                  ? AppColors.profileMenuTitleOf(brightness)
+                  : ColorName.primaryTrueDark,
             ),
           ),
         ],

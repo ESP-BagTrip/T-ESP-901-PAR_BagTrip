@@ -1,6 +1,7 @@
 import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -70,23 +71,7 @@ class AiDestinationCard extends StatelessWidget {
                 else
                   _imagePlaceholder(),
 
-                // Gradient overlay (bottom half)
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.54),
-                        ],
-                        stops: const [0.0, 0.4, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
+                const Positioned.fill(child: TripCoverHeroScrim()),
 
                 // AI sparkle badge top-right
                 Positioned(
@@ -193,10 +178,12 @@ class AiDestinationCard extends StatelessWidget {
                     destination.matchReason!,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 14,
-                      color: ColorName.onSurface,
+                      color: isDark
+                          ? AppColors.profileMenuTitleOf(brightness)
+                          : ColorName.onSurface,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.space16),
@@ -212,21 +199,27 @@ class AiDestinationCard extends StatelessWidget {
                         _InfoChip(
                           icon: Icons.wb_sunny_rounded,
                           label: weatherLabel,
-                          backgroundColor: AppColors.chipWeatherBackgroundOf(
-                            brightness,
-                          ),
-                          textColor: AppColors.chipWeatherForegroundOf(
-                            brightness,
-                          ),
-                          iconColor: AppColors.chipWeatherForegroundOf(
-                            brightness,
-                          ),
+                          backgroundColor: ColorName.secondary,
+                          textColor: ColorName.surface,
+                          iconColor: ColorName.surface,
                         ),
                       if (destination.estimatedBudgetRange != null)
                         _InfoChip(
                           icon: Icons.euro_rounded,
                           label:
                               '${destination.estimatedBudgetRange!.min.toInt()}–${destination.estimatedBudgetRange!.max.toInt()}€',
+                          backgroundColor: isDark
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : ColorName.primaryLight,
+                          textColor: isDark ? Colors.white : ColorName.primary,
+                          iconColor: isDark ? Colors.white : ColorName.primary,
+                          border: isDark
+                              ? Border.all(
+                                  color: Colors.white.withValues(alpha: 0.28),
+                                )
+                              : Border.all(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                ),
                         ),
                     ],
                   ),
@@ -243,15 +236,28 @@ class AiDestinationCard extends StatelessWidget {
                           (activity) => _InfoChip(
                             icon: Icons.place_rounded,
                             label: activity,
-                            backgroundColor: AppColors.chipActivityBackgroundOf(
-                              brightness,
-                            ),
-                            textColor: AppColors.chipActivityForegroundOf(
-                              brightness,
-                            ),
-                            iconColor: AppColors.chipActivityForegroundOf(
-                              brightness,
-                            ),
+                            backgroundColor: isDark
+                                ? Colors.white.withValues(alpha: 0.22)
+                                : AppColors.chipActivityBackgroundOf(
+                                    brightness,
+                                  ),
+                            textColor: isDark
+                                ? Colors.white
+                                : AppColors.chipActivityForegroundOf(
+                                    brightness,
+                                  ),
+                            iconColor: isDark
+                                ? Colors.white
+                                : AppColors.chipActivityForegroundOf(
+                                    brightness,
+                                  ),
+                            border: isDark
+                                ? Border.all(
+                                    color: Colors.white.withValues(alpha: 0.28),
+                                  )
+                                : Border.all(
+                                    color: Colors.black.withValues(alpha: 0.06),
+                                  ),
                             textStyle: const TextStyle(
                               fontFamily: FontFamily.dMSans,
                               fontSize: 12,
@@ -273,9 +279,9 @@ class AiDestinationCard extends StatelessWidget {
                           ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          foregroundColor: AppColors.chipActivityForegroundOf(
-                            brightness,
-                          ),
+                          foregroundColor: isDark
+                              ? AppColors.profileMenuTitleOf(brightness)
+                              : AppColors.chipActivityForegroundOf(brightness),
                           textStyle: const TextStyle(
                             fontFamily: FontFamily.dMSans,
                             fontSize: 12,
@@ -295,15 +301,7 @@ class AiDestinationCard extends StatelessWidget {
   }
 
   Widget _imagePlaceholder() {
-    return Container(
-      color: ColorName.primaryLight,
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.landscape_rounded,
-        size: 48,
-        color: ColorName.hint,
-      ),
-    );
+    return const TripCoverHeroFallback();
   }
 }
 
@@ -313,6 +311,7 @@ class _InfoChip extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final Color iconColor;
+  final Border? border;
   final TextStyle? textStyle;
 
   const _InfoChip({
@@ -321,6 +320,7 @@ class _InfoChip extends StatelessWidget {
     this.backgroundColor = ColorName.primaryLight,
     this.textColor = ColorName.primary,
     this.iconColor = ColorName.primary,
+    this.border,
     this.textStyle,
   });
 
@@ -334,7 +334,8 @@ class _InfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: AppRadius.pill,
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+        border:
+            border ?? Border.all(color: Colors.black.withValues(alpha: 0.06)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

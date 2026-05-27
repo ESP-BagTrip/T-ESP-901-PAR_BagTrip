@@ -15,7 +15,7 @@ class ReviewShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
+    final sheetColor = AppColors.tripDetailPageBackgroundOf(brightness);
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
     final isDark = brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top;
@@ -97,10 +97,18 @@ class ReviewShimmer extends StatelessWidget {
                 itemCount: 4,
                 separatorBuilder: (_, _) =>
                     const SizedBox(height: AppSpacing.space12),
-                itemBuilder: (_, _) => _shimmerBox(
-                  height: 96,
-                  radius: AppRadius.cornerRaidus16,
-                  color: cardColor,
+                itemBuilder: (_, _) => Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      AppRadius.cornerRaidus16,
+                    ),
+                    boxShadow: AppColors.reviewCardShadowOf(brightness),
+                  ),
+                  child: _shimmerBox(
+                    height: 96,
+                    radius: AppRadius.cornerRaidus16,
+                    color: cardColor,
+                  ),
                 ),
               ),
             ),

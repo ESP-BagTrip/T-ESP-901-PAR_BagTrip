@@ -75,18 +75,10 @@ class ReviewDayCard extends StatelessWidget {
           color: AppColors.reviewCardSurfaceOf(brightness),
           borderRadius: AppRadius.large24,
           border: Border.all(
-            color: AppColors.reviewBorderLightOf(brightness),
+            color: AppColors.reviewCardBorderOf(brightness),
             width: 0.5,
           ),
-          boxShadow: brightness == Brightness.dark
-              ? null
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+          boxShadow: AppColors.reviewCardShadowOf(brightness),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.space24),

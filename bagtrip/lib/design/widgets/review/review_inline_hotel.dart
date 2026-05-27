@@ -45,9 +45,10 @@ class ReviewInlineHotel extends StatelessWidget {
         color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
         border: Border.all(
-          color: AppColors.reviewBorderLightOf(brightness),
+          color: AppColors.reviewCardBorderOf(brightness),
           width: 0.5,
         ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space16),

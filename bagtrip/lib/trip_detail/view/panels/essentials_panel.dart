@@ -186,6 +186,7 @@ class _EssentialsPanelState extends State<EssentialsPanel> {
                         color: surfaceColor,
                         borderRadius: AppRadius.large24,
                         border: Border.all(color: borderColor),
+                        boxShadow: AppColors.reviewCardShadowOf(brightness),
                       ),
                       child: ClipRRect(
                         borderRadius: AppRadius.large24,

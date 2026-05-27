@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -22,6 +23,12 @@ class CompactTravelerStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final valueColor = isDark
+        ? titleColor
+        : (value > 0 ? ColorName.primaryDark : ColorName.hint);
     final isAtMin = value <= min;
     final isAtMax = value >= max;
 
@@ -50,7 +57,7 @@ class CompactTravelerStepper extends StatelessWidget {
                   fontFamily: FontFamily.dMSerifDisplay,
                   fontSize: 16,
                   fontWeight: value > 0 ? FontWeight.w700 : FontWeight.w500,
-                  color: value > 0 ? ColorName.primaryDark : ColorName.hint,
+                  color: valueColor,
                 ),
               ),
             ),

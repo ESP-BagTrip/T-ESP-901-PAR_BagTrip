@@ -24,7 +24,7 @@ class SkippedPanelState extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
-    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
     final inkColor = AppColors.reviewInkOf(brightness);
 
     return SingleChildScrollView(
@@ -38,6 +38,7 @@ class SkippedPanelState extends StatelessWidget {
               color: cardColor,
               borderRadius: AppRadius.large24,
               border: Border.all(color: cardBorder),
+              boxShadow: AppColors.reviewCardShadowOf(brightness),
             ),
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.space32),

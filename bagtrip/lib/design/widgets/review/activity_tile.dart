@@ -108,6 +108,7 @@ class ActivityTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: row,
     );

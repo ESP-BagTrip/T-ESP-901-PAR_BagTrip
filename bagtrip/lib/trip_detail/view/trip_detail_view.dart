@@ -63,7 +63,7 @@ class TripDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: AppColors.profileSheetBackgroundOf(brightness),
+      backgroundColor: AppColors.tripDetailPageBackgroundOf(brightness),
       body: BlocConsumer<TripDetailBloc, TripDetailState>(
         listener: (context, state) {
           final l10n = AppLocalizations.of(context)!;

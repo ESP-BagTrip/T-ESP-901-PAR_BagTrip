@@ -48,108 +48,118 @@ class BoardingPassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final card = ClipRRect(
-      borderRadius: AppRadius.large16,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.reviewCardSurfaceOf(brightness),
+    final card = Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
         ),
-        child: Column(
-          children: [
-            Container(
-              color: AppColors.reviewAccentSurfaceOf(brightness),
-              padding: const EdgeInsets.all(AppSpacing.space16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        flight.airlineLine.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSans,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          letterSpacing: 1,
-                          color: ColorName.hint,
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.large16,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.reviewCardSurfaceOf(brightness),
+          ),
+          child: Column(
+            children: [
+              Container(
+                color: AppColors.reviewAccentSurfaceOf(brightness),
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          flight.airlineLine.toUpperCase(),
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSans,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            letterSpacing: 1,
+                            color: ColorName.hint,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        flight.origin,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: ColorName.surface,
-                        ),
-                      ),
-                      const Expanded(
-                        child: Divider(
-                          color: ColorName.hint,
-                          indent: 10,
-                          endIndent: 10,
-                        ),
-                      ),
-                      Text(
-                        flight.destination,
-                        style: const TextStyle(
-                          fontFamily: FontFamily.dMSerifDisplay,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: ColorName.surface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.space16),
-              child: Column(
-                children: [
-                  if (flight.subtitle.isNotEmpty)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        flight.subtitle,
-                        style: TextStyle(
-                          fontFamily: FontFamily.b612,
-                          color: AppColors.textSecondaryOf(brightness),
-                        ),
-                      ),
+                      ],
                     ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FlightMeta(
-                          label: AppLocalizations.of(
-                            context,
-                          )!.reviewFlightDeparture,
-                          value: flight.departure,
-                          date: flight.flightDate,
-                          brightness: brightness,
+                    Row(
+                      children: [
+                        Text(
+                          flight.origin,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: ColorName.surface,
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: FlightMeta(
-                          label: AppLocalizations.of(
-                            context,
-                          )!.reviewFlightArrival,
-                          value: flight.arrival,
-                          date: flight.flightDate,
-                          brightness: brightness,
+                        const Expanded(
+                          child: Divider(
+                            color: ColorName.hint,
+                            indent: 10,
+                            endIndent: 10,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          flight.destination,
+                          style: const TextStyle(
+                            fontFamily: FontFamily.dMSerifDisplay,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: ColorName.surface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.space16),
+                child: Column(
+                  children: [
+                    if (flight.subtitle.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          flight.subtitle,
+                          style: TextStyle(
+                            fontFamily: FontFamily.b612,
+                            color: AppColors.textSecondaryOf(brightness),
+                          ),
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FlightMeta(
+                            label: AppLocalizations.of(
+                              context,
+                            )!.reviewFlightDeparture,
+                            value: flight.departure,
+                            date: flight.flightDate,
+                            brightness: brightness,
+                          ),
+                        ),
+                        Expanded(
+                          child: FlightMeta(
+                            label: AppLocalizations.of(
+                              context,
+                            )!.reviewFlightArrival,
+                            value: flight.arrival,
+                            date: flight.flightDate,
+                            brightness: brightness,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

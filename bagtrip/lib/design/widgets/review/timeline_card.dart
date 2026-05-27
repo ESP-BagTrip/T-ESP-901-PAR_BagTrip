@@ -76,6 +76,7 @@ class TimelineCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large24,
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

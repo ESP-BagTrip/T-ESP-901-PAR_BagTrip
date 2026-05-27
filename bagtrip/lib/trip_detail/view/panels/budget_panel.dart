@@ -322,13 +322,14 @@ class _EmptySectionPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
-    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
     final inkColor = AppColors.reviewInkOf(brightness);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: AppRadius.large24,
         border: Border.all(color: cardBorder),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -364,7 +365,7 @@ class _DualTotalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
-    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
     final inkColor = AppColors.reviewInkOf(brightness);
     final delta = summary.confirmedTotal - summary.forecastedTotal;
     return DecoratedBox(
@@ -372,6 +373,7 @@ class _DualTotalCard extends StatelessWidget {
         color: cardColor,
         borderRadius: AppRadius.large24,
         border: Border.all(color: cardBorder),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
@@ -500,6 +502,7 @@ class _RecentList extends StatelessWidget {
         color: surfaceColor,
         borderRadius: AppRadius.large24,
         border: Border.all(color: borderColor),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: ClipRRect(
         borderRadius: AppRadius.large24,
@@ -810,7 +813,7 @@ class _ViewerBudgetPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final cardColor = AppColors.reviewCardSurfaceOf(brightness);
-    final cardBorder = AppColors.reviewBorderLightOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
     final inkColor = AppColors.reviewInkOf(brightness);
     final status = summary?.budgetStatus;
     final target = summary?.totalBudget ?? 0;
@@ -824,6 +827,7 @@ class _ViewerBudgetPanel extends StatelessWidget {
             color: cardColor,
             borderRadius: AppRadius.large24,
             border: Border.all(color: cardBorder),
+            boxShadow: AppColors.reviewCardShadowOf(brightness),
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.space24),

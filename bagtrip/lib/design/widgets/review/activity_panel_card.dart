@@ -133,23 +133,33 @@ class ActivityPanelCard extends StatelessWidget {
       ),
     );
 
-    final card = ClipRRect(
-      borderRadius: AppRadius.large16,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.reviewCardSurfaceOf(brightness),
+    final card = Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
         ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showValidatedAccent)
-                const ColoredBox(
-                  color: ColorName.secondary,
-                  child: SizedBox(width: _validatedAccentWidth),
-                ),
-              Expanded(child: content),
-            ],
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.large16,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.reviewCardSurfaceOf(brightness),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showValidatedAccent)
+                  const ColoredBox(
+                    color: ColorName.secondary,
+                    child: SizedBox(width: _validatedAccentWidth),
+                  ),
+                Expanded(child: content),
+              ],
+            ),
           ),
         ),
       ),

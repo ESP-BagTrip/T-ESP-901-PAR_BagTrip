@@ -19,6 +19,7 @@ class HotelStatBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceGroupOf(brightness),
         borderRadius: AppRadius.large16,
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

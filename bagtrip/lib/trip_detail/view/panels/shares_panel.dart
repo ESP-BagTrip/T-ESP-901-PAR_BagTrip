@@ -189,12 +189,16 @@ class _ShareRow extends StatelessWidget {
     final titleColor = AppColors.profileMenuTitleOf(brightness);
     final mutedColor = AppColors.profileMenuMutedOf(brightness);
     return Material(
-      color: surfaceColor,
-      borderRadius: AppRadius.large16,
+      color: Colors.transparent,
       child: InkWell(
         borderRadius: AppRadius.large16,
         onTap: onTap,
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: AppRadius.large16,
+            boxShadow: AppColors.reviewCardShadowOf(brightness),
+          ),
           padding: const EdgeInsets.all(AppSpacing.space16),
           child: Row(
             children: [
