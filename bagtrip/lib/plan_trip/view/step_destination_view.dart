@@ -14,7 +14,6 @@ import 'package:bagtrip/plan_trip/models/location_result.dart';
 import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shimmer/shimmer.dart';
 
 class StepDestinationView extends StatefulWidget {
   const StepDestinationView({super.key});
@@ -523,42 +522,29 @@ class _InspireMeButtonState extends State<_InspireMeButton>
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.large16,
         boxShadow: [
           BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.3),
+            color: ColorName.secondary.withValues(alpha: 0.3),
             offset: const Offset(0, 6),
             blurRadius: 16,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.large16,
         child: Stack(
           alignment: Alignment.center,
           children: [
             const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [ColorName.primary, ColorName.secondary],
-                ),
-              ),
+              decoration: BoxDecoration(color: ColorName.secondary),
               child: SizedBox(height: 52, width: double.infinity),
             ),
-            if (!widget.isLoading)
-              Positioned.fill(
-                child: Shimmer.fromColors(
-                  baseColor: ColorName.shimmerBase.withValues(alpha: 0.15),
-                  highlightColor: Colors.white.withValues(alpha: 0.35),
-                  period: const Duration(milliseconds: 2000),
-                  child: Container(color: Colors.white.withValues(alpha: 0.06)),
-                ),
-              ),
             Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: widget.onPressed,
-                borderRadius: AppRadius.pill,
+                borderRadius: AppRadius.large16,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppSpacing.space15,

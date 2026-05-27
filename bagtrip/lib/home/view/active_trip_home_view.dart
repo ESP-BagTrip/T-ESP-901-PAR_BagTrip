@@ -83,6 +83,7 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
 
   bool _absorbTapsBriefly = false;
   bool _wasOnProgramme = false;
+  bool _routeListenerAttached = false;
   VoidCallback? _routeListener;
 
   HomeActiveTrip get state => widget.state;
@@ -92,6 +93,8 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
     super.didChangeDependencies();
     final router = GoRouter.of(context);
     _wasOnProgramme = router.state.uri.path.contains(_programmePathSegment);
+    if (_routeListenerAttached) return;
+    _routeListenerAttached = true;
     _routeListener ??= () {
       if (!mounted) return;
       final onProgramme = router.state.uri.path.contains(_programmePathSegment);
@@ -106,7 +109,7 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
   @override
   void dispose() {
     final listener = _routeListener;
-    if (listener != null) {
+    if (_routeListenerAttached && listener != null) {
       try {
         GoRouter.of(context).routerDelegate.removeListener(listener);
       } catch (_) {

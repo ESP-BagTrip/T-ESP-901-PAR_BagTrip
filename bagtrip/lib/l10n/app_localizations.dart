@@ -3449,7 +3449,7 @@ abstract class AppLocalizations {
   /// No description provided for @generationHeroTitle.
   ///
   /// In fr, this message translates to:
-  /// **'Planification de vol'**
+  /// **'Planification du voyage'**
   String get generationHeroTitle;
 
   /// No description provided for @generationTitle.

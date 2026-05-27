@@ -78,6 +78,7 @@ class BottomTabBar extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(999),
           child: GlassBottomBar(
+            key: const ValueKey('app_glass_bottom_bar'),
             barBorderRadius: 999,
             tabs: List.generate(
               _tabs.length,

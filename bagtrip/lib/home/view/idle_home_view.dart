@@ -26,12 +26,10 @@ class IdleHomeView extends StatelessWidget {
 
     final bottomChildren = <Widget>[
       if (!hasTrips)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.space48),
-          child: CreateTripCard(
-            isFirstTrip: state.isNewUser,
-            subtitle: l10n.homeCreateFirstTripSubtitle,
-          ),
+        CreateTripCard(
+          isFirstTrip: state.isNewUser,
+          subtitle: l10n.homeCreateFirstTripSubtitle,
+          lightShadow: true,
         )
       else ...[
         HomeTripListSection(
@@ -48,6 +46,7 @@ class IdleHomeView extends StatelessWidget {
 
     return HomeTwoZoneLayout(
       includeTopSafeArea: true,
+      showBottomSheet: hasTrips,
       greeting: _timeAwareGreeting(state.displayName, l10n),
       subtitle: _subtitleText(l10n, trips.length),
       topChildren: topChildren,

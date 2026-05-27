@@ -30,30 +30,36 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   bool _isTopLevel = true;
+  bool _routeListenerAttached = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateTopLevel();
-    // Listen for route changes
+    if (_routeListenerAttached) return;
+    _routeListenerAttached = true;
     GoRouter.of(context).routerDelegate.addListener(_onRouteChanged);
   }
 
   @override
   void dispose() {
-    try {
-      GoRouter.of(context).routerDelegate.removeListener(_onRouteChanged);
-    } catch (_) {
-      // Context may be invalid during dispose
+    if (_routeListenerAttached) {
+      try {
+        GoRouter.of(context).routerDelegate.removeListener(_onRouteChanged);
+      } catch (_) {
+        // Context may be invalid during dispose
+      }
     }
     super.dispose();
   }
 
   void _onRouteChanged() {
+    if (!mounted) return;
     _updateTopLevel();
   }
 
   void _updateTopLevel() {
+    if (!mounted) return;
     final location = GoRouterState.of(context).uri.path;
     final isTopLevel = _topLevelPaths.contains(location);
     if (isTopLevel != _isTopLevel) {

@@ -12,6 +12,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/pump_widget.dart';
@@ -130,6 +131,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Tokyo'), findsOneWidget);
+    });
+
+    testWidgets('tapping active trip hero opens programme', (tester) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      final heroContext = tester.element(find.text('Tokyo'));
+      final router = GoRouter.of(heroContext);
+      await tester.tap(find.text('Tokyo'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.path, kTestActiveTripProgrammePath);
     });
 
     testWidgets('shows completion ring', (tester) async {
