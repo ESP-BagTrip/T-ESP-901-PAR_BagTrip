@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:bagtrip/components/optimized_image.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/progression_cta_button.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
@@ -712,54 +714,67 @@ class _PopularDestinationCard extends StatelessWidget {
           onTap();
         },
         borderRadius: AppRadius.large13,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: spot.gradient,
-            ),
-            borderRadius: AppRadius.large13,
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned(
-                left: 10,
-                bottom: 10,
-                right: 8,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      flag,
-                      style: const TextStyle(fontSize: 20, height: 1.1),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      spot.location.name,
-                      style: TextStyle(
-                        fontFamily: FontFamily.dMSans,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            blurRadius: 6,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            OptimizedImage.activityImage(
+              spot.imageUrl,
+              errorWidget: _PopularDestinationImageFallback(
+                gradient: spot.fallbackGradient,
               ),
-            ],
-          ),
+            ),
+            const Positioned.fill(child: TripCoverHeroScrim()),
+            Positioned(
+              left: 10,
+              bottom: 10,
+              right: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(flag, style: const TextStyle(fontSize: 20, height: 1.1)),
+                  const SizedBox(height: 4),
+                  Text(
+                    spot.location.name,
+                    style: TextStyle(
+                      fontFamily: FontFamily.dMSans,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PopularDestinationImageFallback extends StatelessWidget {
+  const _PopularDestinationImageFallback({required this.gradient});
+
+  final List<Color> gradient;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
         ),
       ),
     );

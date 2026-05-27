@@ -2,7 +2,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -115,23 +114,6 @@ void main() {
 
       expect(find.text('Afternoon Museum'), findsOneWidget);
       expect(find.text('Next'), findsOneWidget);
-    });
-
-    testWidgets('shows completion ring on hero card', (tester) async {
-      final state = makeActiveState();
-      await tester.pumpWidget(
-        buildApp(
-          HomeActiveTrip(
-            user: state.user,
-            activeTrip: state.activeTrip.copyWith(completionPercentage: 25),
-            allActivities: state.allActivities,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byType(CompletionRing), findsOneWidget);
-      expect(find.text('25%'), findsOneWidget);
     });
   });
 }

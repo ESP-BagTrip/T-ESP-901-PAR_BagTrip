@@ -8,7 +8,6 @@ import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/helpers/home_highlight_activity.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/utils/destination_time.dart';
-import 'package:bagtrip/home/helpers/trip_completion.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
 import 'package:bagtrip/home/widgets/active_trip_hero_typography.dart';
 import 'package:bagtrip/home/widgets/home_trip_hero_chrome.dart';
@@ -16,7 +15,6 @@ import 'package:bagtrip/home/widgets/home_trip_list_card.dart';
 import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/home/widgets/timeline_activity_row.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -159,7 +157,6 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
     final trip = state.activeTrip;
     final destination =
         trip.destinationName ?? trip.title ?? l10n.myTripFallback;
-    final progress = tripCompletion(trip).clamp(0, 100);
     final dateRange =
         '${_formatDate(trip.startDate)} - ${_formatDate(trip.endDate)}';
     final hasCover =
@@ -235,16 +232,6 @@ class _ActiveTripHeroCardState extends State<_ActiveTripHeroCard> {
                                 ),
                               ],
                             ],
-                          ),
-                        ),
-                        Positioned(
-                          top: AppSpacing.space16,
-                          right: AppSpacing.space16,
-                          child: CompletionRing(
-                            percentage: progress,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.2,
-                            ),
                           ),
                         ),
                         Positioned(

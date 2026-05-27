@@ -56,6 +56,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
+    on<RefreshActiveTripActivities>(_onRefreshActiveTripActivities);
+    on<SyncActiveTripActivities>(_onSyncActiveTripActivities);
     on<ResetHome>(_onResetHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
@@ -100,6 +102,57 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _fetchAndEmitContextualState(emit);
+  }
+
+  Future<void> _onRefreshActiveTripActivities(
+    RefreshActiveTripActivities event,
+    Emitter<HomeState> emit,
+  ) async {
+    if (state is! HomeActiveTrip) return;
+    final current = state as HomeActiveTrip;
+    final result = await _activityRepository.getActivities(
+      current.activeTrip.id,
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      _emitActiveTripWithActivities(emit, current, data);
+    }
+  }
+
+  void _onSyncActiveTripActivities(
+    SyncActiveTripActivities event,
+    Emitter<HomeState> emit,
+  ) {
+    if (state is! HomeActiveTrip) return;
+    final current = state as HomeActiveTrip;
+    final tripId = current.activeTrip.id;
+    final activities = event.activities
+        .where((a) => a.tripId == tripId)
+        .toList();
+    _emitActiveTripWithActivities(emit, current, activities);
+  }
+
+  void _emitActiveTripWithActivities(
+    Emitter<HomeState> emit,
+    HomeActiveTrip current,
+    List<Activity> activities,
+  ) {
+    emit(
+      HomeActiveTrip(
+        user: current.user,
+        activeTrip: current.activeTrip,
+        upcomingTrips: current.upcomingTrips,
+        todayActivities: _todayActivitiesForTrip(
+          activities,
+          current.activeTrip.destinationTimezone,
+        ),
+        weatherSummary: current.weatherSummary,
+        weatherData: current.weatherData,
+        allActivities: activities,
+        pendingCompletionTrip: current.pendingCompletionTrip,
+        completedTripId: current.completedTripId,
+      ),
+    );
   }
 
   void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
@@ -259,19 +312,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         fromHome: activeTripActivities,
       );
       if (isClosed) return;
-      final now = nowInDestination(activeTrip.destinationTimezone);
-      final today = DateTime(now.year, now.month, now.day);
-      final todayActivities =
-          allActivities.where((a) {
-            final ad = a.date;
-            if (ad == null) return false;
-            final actDate = DateTime(ad.year, ad.month, ad.day);
-            return actDate == today;
-          }).toList()..sort((a, b) {
-            final aTime = a.startTime ?? '';
-            final bTime = b.startTime ?? '';
-            return aTime.compareTo(bTime);
-          });
+      final todayActivities = _todayActivitiesForTrip(
+        allActivities,
+        activeTrip.destinationTimezone,
+      );
 
       String? weatherSummary;
       WeatherSummary? weatherData;
@@ -359,6 +403,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     await _dismissalStorage.recordDismissal(event.tripId);
     add(RefreshHome());
+  }
+
+  List<Activity> _todayActivitiesForTrip(
+    List<Activity> allActivities,
+    String? destinationTimezone,
+  ) {
+    final now = nowInDestination(destinationTimezone);
+    final today = DateTime(now.year, now.month, now.day);
+    return allActivities.where((a) {
+      final ad = a.date;
+      if (ad == null) return false;
+      final actDate = DateTime(ad.year, ad.month, ad.day);
+      return actDate == today;
+    }).toList()..sort((a, b) {
+      final aTime = a.startTime ?? '';
+      final bTime = b.startTime ?? '';
+      return aTime.compareTo(bTime);
+    });
   }
 
   /// Uses [fromHome] when it already targets [activeTrip]; otherwise loads

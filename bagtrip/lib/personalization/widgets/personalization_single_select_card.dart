@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
@@ -25,19 +24,27 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
 
     return Material(
       color: selected
-          ? AppColors.secondaryLight.withValues(alpha: 0.3)
+          ? ColorName.secondaryLight.withValues(alpha: 0.3)
           : theme.cardTheme.color ?? theme.colorScheme.surface,
       borderRadius: AppRadius.large16,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.large16,
+        overlayColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed) ||
+              states.contains(WidgetState.focused) ||
+              states.contains(WidgetState.hovered)) {
+            return ColorName.secondary.withValues(alpha: 0.14);
+          }
+          return null;
+        }),
         child: Container(
           padding: AppSpacing.allEdgeInsetSpace16,
           decoration: BoxDecoration(
             borderRadius: AppRadius.large16,
             border: Border.all(
               color: selected
-                  ? AppColors.secondary
+                  ? ColorName.secondary
                   : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
@@ -55,7 +62,7 @@ class PersonalizationSingleSelectCard extends StatelessWidget {
                 icon,
                 size: 28,
                 color: selected
-                    ? AppColors.secondary
+                    ? ColorName.secondary
                     : theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.space16),

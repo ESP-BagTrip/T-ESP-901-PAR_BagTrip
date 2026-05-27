@@ -2,6 +2,7 @@ import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/widgets/premium_step_indicator.dart';
 import 'package:bagtrip/design/widgets/progression_cta_button.dart';
 import 'package:bagtrip/gen/assets.gen.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -69,6 +70,8 @@ class WelcomeStepContent extends StatelessWidget {
           child: ProgressionCtaButton(
             text: l10n.personalizationWelcomeCta,
             icon: Icons.arrow_forward_rounded,
+            backgroundColor: ColorName.secondary,
+            borderRadius: BorderRadius.circular(16),
             onPressed: onStart,
           ),
         ),

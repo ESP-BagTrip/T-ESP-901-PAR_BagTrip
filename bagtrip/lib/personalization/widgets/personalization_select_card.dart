@@ -1,4 +1,3 @@
-import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +26,14 @@ class PersonalizationSelectCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.large16,
+        overlayColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.pressed) ||
+              states.contains(WidgetState.focused) ||
+              states.contains(WidgetState.hovered)) {
+            return ColorName.secondary.withValues(alpha: 0.14);
+          }
+          return null;
+        }),
         child: Container(
           padding: const EdgeInsets.symmetric(
             vertical: AppSpacing.space16,
@@ -36,7 +43,7 @@ class PersonalizationSelectCard extends StatelessWidget {
             borderRadius: AppRadius.large16,
             border: Border.all(
               color: selected
-                  ? AppColors.secondary
+                  ? ColorName.secondary
                   : theme.colorScheme.outlineVariant,
               width: selected ? 2 : 1,
             ),

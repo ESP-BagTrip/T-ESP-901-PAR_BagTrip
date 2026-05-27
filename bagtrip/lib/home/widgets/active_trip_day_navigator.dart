@@ -15,7 +15,12 @@ class ActiveTripDayNavigator extends StatefulWidget {
     required this.tripStartDate,
     required this.calendarTodayIndex0,
     required this.onDaySelected,
+    this.horizontalPadding = AppSpacing.space16,
   });
+
+  /// Inset before the first day chip. Use [EdgeInsets.zero] when the parent
+  /// already applies horizontal padding (e.g. trip detail activities panel).
+  final double horizontalPadding;
 
   final int totalDays;
   final int selectedDayIndex0;
@@ -63,8 +68,9 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
     if (!_scrollController.hasClients) return;
 
     final position = _scrollController.position;
+    final pad = widget.horizontalPadding;
     final itemWidth = ActiveTripDayNavigator._chipSize + AppSpacing.space8;
-    final chipStart = AppSpacing.space16 + widget.selectedDayIndex0 * itemWidth;
+    final chipStart = pad + widget.selectedDayIndex0 * itemWidth;
     final chipEnd = chipStart + ActiveTripDayNavigator._chipSize;
 
     final viewportStart = position.pixels;
@@ -72,9 +78,9 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
 
     double? targetOffset;
     if (chipStart < viewportStart) {
-      targetOffset = chipStart - AppSpacing.space16;
+      targetOffset = chipStart - pad;
     } else if (chipEnd > viewportEnd) {
-      targetOffset = chipEnd - position.viewportDimension + AppSpacing.space16;
+      targetOffset = chipEnd - position.viewportDimension + pad;
     } else {
       return;
     }
@@ -115,7 +121,7 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
         physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space16),
+        padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
         clipBehavior: Clip.none,
         itemCount: widget.totalDays,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space8),

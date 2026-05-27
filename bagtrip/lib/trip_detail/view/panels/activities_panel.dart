@@ -3,6 +3,7 @@ import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/category_mappers.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/home/widgets/active_trip_day_navigator.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
 import 'package:bagtrip/design/widgets/review/activity_panel_card.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
@@ -56,18 +57,31 @@ class ActivitiesPanel extends StatelessWidget {
   Iterable<DateTime> get _scheduledDates =>
       activities.map((a) => a.date).whereType<DateTime>();
 
-  DateTime _dayDateFor(int index) {
+  DateTime _effectiveTripStartDate() {
     if (tripStartDate != null) {
-      return tripStartDate!.add(Duration(days: index));
+      final s = tripStartDate!;
+      return DateTime(s.year, s.month, s.day);
     }
     final scheduled = _scheduledDates;
-    if (scheduled.isEmpty) return DateTime.now().add(Duration(days: index));
+    if (scheduled.isEmpty) {
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day);
+    }
     final earliest = scheduled.reduce((a, b) => a.isBefore(b) ? a : b);
-    return DateTime(
-      earliest.year,
-      earliest.month,
-      earliest.day,
-    ).add(Duration(days: index));
+    return DateTime(earliest.year, earliest.month, earliest.day);
+  }
+
+  DateTime _dayDateFor(int index) {
+    return _effectiveTripStartDate().add(Duration(days: index));
+  }
+
+  int? _calendarTodayIndex0() {
+    final start = _effectiveTripStartDate();
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final diff = todayDate.difference(start).inDays;
+    if (diff < 0 || diff >= _safeTotal) return null;
+    return diff;
   }
 
   int _dayIndexFor(Activity activity) {
@@ -349,9 +363,6 @@ class ActivitiesPanel extends StatelessWidget {
     AppLocalizations l10n,
     List<Activity> source,
   ) {
-    final brightness = Theme.of(context).brightness;
-    final surfaceColor = AppColors.surfaceGroupOf(brightness);
-    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     final grouped = _groupByDayFor(source);
     final dayItems = _safeIndex < grouped.daily.length
         ? grouped.daily[_safeIndex]
@@ -360,43 +371,15 @@ class ActivitiesPanel extends StatelessWidget {
 
     return [
       if (_safeTotal > 1)
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_safeTotal, (index) {
-              final active = index == _safeIndex;
-              return Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: InkWell(
-                  onTap: () {
-                    AppHaptics.light();
-                    context.read<TripDetailBloc>().add(
-                      SelectDay(dayIndex: index),
-                    );
-                  },
-                  customBorder: const CircleBorder(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: active ? ColorName.primaryDark : surfaceColor,
-                    ),
-                    child: Text(
-                      'J${index + 1}',
-                      style: TextStyle(
-                        fontFamily: FontFamily.dMSerifDisplay,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: active ? ColorName.surface : mutedColor,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
+        ActiveTripDayNavigator(
+          totalDays: _safeTotal,
+          selectedDayIndex0: _safeIndex,
+          tripStartDate: _effectiveTripStartDate(),
+          calendarTodayIndex0: _calendarTodayIndex0(),
+          horizontalPadding: 0,
+          onDaySelected: (index) {
+            context.read<TripDetailBloc>().add(SelectDay(dayIndex: index));
+          },
         ),
       const SizedBox(height: AppSpacing.space16),
       if (dayItems.isEmpty)

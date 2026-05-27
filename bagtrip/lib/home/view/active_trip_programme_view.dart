@@ -16,6 +16,7 @@ import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Full-day schedule for the active trip. Reads live [HomeActiveTrip] from
 /// [HomeBloc] when [state] is omitted (production navigation).
@@ -44,6 +45,48 @@ class _ActiveTripProgrammeShell extends StatefulWidget {
 
 class _ActiveTripProgrammeShellState extends State<_ActiveTripProgrammeShell> {
   bool _exitRequested = false;
+  String? _lastRouterPath;
+  VoidCallback? _routerListener;
+
+  static const _programmePathSegment = 'active-trip/programme';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.initialState != null || _routerListener != null) return;
+
+    final router = GoRouter.of(context);
+    _lastRouterPath = router.state.uri.path;
+    _routerListener = () {
+      if (!mounted) return;
+      final path = router.state.uri.path;
+      final previous = _lastRouterPath;
+      _lastRouterPath = path;
+      if (previous == path) return;
+
+      final returnedToProgramme =
+          path.contains(_programmePathSegment) &&
+          previous != null &&
+          !previous.contains(_programmePathSegment);
+      if (returnedToProgramme) {
+        context.read<HomeBloc>().add(RefreshActiveTripActivities());
+      }
+    };
+    router.routerDelegate.addListener(_routerListener!);
+  }
+
+  @override
+  void dispose() {
+    final listener = _routerListener;
+    if (listener != null) {
+      try {
+        GoRouter.of(context).routerDelegate.removeListener(listener);
+      } catch (_) {
+        // Router may already be torn down.
+      }
+    }
+    super.dispose();
+  }
 
   /// Clears the nested `/home/active-trip/programme` location. [context.pop]
   /// alone can leave the child path matched and immediately rebuild programme.
@@ -88,8 +131,10 @@ class _ActiveTripProgrammeShellState extends State<_ActiveTripProgrammeShell> {
           previous.runtimeType != current.runtimeType ||
           (current is HomeActiveTrip &&
               (previous is! HomeActiveTrip ||
-                  previous.allActivities != current.allActivities ||
-                  previous.activeTrip.id != current.activeTrip.id)),
+                  previous.activeTrip.id != current.activeTrip.id ||
+                  !identical(previous.allActivities, current.allActivities) ||
+                  previous.allActivities.length !=
+                      current.allActivities.length)),
       builder: (context, homeState) {
         if (homeState is! HomeActiveTrip) {
           return const SizedBox.shrink();
@@ -204,8 +249,7 @@ class _ActiveTripProgrammeBodyState extends State<_ActiveTripProgrammeBody> {
               statusBadge: ActiveTripHeroStatus(
                 currentDay: state.currentDay,
                 totalDays: safeTotalDays,
-                weather: state.weatherData,
-                destinationTimezone: trip.destinationTimezone,
+                travelerCount: trip.nbTravelers,
               ),
             ),
           ),

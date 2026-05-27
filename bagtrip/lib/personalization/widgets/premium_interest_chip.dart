@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Multi-select chip for interests: pill shape, subtle highlight when selected.
@@ -45,7 +46,7 @@ class _PremiumInterestChipState extends State<PremiumInterestChip> {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: widget.selected
-                  ? PersonalizationColors.accentBlue.withValues(alpha: 0.6)
+                  ? ColorName.secondary
                   : PersonalizationColors.cardBorderUnselected,
               width: widget.selected ? 1.5 : 1,
             ),
@@ -54,7 +55,7 @@ class _PremiumInterestChipState extends State<PremiumInterestChip> {
             widget.label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
               color: widget.selected
-                  ? PersonalizationColors.accentBlue
+                  ? ColorName.secondary
                   : PersonalizationColors.textPrimary,
               fontWeight: widget.selected ? FontWeight.w600 : FontWeight.w500,
             ),

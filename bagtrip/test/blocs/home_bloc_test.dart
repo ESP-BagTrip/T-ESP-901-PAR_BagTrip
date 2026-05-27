@@ -167,6 +167,86 @@ void main() {
       ],
     );
 
+    blocTest<HomeBloc, HomeState>(
+      'SyncActiveTripActivities copies activities into HomeActiveTrip',
+      build: () => buildBloc(),
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(
+        SyncActiveTripActivities([
+          makeActivity(
+            id: 'synced',
+            tripId: 'trip-ongoing',
+            title: 'Synced activity',
+            date: DateTime.now(),
+          ),
+        ]),
+      ),
+      expect: () => [
+        isA<HomeActiveTrip>().having(
+          (s) => s.allActivities.single.title,
+          'title',
+          'Synced activity',
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => mockActivityRepo.getActivities(any()));
+      },
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RefreshActiveTripActivities reloads allActivities from repository',
+      build: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        stubHome(ongoing: [trip], activeTripActivities: []);
+        final newActivity = makeActivity(
+          id: 'act-new',
+          tripId: 'trip-ongoing',
+          title: 'New museum visit',
+          date: DateTime.now(),
+          startTime: '14:00',
+        );
+        when(
+          () => mockActivityRepo.getActivities('trip-ongoing'),
+        ).thenAnswer((_) async => Success([newActivity]));
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(RefreshActiveTripActivities()),
+      expect: () => [
+        isA<HomeActiveTrip>()
+            .having((s) => s.allActivities.length, 'allActivities.length', 1)
+            .having(
+              (s) => s.allActivities.first.title,
+              'allActivities.first.title',
+              'New museum visit',
+            ),
+      ],
+      verify: (_) {
+        verify(() => mockActivityRepo.getActivities('trip-ongoing')).called(1);
+      },
+    );
+
     // ── Test 3: Trip manager planned — no ongoing, planned exists ───
 
     blocTest<HomeBloc, HomeState>(

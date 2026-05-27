@@ -108,6 +108,10 @@ class _TimelineActivityRowState extends State<TimelineActivityRow>
   }
 
   Color _accent(bool isDimmed) {
+    if (widget.bare && widget.isCurrent) {
+      final base = ColorName.secondary;
+      return isDimmed ? base.withValues(alpha: 0.5) : base;
+    }
     if (widget.useProgrammeCapsuleColors) {
       final base = widget.isCurrent
           ? ColorName.secondary

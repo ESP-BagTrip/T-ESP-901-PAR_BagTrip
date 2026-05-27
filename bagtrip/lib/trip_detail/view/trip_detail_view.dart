@@ -40,9 +40,33 @@ import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+/// Copies trip-detail activities into [HomeBloc] before leaving the editor.
+///
+/// Must run **before** [Navigator.pop] — after a pop, this [context] is often
+/// unmounted and [HomeBloc] reads fail silently.
+void syncHomeActivitiesFromTripDetail(BuildContext context) {
+  try {
+    final homeBloc = context.read<HomeBloc>();
+    if (homeBloc.state is! HomeActiveTrip) return;
+
+    final tripDetailState = context.read<TripDetailBloc>().state;
+    if (tripDetailState is TripDetailLoaded) {
+      final activeTripId = (homeBloc.state as HomeActiveTrip).activeTrip.id;
+      if (tripDetailState.trip.id == activeTripId) {
+        homeBloc.add(SyncActiveTripActivities(tripDetailState.activities));
+        return;
+      }
+    }
+    homeBloc.add(RefreshActiveTripActivities());
+  } catch (_) {
+    // HomeBloc / TripDetailBloc may be absent in isolated widget tests.
+  }
+}
+
 /// Pops when [context] was reached via push (e.g. active-trip programme →
 /// activities editor); otherwise falls back to home.
 void leaveTripDetail(BuildContext context) {
+  syncHomeActivitiesFromTripDetail(context);
   if (context.canPop()) {
     context.pop();
   } else {

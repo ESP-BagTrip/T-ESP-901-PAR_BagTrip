@@ -7,7 +7,6 @@ import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,7 +31,6 @@ void main() {
     String destinationName = 'Tokyo',
     List<Trip> upcomingTrips = const [],
     List<Activity> allActivities = const [],
-    int completionPercentage = 0,
   }) {
     final user = makeUser(fullName: fullName);
     final now = DateTime.now();
@@ -41,7 +39,7 @@ void main() {
       destinationName: destinationName,
       startDate: now.subtract(const Duration(days: 2)),
       endDate: now.add(const Duration(days: 5)),
-    ).copyWith(completionPercentage: completionPercentage);
+    );
 
     final state = HomeActiveTrip(
       user: user,
@@ -143,14 +141,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(router.state.uri.path, kTestActiveTripProgrammePath);
-    });
-
-    testWidgets('shows completion ring', (tester) async {
-      await tester.pumpWidget(buildApp(completionPercentage: 42));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(CompletionRing), findsOneWidget);
-      expect(find.text('42%'), findsOneWidget);
     });
 
     testWidgets('shows highlight activity title', (tester) async {
