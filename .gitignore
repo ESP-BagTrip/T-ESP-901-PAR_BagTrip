@@ -65,6 +65,12 @@ CLAUDE.md
 
 # ===== Sonarqube =====
 .scannerwork/
+sonar-flutter-plugin-*.jar
+
+# ===== Dev scratch / local artifacts =====
+check_db.py
+report.md
+docker.list
 
 # ===== Production secrets =====
 secrets/
