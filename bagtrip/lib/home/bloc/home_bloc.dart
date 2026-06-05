@@ -14,6 +14,7 @@ import 'package:bagtrip/models/home_summary.dart';
 import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/user.dart';
 import 'package:bagtrip/models/weather_summary.dart';
+import 'package:bagtrip/repositories/activity_repository.dart';
 import 'package:bagtrip/repositories/home_repository.dart';
 import 'package:bagtrip/repositories/trip_repository.dart';
 import 'package:bagtrip/utils/destination_time.dart';
@@ -30,6 +31,7 @@ const String kHomeTripStatusReplayKey = 'trip:updateTripStatus';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _homeRepository;
   final TripRepository _tripRepository;
+  final ActivityRepository _activityRepository;
   final ConnectivityService _connectivityService;
   final PostTripDismissalStorage _dismissalStorage;
   final OfflineWriteQueue _offlineWriteQueue;
@@ -39,11 +41,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({
     HomeRepository? homeRepository,
     TripRepository? tripRepository,
+    ActivityRepository? activityRepository,
     ConnectivityService? connectivityService,
     PostTripDismissalStorage? dismissalStorage,
     OfflineWriteQueue? offlineWriteQueue,
   }) : _homeRepository = homeRepository ?? getIt<HomeRepository>(),
        _tripRepository = tripRepository ?? getIt<TripRepository>(),
+       _activityRepository = activityRepository ?? getIt<ActivityRepository>(),
        _connectivityService =
            connectivityService ?? getIt<ConnectivityService>(),
        _dismissalStorage =
@@ -52,12 +56,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
        super(HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<RefreshHome>(_onRefreshHome);
+    on<RefreshActiveTripActivities>(_onRefreshActiveTripActivities);
+    on<SyncActiveTripActivities>(_onSyncActiveTripActivities);
     on<ResetHome>(_onResetHome);
     on<ConfirmTripCompletion>(_onConfirmTripCompletion);
     on<DismissTripCompletion>(_onDismissTripCompletion);
     on<PreferIdleHomeOverview>(_onPreferIdleHomeOverview);
     on<ResumeActiveTripHome>(_onResumeActiveTripHome);
     on<CompleteActiveTrip>(_onCompleteActiveTrip);
+    on<RemoveUpcomingTrip>(_onRemoveUpcomingTrip);
 
     // Persist the PLANNED→ONGOING offline transition in the central
     // OfflineWriteQueue (Hive-backed) so it survives an app kill and is
@@ -96,6 +103,101 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     await _fetchAndEmitContextualState(emit);
+  }
+
+  Future<void> _onRefreshActiveTripActivities(
+    RefreshActiveTripActivities event,
+    Emitter<HomeState> emit,
+  ) async {
+    if (state is! HomeActiveTrip) return;
+    final current = state as HomeActiveTrip;
+    final result = await _activityRepository.getActivities(
+      current.activeTrip.id,
+    );
+    if (isClosed) return;
+    if (result case Success(:final data)) {
+      _emitActiveTripWithActivities(emit, current, data);
+    }
+  }
+
+  void _onRemoveUpcomingTrip(
+    RemoveUpcomingTrip event,
+    Emitter<HomeState> emit,
+  ) {
+    final current = state;
+    if (current is HomeIdle) {
+      final filtered = current.upcomingTrips
+          .where((t) => t.id != event.tripId)
+          .toList();
+      if (filtered.length == current.upcomingTrips.length) return;
+      final nextTrip = filtered.isNotEmpty ? _pickEarliestTrip(filtered) : null;
+      emit(
+        HomeIdle(
+          user: current.user,
+          upcomingTrips: filtered,
+          completedTrips: current.completedTrips,
+          nextTrip: nextTrip,
+          nextTripCompletion: tripCompletion(nextTrip),
+          backgroundOngoingTrip: current.backgroundOngoingTrip,
+        ),
+      );
+      return;
+    }
+    if (current is HomeActiveTrip) {
+      final filtered = current.upcomingTrips
+          .where((t) => t.id != event.tripId)
+          .toList();
+      if (filtered.length == current.upcomingTrips.length) return;
+      emit(
+        HomeActiveTrip(
+          user: current.user,
+          activeTrip: current.activeTrip,
+          upcomingTrips: filtered,
+          todayActivities: current.todayActivities,
+          weatherSummary: current.weatherSummary,
+          weatherData: current.weatherData,
+          allActivities: current.allActivities,
+          pendingCompletionTrip: current.pendingCompletionTrip,
+          completedTripId: current.completedTripId,
+        ),
+      );
+    }
+  }
+
+  void _onSyncActiveTripActivities(
+    SyncActiveTripActivities event,
+    Emitter<HomeState> emit,
+  ) {
+    if (state is! HomeActiveTrip) return;
+    final current = state as HomeActiveTrip;
+    final tripId = current.activeTrip.id;
+    final activities = event.activities
+        .where((a) => a.tripId == tripId)
+        .toList();
+    _emitActiveTripWithActivities(emit, current, activities);
+  }
+
+  void _emitActiveTripWithActivities(
+    Emitter<HomeState> emit,
+    HomeActiveTrip current,
+    List<Activity> activities,
+  ) {
+    emit(
+      HomeActiveTrip(
+        user: current.user,
+        activeTrip: current.activeTrip,
+        upcomingTrips: current.upcomingTrips,
+        todayActivities: _todayActivitiesForTrip(
+          activities,
+          current.activeTrip.destinationTimezone,
+        ),
+        weatherSummary: current.weatherSummary,
+        weatherData: current.weatherData,
+        allActivities: activities,
+        pendingCompletionTrip: current.pendingCompletionTrip,
+        completedTripId: current.completedTripId,
+      ),
+    );
   }
 
   void _onResetHome(ResetHome event, Emitter<HomeState> emit) {
@@ -245,24 +347,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         return;
       }
 
-      // Activities + weather come from the aggregated `/home` payload (server
-      // computes them for the first ongoing trip). We still derive *today*'s
-      // slice client-side using the destination timezone, matching the prior
-      // behaviour.
-      final allActivities = activeTripActivities;
-      final now = nowInDestination(activeTrip.destinationTimezone);
-      final today = DateTime(now.year, now.month, now.day);
-      final todayActivities =
-          allActivities.where((a) {
-            final ad = a.date;
-            if (ad == null) return false;
-            final actDate = DateTime(ad.year, ad.month, ad.day);
-            return actDate == today;
-          }).toList()..sort((a, b) {
-            final aTime = a.startTime ?? '';
-            final bTime = b.startTime ?? '';
-            return aTime.compareTo(bTime);
-          });
+      // Activities come from `/home` when they match [activeTrip] (same trip
+      // the bloc picked via `_pickEarliestTrip`). After a client-side
+      // PLANNED→ONGOING transition, or when server/client disagree on which
+      // ongoing trip is "active", the aggregated list can be empty or stale —
+      // fall back to a dedicated fetch (cached offline).
+      final allActivities = await _resolveActiveTripActivities(
+        activeTrip: activeTrip,
+        fromHome: activeTripActivities,
+      );
+      if (isClosed) return;
+      final todayActivities = _todayActivitiesForTrip(
+        allActivities,
+        activeTrip.destinationTimezone,
+      );
 
       String? weatherSummary;
       WeatherSummary? weatherData;
@@ -350,6 +448,42 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     await _dismissalStorage.recordDismissal(event.tripId);
     add(RefreshHome());
+  }
+
+  List<Activity> _todayActivitiesForTrip(
+    List<Activity> allActivities,
+    String? destinationTimezone,
+  ) {
+    final now = nowInDestination(destinationTimezone);
+    final today = DateTime(now.year, now.month, now.day);
+    return allActivities.where((a) {
+      final ad = a.date;
+      if (ad == null) return false;
+      final actDate = DateTime(ad.year, ad.month, ad.day);
+      return actDate == today;
+    }).toList()..sort((a, b) {
+      final aTime = a.startTime ?? '';
+      final bTime = b.startTime ?? '';
+      return aTime.compareTo(bTime);
+    });
+  }
+
+  /// Uses [fromHome] when it already targets [activeTrip]; otherwise loads
+  /// activities for the trip the UI will display.
+  Future<List<Activity>> _resolveActiveTripActivities({
+    required Trip activeTrip,
+    required List<Activity> fromHome,
+  }) async {
+    final forActiveTrip =
+        fromHome.isNotEmpty && fromHome.every((a) => a.tripId == activeTrip.id);
+    if (forActiveTrip) return fromHome;
+
+    final result = await _activityRepository.getActivities(activeTrip.id);
+    if (result case Success(:final data)) {
+      return data;
+    }
+
+    return fromHome.where((a) => a.tripId == activeTrip.id).toList();
   }
 
   Trip _pickEarliestTrip(List<Trip> trips) {

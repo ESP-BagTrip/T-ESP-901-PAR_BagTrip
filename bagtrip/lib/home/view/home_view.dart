@@ -1,3 +1,4 @@
+import 'package:bagtrip/components/app_snackbar.dart';
 import 'package:bagtrip/components/error_view.dart';
 import 'package:bagtrip/components/loading_view.dart';
 import 'package:bagtrip/design/app_animations.dart';
@@ -75,6 +76,22 @@ class _HomeViewState extends State<HomeView> {
                       PostTripRoute(
                         tripId: state.completedTripId!,
                       ).push(context);
+                    }
+                  },
+                ),
+                BlocListener<TripManagementBloc, TripManagementState>(
+                  listenWhen: (_, curr) =>
+                      curr is TripDeleted || curr is TripError,
+                  listener: (context, tripState) {
+                    context.read<HomeBloc>().add(RefreshHome());
+                    if (tripState is TripError) {
+                      AppSnackBar.showError(
+                        context,
+                        message: toUserFriendlyMessage(
+                          tripState.error,
+                          AppLocalizations.of(context)!,
+                        ),
+                      );
                     }
                   },
                 ),

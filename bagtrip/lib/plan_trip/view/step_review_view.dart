@@ -50,8 +50,10 @@ class StepReviewView extends StatelessWidget {
         final locale = Localizations.localeOf(context).languageCode;
         final days = _buildDayCards(context, plan, dates, l10n);
 
+        final brightness = Theme.of(context).brightness;
+
         return ColoredBox(
-          color: AppColors.surfaceVariant,
+          color: AppColors.profileSheetBackgroundOf(brightness),
           child: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             child: Column(

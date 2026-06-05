@@ -90,6 +90,8 @@ class StepDatesView extends StatelessWidget {
                 text: l10n.continueButton,
                 enabled: state.areDatesValid,
                 icon: Icons.arrow_forward_rounded,
+                backgroundColor: ColorName.secondary,
+                borderRadius: AppRadius.large16,
                 onPressed: () {
                   AppHaptics.medium();
                   context.read<PlanTripBloc>().add(

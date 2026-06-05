@@ -1,13 +1,12 @@
 import 'package:bagtrip/design/app_haptics.dart';
-import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Horizontal day chips J1…Jn for active trip home (v3): past + check, today +
-/// gradient + pulse dot, future discreet; selection ring when viewing a day.
+/// Horizontal day chips J1…Jn for active trip programme: square tiles,
+/// [ColorName.primaryDark] when selected, discreet pulse for calendar today.
 class ActiveTripDayNavigator extends StatefulWidget {
   const ActiveTripDayNavigator({
     super.key,
@@ -16,7 +15,12 @@ class ActiveTripDayNavigator extends StatefulWidget {
     required this.tripStartDate,
     required this.calendarTodayIndex0,
     required this.onDaySelected,
+    this.horizontalPadding = AppSpacing.space16,
   });
+
+  /// Inset before the first day chip. Use [EdgeInsets.zero] when the parent
+  /// already applies horizontal padding (e.g. trip detail activities panel).
+  final double horizontalPadding;
 
   final int totalDays;
   final int selectedDayIndex0;
@@ -25,6 +29,9 @@ class ActiveTripDayNavigator extends StatefulWidget {
   /// Null if "today" is outside the trip range.
   final int? calendarTodayIndex0;
   final ValueChanged<int> onDaySelected;
+
+  static const double _chipSize = 56;
+  static const BorderRadius _chipRadius = AppRadius.medium12;
 
   @override
   State<ActiveTripDayNavigator> createState() => _ActiveTripDayNavigatorState();
@@ -59,15 +66,32 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
 
   void _scrollToSelected() {
     if (!_scrollController.hasClients) return;
-    final itemWidth = 56.0 + AppSpacing.space8;
-    final offset = (widget.selectedDayIndex0 * itemWidth - 80).clamp(
-      0.0,
-      double.infinity,
-    );
+
+    final position = _scrollController.position;
+    final pad = widget.horizontalPadding;
+    final itemWidth = ActiveTripDayNavigator._chipSize + AppSpacing.space8;
+    final chipStart = pad + widget.selectedDayIndex0 * itemWidth;
+    final chipEnd = chipStart + ActiveTripDayNavigator._chipSize;
+
+    final viewportStart = position.pixels;
+    final viewportEnd = position.pixels + position.viewportDimension;
+
+    double? targetOffset;
+    if (chipStart < viewportStart) {
+      targetOffset = chipStart - pad;
+    } else if (chipEnd > viewportEnd) {
+      targetOffset = chipEnd - position.viewportDimension + pad;
+    } else {
+      return;
+    }
+
+    targetOffset = targetOffset.clamp(0.0, position.maxScrollExtent);
+    if ((targetOffset - position.pixels).abs() < 1) return;
+
     _scrollController.animateTo(
-      offset,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
+      targetOffset,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
     );
   }
 
@@ -96,6 +120,9 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
       child: ListView.separated(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
+        physics: const ClampingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
+        clipBehavior: Clip.none,
         itemCount: widget.totalDays,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.space8),
         itemBuilder: (context, i) {
@@ -104,7 +131,36 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
           final isCalendarToday = ct != null && i == ct;
           final isSelected = i == widget.selectedDayIndex0;
           final isPast = ct != null && i < ct;
-          final isFuture = ct != null && i > ct;
+
+          final labelColor = isSelected
+              ? Colors.white
+              : theme.colorScheme.onSurface.withValues(
+                  alpha: isPast ? 0.55 : 1,
+                );
+          final sublabelColor = isSelected
+              ? Colors.white.withValues(alpha: 0.9)
+              : theme.colorScheme.outline.withValues(alpha: isPast ? 0.5 : 1);
+
+          Color backgroundColor;
+          Border border;
+          if (isSelected) {
+            final selectedFill = theme.brightness == Brightness.dark
+                ? ColorName.secondary
+                : ColorName.primaryDark;
+            backgroundColor = selectedFill;
+            border = Border.all(color: selectedFill, width: 1.5);
+          } else if (isCalendarToday) {
+            backgroundColor = theme.colorScheme.surface;
+            border = Border.all(color: ColorName.secondary, width: 1.5);
+          } else if (isPast) {
+            backgroundColor = theme.colorScheme.surface;
+            border = Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.35),
+            );
+          } else {
+            backgroundColor = theme.colorScheme.surface;
+            border = Border.all(color: theme.colorScheme.outlineVariant);
+          }
 
           return GestureDetector(
             onTap: () {
@@ -112,38 +168,14 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
               widget.onDaySelected(i);
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 56,
-              height: 56,
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              width: ActiveTripDayNavigator._chipSize,
+              height: ActiveTripDayNavigator._chipSize,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: isCalendarToday
-                    ? const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: PersonalizationColors.accentGradient,
-                      )
-                    : null,
-                color: isCalendarToday ? null : theme.colorScheme.surface,
-                border: Border.all(
-                  color: isSelected && !isCalendarToday
-                      ? ColorName.primary
-                      : isFuture || (!isPast && !isCalendarToday && ct == null)
-                      ? theme.colorScheme.outlineVariant
-                      : isPast
-                      ? theme.colorScheme.outline.withValues(alpha: 0.35)
-                      : theme.colorScheme.outlineVariant,
-                  width: isSelected && !isCalendarToday ? 2 : 1,
-                ),
-                boxShadow: isCalendarToday
-                    ? [
-                        BoxShadow(
-                          color: ColorName.primary.withValues(alpha: 0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
+                borderRadius: ActiveTripDayNavigator._chipRadius,
+                color: backgroundColor,
+                border: border,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -158,11 +190,7 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
                           fontFamily: FontFamily.dMSans,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isCalendarToday
-                              ? Colors.white
-                              : theme.colorScheme.onSurface.withValues(
-                                  alpha: isPast ? 0.55 : 1,
-                                ),
+                          color: labelColor,
                         ),
                       ),
                       Text(
@@ -171,26 +199,22 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
                           fontFamily: FontFamily.dMSans,
                           fontSize: 9,
                           fontWeight: FontWeight.w500,
-                          color: isCalendarToday
-                              ? Colors.white.withValues(alpha: 0.9)
-                              : theme.colorScheme.outline.withValues(
-                                  alpha: isPast ? 0.5 : 1,
-                                ),
+                          color: sublabelColor,
                         ),
                       ),
                     ],
                   ),
-                  if (isPast && !isCalendarToday)
+                  if (isPast && !isSelected)
                     Positioned(
-                      right: 2,
-                      bottom: 2,
+                      right: 4,
+                      bottom: 4,
                       child: Icon(
                         Icons.check_rounded,
                         size: 14,
                         color: ColorName.secondary.withValues(alpha: 0.85),
                       ),
                     ),
-                  if (isCalendarToday)
+                  if (isCalendarToday && !isSelected)
                     Positioned(
                       bottom: -6,
                       child: AnimatedBuilder(
@@ -201,7 +225,7 @@ class _ActiveTripDayNavigatorState extends State<ActiveTripDayNavigator>
                             width: 8,
                             height: 8,
                             decoration: const BoxDecoration(
-                              color: Colors.white,
+                              color: ColorName.secondary,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(

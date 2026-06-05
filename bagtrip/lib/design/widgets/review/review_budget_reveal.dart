@@ -1,4 +1,5 @@
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/budget_stripe.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -24,6 +25,9 @@ class ReviewBudgetReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final accent = AppColors.reviewAccentSurfaceOf(brightness);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.space16,
@@ -33,15 +37,17 @@ class ReviewBudgetReveal extends StatelessWidget {
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFF0D1F35),
+          color: accent,
           borderRadius: AppRadius.large24,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF0D1F35).withValues(alpha: 0.18),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-            ),
-          ],
+          boxShadow: brightness == Brightness.dark
+              ? null
+              : [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.18),
+                    blurRadius: 28,
+                    offset: const Offset(0, 14),
+                  ),
+                ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.space24),

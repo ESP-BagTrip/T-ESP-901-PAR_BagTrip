@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
@@ -46,6 +47,13 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final dividerColor = AppColors.surfaceGroupBorderOf(brightness);
+    final isDark = brightness == Brightness.dark;
+    final textColor = PersonalizationColors.textPrimaryOf(brightness);
 
     return BlocBuilder<PlanTripBloc, PlanTripState>(
       builder: (context, state) {
@@ -137,12 +145,12 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: ColorName.surface,
+                  color: surfaceColor,
                   borderRadius: AppRadius.large16,
                   border: Border.all(
                     color: focused
                         ? ColorName.secondary.withValues(alpha: 0.45)
-                        : ColorName.primarySoftLight,
+                        : borderColor,
                   ),
                 ),
                 child: Semantics(
@@ -156,10 +164,10 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
                         PlanTripEvent.searchOrigin(v.trim()),
                       );
                     },
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.b612,
                       fontSize: 16,
-                      color: PersonalizationColors.textPrimary,
+                      color: textColor,
                     ),
                     decoration: InputDecoration(
                       hintText: l10n.originCityPlaceholder,
@@ -219,16 +227,18 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
               Container(
                 margin: const EdgeInsets.only(top: AppSpacing.space4),
                 decoration: BoxDecoration(
-                  color: ColorName.surface,
+                  color: surfaceColor,
                   borderRadius: AppRadius.large16,
-                  border: Border.all(color: ColorName.primarySoftLight),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      offset: const Offset(0, 4),
-                      blurRadius: 12,
-                    ),
-                  ],
+                  border: Border.all(color: borderColor),
+                  boxShadow: isDark
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            offset: const Offset(0, 4),
+                            blurRadius: 12,
+                          ),
+                        ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -240,11 +250,7 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
                     return Column(
                       children: [
                         if (idx > 0)
-                          const Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: Color(0xFFE8EAED),
-                          ),
+                          Divider(height: 1, thickness: 1, color: dividerColor),
                         InkWell(
                           onTap: () {
                             AppHaptics.light();
@@ -376,6 +382,8 @@ class _StepTravelersBudgetViewState extends State<StepTravelersBudgetView> {
             ProgressionCtaButton(
               text: l10n.continueButton,
               icon: Icons.arrow_forward_rounded,
+              backgroundColor: ColorName.secondary,
+              borderRadius: AppRadius.large16,
               onPressed: () {
                 AppHaptics.medium();
                 context.read<PlanTripBloc>().add(
@@ -414,6 +422,8 @@ class _BudgetEstimationBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final range = estimateBudget(
       preset: preset,
       nbTravelers: nbTravelers,
@@ -422,18 +432,25 @@ class _BudgetEstimationBadge extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
+      width: double.infinity,
       padding: AppSpacing.allEdgeInsetSpace16,
-      decoration: const BoxDecoration(
-        color: ColorName.primaryLight,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.surfaceGroupOf(brightness)
+            : ColorName.primaryLight,
         borderRadius: AppRadius.large16,
+        border: isDark
+            ? Border.all(color: AppColors.surfaceGroupBorderOf(brightness))
+            : null,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l10n.budgetEstimationLabel,
             style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 11,
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: ColorName.secondary,
               letterSpacing: 0.5,
@@ -446,11 +463,13 @@ class _BudgetEstimationBadge extends StatelessWidget {
               range.max.toStringAsFixed(0),
               '€',
             ),
-            style: const TextStyle(
-              fontFamily: FontFamily.b612,
-              fontSize: 18,
+            style: TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ColorName.primaryTrueDark,
+              color: isDark
+                  ? AppColors.profileMenuTitleOf(brightness)
+                  : ColorName.primaryTrueDark,
             ),
           ),
         ],

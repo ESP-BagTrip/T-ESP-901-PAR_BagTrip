@@ -14,17 +14,18 @@ import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
-import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/navigation/route_definitions.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_hero_labels.dart';
+import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/budget_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/essentials_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/flights_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/activities_panel.dart';
-import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/view/panels/shares_panel.dart';
+import 'package:bagtrip/trip_detail/view/panels/validation_board_panel.dart';
 import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bagtrip/trip_detail/widgets/cover_image_picker_sheet.dart';
 import 'package:bagtrip/trip_detail/widgets/date_range_picker_sheet.dart';
@@ -37,20 +38,56 @@ import 'package:bagtrip/utils/error_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart' show OrdinalSortKey;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+
+/// Copies trip-detail activities into [HomeBloc] before leaving the editor.
+///
+/// Must run **before** [Navigator.pop] — after a pop, this [context] is often
+/// unmounted and [HomeBloc] reads fail silently.
+void syncHomeActivitiesFromTripDetail(BuildContext context) {
+  try {
+    final homeBloc = context.read<HomeBloc>();
+    if (homeBloc.state is! HomeActiveTrip) return;
+
+    final tripDetailState = context.read<TripDetailBloc>().state;
+    if (tripDetailState is TripDetailLoaded) {
+      final activeTripId = (homeBloc.state as HomeActiveTrip).activeTrip.id;
+      if (tripDetailState.trip.id == activeTripId) {
+        homeBloc.add(SyncActiveTripActivities(tripDetailState.activities));
+        return;
+      }
+    }
+    homeBloc.add(RefreshActiveTripActivities());
+  } catch (_) {
+    // HomeBloc / TripDetailBloc may be absent in isolated widget tests.
+  }
+}
+
+/// Pops when [context] was reached via push (e.g. active-trip programme →
+/// activities editor); otherwise falls back to home.
+void leaveTripDetail(BuildContext context) {
+  syncHomeActivitiesFromTripDetail(context);
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    const HomeRoute().go(context);
+  }
+}
 
 /// New "wizard mirror" edit view: dark hero + pill chips bar + TabBarView
 /// with 7 domain panels. Replaces the legacy SliverAppBar + stacked-sections
 /// layout.
 class TripDetailView extends StatelessWidget {
   final String tripId;
+  final int? initialTabIndex;
 
-  const TripDetailView({super.key, required this.tripId});
+  const TripDetailView({super.key, required this.tripId, this.initialTabIndex});
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
-      backgroundColor: ColorName.surfaceVariant,
+      backgroundColor: AppColors.tripDetailPageBackgroundOf(brightness),
       body: BlocConsumer<TripDetailBloc, TripDetailState>(
         listener: (context, state) {
           final l10n = AppLocalizations.of(context)!;
@@ -95,7 +132,11 @@ class TripDetailView extends StatelessWidget {
             );
           }
           if (state is TripDetailLoaded) {
-            return _LoadedTripView(tripId: tripId, state: state);
+            return _LoadedTripView(
+              tripId: tripId,
+              state: state,
+              initialTabIndex: initialTabIndex,
+            );
           }
           return const SizedBox.shrink();
         },
@@ -105,10 +146,15 @@ class TripDetailView extends StatelessWidget {
 }
 
 class _LoadedTripView extends StatefulWidget {
-  const _LoadedTripView({required this.tripId, required this.state});
+  const _LoadedTripView({
+    required this.tripId,
+    required this.state,
+    this.initialTabIndex,
+  });
 
   final String tripId;
   final TripDetailLoaded state;
+  final int? initialTabIndex;
 
   @override
   State<_LoadedTripView> createState() => _LoadedTripViewState();
@@ -127,10 +173,17 @@ class _LoadedTripViewState extends State<_LoadedTripView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabCount, vsync: this);
+    _tabController = TabController(
+      length: _tabCount,
+      vsync: this,
+      initialIndex: _initialTabIndex,
+    );
     _tabController.addListener(_onTabChanged);
     _footerController = PanelFooterCtaController(vsync: this);
   }
+
+  int get _initialTabIndex =>
+      (widget.initialTabIndex ?? 0).clamp(0, _tabCount - 1);
 
   @override
   void didUpdateWidget(covariant _LoadedTripView oldWidget) {
@@ -175,12 +228,17 @@ class _LoadedTripViewState extends State<_LoadedTripView>
         Semantics(
           sortKey: const OrdinalSortKey(1),
           child: ReviewHero(
-            city: _heroCity(trip, l10n),
-            subtitle: _heroDateSubtitle(context, trip, l10n),
+            city: tripHeroCity(trip, l10n),
+            subtitle: tripHeroDateSubtitle(
+              context,
+              trip,
+              state.totalDays,
+              l10n,
+            ),
             budgetLabel: _heroBudgetLabel(),
-            coverImageUrl: _resolveCoverImage(trip),
+            coverImageUrl: tripHeroCoverImageUrl(trip),
             onEditDates: _canEdit ? () => _showDateRangePicker(context) : null,
-            onBack: () => const HomeRoute().go(context),
+            onBack: () => leaveTripDetail(context),
             onOverflow: () => _handleOverflow(context),
             onChangeCover: _canEdit
                 ? () => showCoverImagePickerSheet(
@@ -293,46 +351,10 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     );
   }
 
-  // ── Hero helpers ────────────────────────────────────────────────────────
-
-  String _heroCity(Trip trip, AppLocalizations l10n) {
-    if (trip.destinationName != null && trip.destinationName!.isNotEmpty) {
-      return trip.destinationName!;
-    }
-    if (trip.title != null && trip.title!.isNotEmpty) return trip.title!;
-    return l10n.myTripFallback;
-  }
-
-  /// "16 mai 2026 - 17 mai 2026 • 1 jour" (locale-aware dates + [tripDurationDays]).
-  String _heroDateSubtitle(
-    BuildContext context,
-    Trip trip,
-    AppLocalizations l10n,
-  ) {
-    if (trip.startDate == null || trip.endDate == null) return '';
-    if (state.totalDays <= 0) return '';
-    final locale = Localizations.localeOf(context).languageCode;
-    final fmt = DateFormat('d MMM yyyy', locale);
-    final range =
-        '${fmt.format(trip.startDate!)} - ${fmt.format(trip.endDate!)}';
-    return '$range • ${l10n.tripDurationDays(state.totalDays)}';
-  }
-
   String _heroBudgetLabel() {
     final totalBudget = state.budgetSummary?.totalBudget;
     if (totalBudget == null || totalBudget <= 0) return '';
     return totalBudget.formatPrice();
-  }
-
-  /// Cover image for the hero. The backend's SMP-330 no-API-key pipeline
-  /// (Wikipedia → Wikidata → Commons) always populates [Trip.coverImageUrl]
-  /// when a destination is known, so the client no longer keeps a parallel
-  /// fallback. ``null`` here lets the hero widget render its gradient
-  /// placeholder, which is preferable to a wrong stock photo.
-  String? _resolveCoverImage(Trip trip) {
-    final fromBackend = trip.coverImageUrl;
-    if (fromBackend != null && fromBackend.isNotEmpty) return fromBackend;
-    return null;
   }
 
   Widget? _buildStatusBadge(AppLocalizations l10n) {
@@ -556,10 +578,14 @@ class _LoadedTripViewState extends State<_LoadedTripView>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
+        final brightness = Theme.of(sheetCtx).brightness;
+        final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
+        final inkColor = AppColors.reviewInkOf(brightness);
+        final mutedInk = inkColor.withValues(alpha: 0.55);
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: sheetColor,
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius24),
             ),
           ),
@@ -572,7 +598,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
+                    color: AppColors.reviewUncheckedOf(brightness),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -581,11 +607,11 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                 padding: const EdgeInsets.all(AppSpacing.space16),
                 child: Text(
                   l10n.completionSegmentsSheetTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.primaryDark,
+                    color: AppColors.profileMenuTitleOf(brightness),
                   ),
                 ),
               ),
@@ -615,11 +641,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      size: 16,
-                      color: AppColors.reviewInk.withValues(alpha: 0.55),
-                    ),
+                    Icon(Icons.info_outline_rounded, size: 16, color: mutedInk),
                     const SizedBox(width: AppSpacing.space8),
                     Expanded(
                       child: Text(
@@ -628,7 +650,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
                           fontFamily: FontFamily.dMSans,
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
-                          color: AppColors.reviewInk.withValues(alpha: 0.55),
+                          color: mutedInk,
                         ),
                       ),
                     ),
@@ -664,7 +686,7 @@ class _LoadedTripViewState extends State<_LoadedTripView>
     return switch (type) {
       CompletionSegmentType.flights => 1,
       CompletionSegmentType.accommodation => 2,
-      CompletionSegmentType.activities => 3,
+      CompletionSegmentType.activities => tripDetailActivitiesTabIndex,
       CompletionSegmentType.baggage => 4,
     };
   }

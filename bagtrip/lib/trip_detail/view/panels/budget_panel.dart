@@ -272,18 +272,20 @@ class _BudgetSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final inkColor = AppColors.reviewInkOf(brightness);
     final isEmpty = items.isEmpty && activities.isEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.b612,
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.4,
-            color: Color(0xFF6B7280),
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.space4),
@@ -292,7 +294,7 @@ class _BudgetSection extends StatelessWidget {
           style: TextStyle(
             fontFamily: FontFamily.dMSans,
             fontSize: 12,
-            color: AppColors.reviewInk.withValues(alpha: 0.55),
+            color: inkColor.withValues(alpha: 0.55),
           ),
         ),
         const SizedBox(height: AppSpacing.space12),
@@ -318,13 +320,16 @@ class _EmptySectionPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
+    final inkColor = AppColors.reviewInkOf(brightness);
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFFBFAF7),
+        color: cardColor,
         borderRadius: AppRadius.large24,
-        border: Border.all(
-          color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
-        ),
+        border: Border.all(color: cardBorder),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -337,7 +342,7 @@ class _EmptySectionPlaceholder extends StatelessWidget {
             fontFamily: FontFamily.dMSans,
             fontSize: 13,
             fontStyle: FontStyle.italic,
-            color: AppColors.reviewInk.withValues(alpha: 0.55),
+            color: inkColor.withValues(alpha: 0.55),
           ),
         ),
       ),
@@ -358,14 +363,17 @@ class _DualTotalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
+    final inkColor = AppColors.reviewInkOf(brightness);
     final delta = summary.confirmedTotal - summary.forecastedTotal;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFFFBFAF7),
+        color: cardColor,
         borderRadius: AppRadius.large24,
-        border: Border.all(
-          color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
-        ),
+        border: Border.all(color: cardBorder),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space24),
@@ -379,19 +387,19 @@ class _DualTotalCard extends StatelessWidget {
                     child: _DualTotalColumn(
                       label: l10n.budgetRealHeader,
                       amount: summary.confirmedTotal,
-                      accent: AppColors.reviewInk,
+                      accent: inkColor,
                     ),
                   ),
-                  const VerticalDivider(
+                  VerticalDivider(
                     width: AppSpacing.space24,
                     thickness: 0.5,
-                    color: AppColors.reviewDividerFaint,
+                    color: AppColors.reviewDividerFaintOf(brightness),
                   ),
                   Expanded(
                     child: _DualTotalColumn(
                       label: l10n.budgetForecastHeader,
                       amount: summary.forecastedTotal,
-                      accent: AppColors.reviewMuted,
+                      accent: AppColors.reviewMutedOf(brightness),
                       italic: true,
                     ),
                   ),
@@ -408,7 +416,7 @@ class _DualTotalCard extends StatelessWidget {
                   fontFamily: FontFamily.dMSans,
                   fontSize: 12,
                   letterSpacing: 0.2,
-                  color: AppColors.reviewInk.withValues(alpha: 0.55),
+                  color: inkColor.withValues(alpha: 0.55),
                 ),
               ),
             ],
@@ -434,17 +442,18 @@ class _DualTotalColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: FontFamily.b612,
             fontSize: 10,
             fontWeight: FontWeight.w700,
             letterSpacing: 2.8,
-            color: Color(0xFF6B7280),
+            color: AppColors.textSecondaryOf(brightness),
           ),
         ),
         const SizedBox(height: AppSpacing.space8),
@@ -482,31 +491,42 @@ class _RecentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     final totalRows = items.length + activities.length;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: surfaceColor,
         borderRadius: AppRadius.large24,
-        border: Border.all(color: ColorName.primarySoftLight),
+        border: Border.all(color: borderColor),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: ClipRRect(
         borderRadius: AppRadius.large24,
         child: Column(
           children: [
             for (var i = 0; i < items.length; i++) ...[
-              if (i > 0)
-                const Divider(height: 1, color: ColorName.primarySoftLight),
+              if (i > 0) Divider(height: 1, color: borderColor),
               _ExpenseRow(
                 item: items[i],
                 canEdit: canEdit,
                 onTap: () => onItemTap(items[i]),
                 onDelete: () => onItemDelete(items[i]),
+                titleColor: titleColor,
+                mutedColor: mutedColor,
               ),
             ],
             for (var i = 0; i < activities.length; i++) ...[
               if (items.isNotEmpty || i > 0)
-                const Divider(height: 1, color: ColorName.primarySoftLight),
-              _ActivityExpenseRow(activity: activities[i]),
+                Divider(height: 1, color: borderColor),
+              _ActivityExpenseRow(
+                activity: activities[i],
+                titleColor: titleColor,
+                mutedColor: mutedColor,
+              ),
             ],
             if (totalRows == 0) const SizedBox.shrink(),
           ],
@@ -522,9 +542,15 @@ class _RecentList extends StatelessWidget {
 /// view, but editing happens in the Activities tab to avoid duplicating
 /// the form logic and the validation flow.
 class _ActivityExpenseRow extends StatelessWidget {
-  const _ActivityExpenseRow({required this.activity});
+  const _ActivityExpenseRow({
+    required this.activity,
+    required this.titleColor,
+    required this.mutedColor,
+  });
 
   final Activity activity;
+  final Color titleColor;
+  final Color mutedColor;
 
   @override
   Widget build(BuildContext context) {
@@ -564,19 +590,19 @@ class _ActivityExpenseRow extends StatelessWidget {
                   activity.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 15,
-                    color: ColorName.primaryDark,
+                    color: titleColor,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   dateLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSans,
                     fontSize: 11,
-                    color: ColorName.hint,
+                    color: mutedColor,
                   ),
                 ),
               ],
@@ -588,7 +614,7 @@ class _ActivityExpenseRow extends StatelessWidget {
             style: TextStyle(
               fontFamily: FontFamily.dMSerifDisplay,
               fontSize: 15,
-              color: isForecasted ? ColorName.hint : ColorName.primaryDark,
+              color: isForecasted ? mutedColor : titleColor,
               fontStyle: isForecasted ? FontStyle.italic : FontStyle.normal,
             ),
           ),
@@ -604,12 +630,16 @@ class _ExpenseRow extends StatelessWidget {
     required this.canEdit,
     required this.onTap,
     required this.onDelete,
+    required this.titleColor,
+    required this.mutedColor,
   });
 
   final BudgetItem item;
   final bool canEdit;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final Color titleColor;
+  final Color mutedColor;
 
   @override
   Widget build(BuildContext context) {
@@ -645,19 +675,19 @@ class _ExpenseRow extends StatelessWidget {
                     item.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSerifDisplay,
                       fontSize: 15,
-                      color: ColorName.primaryDark,
+                      color: titleColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _dateLabel(item.date ?? item.createdAt),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 11,
-                      color: ColorName.hint,
+                      color: mutedColor,
                     ),
                   ),
                 ],
@@ -669,7 +699,7 @@ class _ExpenseRow extends StatelessWidget {
               style: TextStyle(
                 fontFamily: FontFamily.dMSerifDisplay,
                 fontSize: 15,
-                color: item.isPlanned ? ColorName.hint : ColorName.primaryDark,
+                color: item.isPlanned ? mutedColor : titleColor,
                 fontStyle: item.isPlanned ? FontStyle.italic : FontStyle.normal,
               ),
             ),
@@ -781,20 +811,23 @@ class _ViewerBudgetPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final cardColor = AppColors.reviewCardSurfaceOf(brightness);
+    final cardBorder = AppColors.reviewCardBorderOf(brightness);
+    final inkColor = AppColors.reviewInkOf(brightness);
     final status = summary?.budgetStatus;
     final target = summary?.totalBudget ?? 0;
-    final (statusLabel, statusColor) = _statusPresentation(status);
+    final (statusLabel, statusColor) = _statusPresentation(status, brightness);
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.space16),
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            color: const Color(0xFFFBFAF7),
+            color: cardColor,
             borderRadius: AppRadius.large24,
-            border: Border.all(
-              color: const Color(0xFF0D1F35).withValues(alpha: 0.06),
-            ),
+            border: Border.all(color: cardBorder),
+            boxShadow: AppColors.reviewCardShadowOf(brightness),
           ),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.space24),
@@ -803,21 +836,21 @@ class _ViewerBudgetPanel extends StatelessWidget {
               children: [
                 Text(
                   l10n.budgetTotal,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSans,
                     fontSize: 12,
                     letterSpacing: 1.2,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.hint,
+                    color: AppColors.textSecondaryOf(brightness),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.space8),
                 Text(
                   target > 0 ? target.formatPrice() : '—',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 28,
-                    color: AppColors.reviewInk,
+                    color: inkColor,
                   ),
                 ),
                 if (statusLabel != null) ...[
@@ -849,7 +882,7 @@ class _ViewerBudgetPanel extends StatelessWidget {
                     fontFamily: FontFamily.dMSans,
                     fontSize: 12,
                     fontStyle: FontStyle.italic,
-                    color: AppColors.reviewInk.withValues(alpha: 0.55),
+                    color: inkColor.withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -860,12 +893,15 @@ class _ViewerBudgetPanel extends StatelessWidget {
     );
   }
 
-  (String?, Color) _statusPresentation(String? status) {
+  (String?, Color) _statusPresentation(String? status, Brightness brightness) {
     return switch (status) {
       'onTrack' => (l10n.budgetViewerStatusOnTrack, ColorName.secondary),
       'tight' => (l10n.budgetViewerStatusTight, ColorName.warning),
-      'overBudget' => (l10n.budgetViewerStatusOverBudget, AppColors.dangerIcon),
-      _ => (null, ColorName.hint),
+      'overBudget' => (
+        l10n.budgetViewerStatusOverBudget,
+        AppColors.dangerIconOf(brightness),
+      ),
+      _ => (null, AppColors.textSecondaryOf(brightness)),
     };
   }
 }

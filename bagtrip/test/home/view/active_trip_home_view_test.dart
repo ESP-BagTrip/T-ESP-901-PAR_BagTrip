@@ -1,3 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
+import 'package:bagtrip/design/app_theme.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/view/active_trip_home_view.dart';
@@ -5,13 +7,14 @@ import 'package:bagtrip/home/widgets/home_two_zone_layout.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:bagtrip/models/activity.dart';
 import 'package:bagtrip/models/trip.dart';
-import 'package:bagtrip/trip_detail/widgets/completion_ring.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/pump_widget.dart';
 import '../../helpers/test_fixtures.dart';
 
 class MockHomeBloc extends MockBloc<HomeEvent, HomeState> implements HomeBloc {}
@@ -28,7 +31,6 @@ void main() {
     String destinationName = 'Tokyo',
     List<Trip> upcomingTrips = const [],
     List<Activity> allActivities = const [],
-    int completionPercentage = 0,
   }) {
     final user = makeUser(fullName: fullName);
     final now = DateTime.now();
@@ -37,7 +39,7 @@ void main() {
       destinationName: destinationName,
       startDate: now.subtract(const Duration(days: 2)),
       endDate: now.add(const Duration(days: 5)),
-    ).copyWith(completionPercentage: completionPercentage);
+    );
 
     final state = HomeActiveTrip(
       user: user,
@@ -48,11 +50,8 @@ void main() {
 
     when(() => mockHomeBloc.state).thenReturn(state);
 
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: const Locale('en'),
-      home: BlocProvider<HomeBloc>.value(
+    return localizedRouterApp(
+      child: BlocProvider<HomeBloc>.value(
         value: mockHomeBloc,
         child: Scaffold(
           body: TickerMode(
@@ -80,6 +79,44 @@ void main() {
       );
     });
 
+    testWidgets('uses profile sheet colors in dark mode', (tester) async {
+      final state = HomeActiveTrip(
+        user: makeUser(),
+        activeTrip: makeTrip(status: TripStatus.ongoing),
+      );
+      when(() => mockHomeBloc.state).thenReturn(state);
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.dark(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          routerConfig: testGoRouter(
+            home: BlocProvider<HomeBloc>.value(
+              value: mockHomeBloc,
+              child: TickerMode(
+                enabled: false,
+                child: ActiveTripHomeView(state: state),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DecoratedBox &&
+              w.decoration is BoxDecoration &&
+              (w.decoration as BoxDecoration).color ==
+                  AppColors.profileSheetBackgroundOf(Brightness.dark),
+        ),
+        findsWidgets,
+      );
+    });
+
     testWidgets('shows trip in progress eyebrow', (tester) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
@@ -94,12 +131,16 @@ void main() {
       expect(find.text('Tokyo'), findsOneWidget);
     });
 
-    testWidgets('shows completion ring', (tester) async {
-      await tester.pumpWidget(buildApp(completionPercentage: 42));
+    testWidgets('tapping active trip hero opens programme', (tester) async {
+      await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
-      expect(find.byType(CompletionRing), findsOneWidget);
-      expect(find.text('42%'), findsOneWidget);
+      final heroContext = tester.element(find.text('Tokyo'));
+      final router = GoRouter.of(heroContext);
+      await tester.tap(find.text('Tokyo'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.path, kTestActiveTripProgrammePath);
     });
 
     testWidgets('shows highlight activity title', (tester) async {
@@ -148,6 +189,16 @@ void main() {
 
       expect(find.text('Upcoming trip'), findsOneWidget);
       expect(find.text('Paris'), findsOneWidget);
+    });
+
+    testWidgets('keeps upcoming section title when no planned trips remain', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Upcoming trip'), findsOneWidget);
+      expect(find.text('Plan a trip'), findsOneWidget);
     });
   });
 }

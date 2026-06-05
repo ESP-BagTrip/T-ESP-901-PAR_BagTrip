@@ -1,5 +1,5 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/home/bloc/home_bloc.dart';
 import 'package:bagtrip/home/widgets/create_trip_card.dart';
@@ -19,35 +19,33 @@ class IdleHomeView extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final trips = state.upcomingTrips;
     final hasTrips = trips.isNotEmpty;
+    final showUpcomingSection = !state.isNewUser;
 
     final topChildren = <Widget>[
       if (state.backgroundOngoingTrip != null) const _OngoingTripResumeBanner(),
     ];
 
     final bottomChildren = <Widget>[
-      if (!hasTrips)
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.space48),
-          child: CreateTripCard(
-            isFirstTrip: state.isNewUser,
-            subtitle: l10n.homeCreateFirstTripSubtitle,
-          ),
+      if (!showUpcomingSection)
+        CreateTripCard(
+          isFirstTrip: true,
+          subtitle: l10n.homeCreateFirstTripSubtitle,
+          lightShadow: true,
         )
       else ...[
         HomeTripListSection(
           compactHeader: true,
-          title: trips.length == 1
-              ? l10n.homeUpcomingTripsHeaderSingle
-              : l10n.homeUpcomingTripsHeaderPlural,
+          title: homeUpcomingSectionTitle(l10n, trips.length),
           trips: trips,
         ),
-        const SizedBox(height: AppSpacing.space8),
+        if (hasTrips) const SizedBox(height: AppSpacing.space8),
         CreateTripCard(isFirstTrip: state.isNewUser),
       ],
     ];
 
     return HomeTwoZoneLayout(
       includeTopSafeArea: true,
+      showBottomSheet: showUpcomingSection,
       greeting: _timeAwareGreeting(state.displayName, l10n),
       subtitle: _subtitleText(l10n, trips.length),
       topChildren: topChildren,
@@ -75,6 +73,12 @@ class _OngoingTripResumeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final brightness = theme.brightness;
+    final isDark = brightness == Brightness.dark;
+    final cardColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final foregroundColor = AppColors.profileMenuTitleOf(brightness);
     final l10n = AppLocalizations.of(context)!;
     return Material(
       color: Colors.transparent,
@@ -85,16 +89,18 @@ class _OngoingTripResumeBanner extends StatelessWidget {
         borderRadius: AppRadius.large16,
         child: Ink(
           decoration: BoxDecoration(
-            color: ColorName.surface,
+            color: cardColor,
             borderRadius: AppRadius.large16,
-            border: Border.all(color: ColorName.surface),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x140E1A2B),
-                blurRadius: 16,
-                offset: Offset(0, 8),
-              ),
-            ],
+            border: Border.all(color: borderColor),
+            boxShadow: isDark
+                ? null
+                : const [
+                    BoxShadow(
+                      color: Color(0x140E1A2B),
+                      blurRadius: 16,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -103,19 +109,20 @@ class _OngoingTripResumeBanner extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.flight_takeoff_rounded),
+                Icon(Icons.flight_takeoff_rounded, color: foregroundColor),
                 const SizedBox(width: AppSpacing.space12),
                 Expanded(
                   child: Text(
                     l10n.homeResumeActiveTripSubtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: foregroundColor,
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Icon(Icons.chevron_right, color: foregroundColor),
               ],
             ),
           ),

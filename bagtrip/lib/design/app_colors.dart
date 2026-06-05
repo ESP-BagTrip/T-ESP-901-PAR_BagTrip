@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
@@ -136,6 +137,18 @@ class AppColors {
   static Color profileSheetBackgroundOf(Brightness b) =>
       b == Brightness.dark ? primaryTrueDark : surfaceLight;
 
+  /// Trip detail panel zone — slightly darker than card surfaces so lists read
+  /// clearly in light mode; navy sheet in dark.
+  static const Color tripDetailPageBackgroundLight = Color(0xFFF2F4F7);
+
+  static Color tripDetailPageBackgroundOf(Brightness b) => b == Brightness.dark
+      ? profileSheetBackgroundOf(b)
+      : tripDetailPageBackgroundLight;
+
+  /// Panel chips bar track behind unselected tabs.
+  static Color panelChipsBarTrackOf(Brightness b) =>
+      b == Brightness.dark ? primaryDark : primaryTrueDark;
+
   /// Primary label on profile menu rows and booking cards.
   static Color profileMenuTitleOf(Brightness b) =>
       b == Brightness.dark ? surface : primaryTrueDark;
@@ -254,6 +267,32 @@ class AppColors {
       b == Brightness.dark ? reviewBorderLightDark : reviewBorderLight;
   static Color reviewDividerFaintOf(Brightness b) =>
       b == Brightness.dark ? reviewDividerFaintDark : reviewDividerFaint;
+
+  /// Review / trip-detail sheet scaffold (same as profile sheet zone).
+  static Color reviewSheetBackgroundOf(Brightness b) =>
+      profileSheetBackgroundOf(b);
+
+  // --- Review card surfaces (profile surfaceGroup on light) ---
+  static const Color reviewCardSurface = ColorName.surfaceGroup;
+  static const Color reviewCardSurfaceDark = Color(0xFF1F4772);
+
+  static Color reviewCardSurfaceOf(Brightness b) =>
+      b == Brightness.dark ? reviewCardSurfaceDark : reviewCardSurface;
+
+  static Color reviewCardBorderOf(Brightness b) => b == Brightness.dark
+      ? reviewBorderLightDark
+      : ColorName.surfaceGroupBorder;
+
+  /// Profile-style elevation for review / trip-detail cards (light only).
+  static List<BoxShadow>? reviewCardShadowOf(Brightness b) =>
+      b == Brightness.dark ? null : AppShadows.card;
+
+  // --- Review accent surfaces (navy cards / CTAs on light) ---
+  static const Color reviewAccentSurface = Color(0xFF0D1F35);
+  static const Color reviewAccentSurfaceDark = Color(0xFF2A3F5C);
+
+  static Color reviewAccentSurfaceOf(Brightness b) =>
+      b == Brightness.dark ? reviewAccentSurfaceDark : reviewAccentSurface;
 
   // --- Budget breakdown (review panel pastel ring chart) ---
   static const Color budgetTransport = Color(0xFFE8A4B8);

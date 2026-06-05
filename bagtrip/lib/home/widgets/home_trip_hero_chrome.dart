@@ -1,46 +1,17 @@
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
-/// Shared gradient placeholder when a trip has no cover or the image fails.
-class HomeTripHeroCoverFallback extends StatelessWidget {
-  const HomeTripHeroCoverFallback({super.key});
+export 'package:bagtrip/design/widgets/review/trip_cover_hero_overlay.dart'
+    show TripCoverHeroFallback, TripCoverHeroScrim;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A2B48), Color(0xFF2D4A6F)],
-        ),
-      ),
-    );
-  }
-}
+/// @nodoc — prefer [TripCoverHeroFallback].
+typedef HomeTripHeroCoverFallback = TripCoverHeroFallback;
 
-/// Darkening scrim over the hero cover (active card + upcoming list cards).
-class HomeTripHeroCoverScrim extends StatelessWidget {
-  const HomeTripHeroCoverScrim({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF1A2B48).withValues(alpha: 0.5),
-            const Color(0xFF1A2B48).withValues(alpha: 0.85),
-          ],
-        ),
-      ),
-    );
-  }
-}
+/// @nodoc — prefer [TripCoverHeroScrim].
+typedef HomeTripHeroCoverScrim = TripCoverHeroScrim;
 
 /// Semi-transparent pill chrome for labels on dark hero imagery.
 class HomeTripHeroPill extends StatelessWidget {

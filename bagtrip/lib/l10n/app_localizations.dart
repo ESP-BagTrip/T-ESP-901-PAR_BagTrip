@@ -3446,6 +3446,12 @@ abstract class AppLocalizations {
   /// **'Génération...'**
   String get stepGeneration;
 
+  /// No description provided for @generationHeroTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planification du voyage'**
+  String get generationHeroTitle;
+
   /// No description provided for @generationTitle.
   ///
   /// In fr, this message translates to:
@@ -3913,6 +3919,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Programme'**
   String get activeHomeProgrammeTitle;
+
+  /// No description provided for @activeHomeEditProgrammeFab.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le programme'**
+  String get activeHomeEditProgrammeFab;
 
   /// No description provided for @activeHomeNoActivitiesDay.
   ///

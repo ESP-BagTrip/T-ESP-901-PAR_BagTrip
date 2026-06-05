@@ -79,23 +79,17 @@ class BudgetStripe extends StatelessWidget {
   /// When provided, each legend row becomes tappable.
   final ValueChanged<int>? onEntryTap;
 
-  static const _ink = AppColors.reviewInk;
-
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final ink = AppColors.reviewInkOf(brightness);
     final sum = entries.fold<double>(0, (value, entry) => value + entry.amount);
     final resolvedTotal = total > 0 ? total : sum;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.space16),
@@ -108,12 +102,12 @@ class BudgetStripe extends StatelessWidget {
               children: [
                 Text(
                   resolvedTotal.formatPrice(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontSize: 28,
                     fontWeight: FontWeight.w400,
                     letterSpacing: -0.5,
-                    color: _ink,
+                    color: ink,
                     height: 1,
                   ),
                 ),
@@ -125,7 +119,7 @@ class BudgetStripe extends StatelessWidget {
                       fontFamily: FontFamily.b612,
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      color: _ink.withValues(alpha: 0.4),
+                      color: ink.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -156,6 +150,7 @@ class BudgetStripe extends StatelessWidget {
               _LegendRow(
                 entry: entries[i],
                 onTap: onEntryTap == null ? null : () => onEntryTap!(i),
+                ink: ink,
               ),
           ],
         ),
@@ -165,10 +160,15 @@ class BudgetStripe extends StatelessWidget {
 }
 
 class _LegendRow extends StatelessWidget {
-  const _LegendRow({required this.entry, required this.onTap});
+  const _LegendRow({
+    required this.entry,
+    required this.onTap,
+    required this.ink,
+  });
 
   final BudgetStripeEntry entry;
   final VoidCallback? onTap;
+  final Color ink;
 
   @override
   Widget build(BuildContext context) {
@@ -192,18 +192,18 @@ class _LegendRow extends StatelessWidget {
                 fontFamily: FontFamily.b612,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w400,
-                color: AppColors.reviewInk.withValues(alpha: 0.7),
+                color: ink.withValues(alpha: 0.7),
               ),
             ),
           ),
           Text(
             entry.amount.formatPrice(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.b612,
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
               letterSpacing: -0.2,
-              color: AppColors.reviewInk,
+              color: ink,
             ),
           ),
         ],

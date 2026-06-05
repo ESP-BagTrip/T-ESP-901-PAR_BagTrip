@@ -1,18 +1,15 @@
+import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
+import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/accommodations/widgets/manual_accommodation_form.dart';
 import 'package:bagtrip/components/adaptive/adaptive_context_menu.dart';
-import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/core/extensions/datetime_ext.dart';
 import 'package:bagtrip/core/extensions/price_format_ext.dart';
 import 'package:bagtrip/core/trip_enums.dart';
 import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/accommodations/bloc/accommodation_bloc.dart';
-import 'package:bagtrip/accommodations/widgets/hotel_search_sheet.dart';
 import 'package:bagtrip/design/widgets/item_form_scaffold.dart';
-import 'package:bagtrip/design/widgets/item_status_chip.dart';
 import 'package:bagtrip/design/widgets/replace_search_sheet.dart';
-import 'package:bagtrip/design/widgets/review/hotel_stats_grid.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/design/widgets/review/sheets/quick_preview_sheet.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
@@ -23,6 +20,7 @@ import 'package:bagtrip/models/trip.dart';
 import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/view/panels/skipped_panel_state.dart';
+import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/trip_detail/widgets/section_error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,6 +89,13 @@ class HotelPanel extends StatelessWidget {
     );
   }
 
+  void _validate(BuildContext context, Accommodation acc) {
+    AppHaptics.success();
+    context.read<TripDetailBloc>().add(
+      ValidateAccommodationFromDetail(accommodationId: acc.id),
+    );
+  }
+
   /// Phase 5 — collects the booking reference, persists it on the row,
   /// then dispatches the validate event. Hôtel doesn't have a BagTrip
   /// booking branch (Amadeus search-only), so this is the single
@@ -127,9 +132,11 @@ class HotelPanel extends StatelessWidget {
           bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
         ),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: AppColors.profileSheetBackgroundOf(
+              Theme.of(sheetContext).brightness,
+            ),
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.cornerRadius20),
             ),
           ),
@@ -145,7 +152,9 @@ class HotelPanel extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
+                      color: AppColors.reviewUncheckedOf(
+                        Theme.of(sheetContext).brightness,
+                      ),
                       borderRadius: AppRadius.handleBar,
                     ),
                   ),
@@ -154,7 +163,7 @@ class HotelPanel extends StatelessWidget {
                 Text(
                   l10n.activityValidateAction,
                   style: const TextStyle(
-                    fontFamily: FontFamily.b612,
+                    fontFamily: FontFamily.dMSans,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -429,28 +438,30 @@ class HotelPanel extends StatelessWidget {
               locale: locale,
               onTap: () => _showPreview(context, acc),
             );
-            // Phase 1 — material truth on the panel: SUGGESTED hôtel
-            // wears the halo chip; VALIDATED + MANUAL stay clean.
-            final card = acc.validationStatus == ValidationStatus.suggested
-                ? Stack(
-                    children: [
-                      hotelCard,
-                      const Positioned(
-                        top: AppSpacing.space8,
-                        right: AppSpacing.space8,
-                        child: ItemStatusChip(
-                          kind: ItemStatusChipKind.suggested,
-                        ),
-                      ),
-                    ],
-                  )
-                : hotelCard;
+            final card = hotelCard;
             if (!canEdit) return card;
+            final isSuggested =
+                acc.validationStatus == ValidationStatus.suggested;
             return Dismissible(
               key: ValueKey('accommodation-${acc.id}'),
-              direction: DismissDirection.endToStart,
-              background: const _DeleteBackground(),
-              confirmDismiss: (_) async {
+              direction: isSuggested
+                  ? DismissDirection.horizontal
+                  : DismissDirection.endToStart,
+              background: const _SwipeActionBackground(
+                color: ColorName.secondary,
+                icon: Icons.check_rounded,
+                alignment: Alignment.centerLeft,
+              ),
+              secondaryBackground: const _SwipeActionBackground(
+                color: ColorName.error,
+                icon: Icons.delete_outline_rounded,
+                alignment: Alignment.centerRight,
+              ),
+              confirmDismiss: (direction) async {
+                if (direction == DismissDirection.startToEnd) {
+                  _validate(context, acc);
+                  return false;
+                }
                 AppHaptics.medium();
                 return true;
               },
@@ -503,35 +514,131 @@ class _HotelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final localeCode = Localizations.localeOf(context).languageCode;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.profileMenuMutedOf(brightness);
     final checkIn = accommodation.checkIn;
     final checkOut = accommodation.checkOut;
     final nights = (checkIn != null && checkOut != null)
         ? checkIn.nightsUntil(checkOut).clamp(1, 365)
         : 1;
     final perNight = accommodation.pricePerNight;
+    final totalStay = perNight != null ? perNight * nights : null;
+    final location = _shortAddress(accommodation.address);
+    final totalStayLabel = localeCode == 'fr' ? 'TOTAL SÉJOUR' : 'TOTAL STAY';
+    final accommodationLabel = localeCode == 'fr'
+        ? 'HÉBERGEMENT'
+        : 'ACCOMMODATION';
 
     final fmt = DateFormat('d MMM', locale);
 
     final card = Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: surfaceColor,
         borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
+        ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 72,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.reviewHeroDark, ColorName.primaryDark],
-              ),
+              color: ColorName.primaryTrueDark,
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
-            padding: const EdgeInsets.all(AppSpacing.space16),
-            child: const Align(
-              alignment: Alignment.centerLeft,
-              child: Icon(Icons.hotel_rounded, color: ColorName.surface),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.space16,
+              AppSpacing.space12,
+              AppSpacing.space16,
+              AppSpacing.space16,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: ColorName.secondary.withValues(alpha: 0.14),
+                    borderRadius: AppRadius.large16,
+                    border: Border.all(
+                      color: ColorName.secondary.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.menu_book_outlined,
+                    size: 20,
+                    color: ColorName.secondary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.space12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        accommodationLabel,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                          color: ColorName.surface,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.space4),
+                      Text(
+                        '$location \u00b7 ${l10n.reviewHotelStayNights(nights)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.surface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.space12,
+                    vertical: AppSpacing.space8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ColorName.secondary.withValues(alpha: 0.14),
+                    borderRadius: AppRadius.pill,
+                    border: Border.all(color: ColorName.secondary),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 14,
+                        color: ColorName.secondary,
+                      ),
+                      SizedBox(width: AppSpacing.space4),
+                      Text(
+                        'IA',
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           Padding(
@@ -541,11 +648,12 @@ class _HotelCard extends StatelessWidget {
               children: [
                 Text(
                   accommodation.name,
-                  style: const TextStyle(
+                  maxLines: 1,
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: ColorName.primaryDark,
+                    color: titleColor,
                   ),
                 ),
                 if (accommodation.address != null &&
@@ -555,32 +663,79 @@ class _HotelCard extends StatelessWidget {
                     accommodation.address!.toUpperCase(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 1,
-                      color: ColorName.hint,
+                      color: mutedColor,
                     ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.space16),
-                HotelStatsGrid(
-                  entries: [
-                    (
-                      l10n.reviewHotelCheckIn,
-                      checkIn != null ? fmt.format(checkIn) : '--',
+                Row(
+                  children: [
+                    Expanded(
+                      child: _MetaCard(
+                        label: l10n.reviewHotelCheckIn,
+                        value: checkIn != null ? fmt.format(checkIn) : '--',
+                      ),
                     ),
-                    (
-                      l10n.reviewHotelCheckOut,
-                      checkOut != null ? fmt.format(checkOut) : '--',
-                    ),
-                    (l10n.reviewHotelNights, '$nights'),
-                    (
-                      l10n.reviewHotelPerNight,
-                      perNight != null ? perNight.formatPrice() : '--',
+                    const SizedBox(width: AppSpacing.space12),
+                    Expanded(
+                      child: _MetaCard(
+                        label: l10n.reviewHotelCheckOut,
+                        value: checkOut != null ? fmt.format(checkOut) : '--',
+                      ),
                     ),
                   ],
+                ),
+                const SizedBox(height: AppSpacing.space12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.space16),
+                  decoration: BoxDecoration(
+                    color: AppColors.reviewAccentSurfaceOf(brightness),
+                    borderRadius: AppRadius.large16,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        totalStayLabel,
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+
+                          color: ColorName.secondary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.space4),
+                      Text(
+                        totalStay != null ? totalStay.formatPrice() : '--',
+                        style: const TextStyle(
+                          fontFamily: FontFamily.dMSerifDisplay,
+                          fontSize: 18,
+                          height: 1,
+                          fontWeight: FontWeight.w600,
+                          color: ColorName.surface,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.space4),
+                      Text(
+                        perNight != null
+                            ? '${perNight.formatPrice()} / ${l10n.reviewHotelPerNight.toLowerCase()}'
+                            : '--',
+                        style: TextStyle(
+                          fontFamily: FontFamily.dMSans,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: ColorName.surface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -596,6 +751,58 @@ class _HotelCard extends StatelessWidget {
         borderRadius: AppRadius.large16,
         onTap: onTap,
         child: card,
+      ),
+    );
+  }
+
+  String _shortAddress(String? rawAddress) {
+    if (rawAddress == null || rawAddress.trim().isEmpty) return '--';
+    final chunk = rawAddress.split(',').first.trim();
+    return chunk.isEmpty ? '--' : chunk;
+  }
+}
+
+class _MetaCard extends StatelessWidget {
+  const _MetaCard({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.space16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGroupOf(brightness),
+        borderRadius: AppRadius.large16,
+        border: Border.all(color: AppColors.reviewCardBorderOf(brightness)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: FontFamily.dMSans,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+
+              color: AppColors.textSecondaryOf(brightness),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.space4),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: FontFamily.dMSerifDisplay,
+              fontSize: 18,
+              height: 1,
+              fontWeight: FontWeight.w600,
+              color: AppColors.profileMenuTitleOf(brightness),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -693,23 +900,25 @@ class _KVRow extends StatelessWidget {
   }
 }
 
-class _DeleteBackground extends StatelessWidget {
-  const _DeleteBackground();
+class _SwipeActionBackground extends StatelessWidget {
+  const _SwipeActionBackground({
+    required this.color,
+    required this.icon,
+    required this.alignment,
+  });
+
+  final Color color;
+  final IconData icon;
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.centerRight,
-      decoration: const BoxDecoration(
-        color: ColorName.error,
-        borderRadius: AppRadius.large16,
-      ),
+      margin: const EdgeInsets.only(bottom: AppSpacing.space16),
+      decoration: BoxDecoration(color: color, borderRadius: AppRadius.large16),
+      alignment: alignment,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.space24),
-      child: const Icon(
-        Icons.delete_outline_rounded,
-        color: Colors.white,
-        size: 24,
-      ),
+      child: Icon(icon, color: Colors.white, size: 28),
     );
   }
 }

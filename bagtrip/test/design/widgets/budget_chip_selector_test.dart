@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/widgets/budget_chip_selector.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
@@ -88,10 +89,13 @@ void main() {
       expect(selectedDecoration.boxShadow, isNotNull);
       expect(selectedDecoration.boxShadow, isNotEmpty);
 
-      // An unselected chip (index 0) should have surface background.
+      // An unselected chip (index 0) should use grouped surface background.
       final unselectedDecoration =
           animatedContainers[0].decoration! as BoxDecoration;
-      expect(unselectedDecoration.color, ColorName.surface);
+      expect(
+        unselectedDecoration.color,
+        AppColors.surfaceGroupOf(Brightness.light),
+      );
       expect(
         unselectedDecoration.border,
         isA<Border>().having((b) => b.top.width, 'border width', 1),

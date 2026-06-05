@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -31,6 +32,7 @@ class ActivityPanelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final meta = _buildMetaLine(timeLabel, location);
     final showValidatedAccent = validationStatus == ValidationStatus.validated;
 
@@ -61,11 +63,11 @@ class ActivityPanelCard extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSerifDisplay,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: ColorName.primaryDark,
+                    color: AppColors.profileMenuTitleOf(brightness),
                   ),
                 ),
                 if (meta != null) ...[
@@ -88,12 +90,12 @@ class ActivityPanelCard extends StatelessWidget {
                     description,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: FontFamily.dMSans,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       height: 1.4,
-                      color: ColorName.hint,
+                      color: AppColors.textSecondaryOf(brightness),
                     ),
                   ),
                 ],
@@ -131,21 +133,33 @@ class ActivityPanelCard extends StatelessWidget {
       ),
     );
 
-    final card = ClipRRect(
-      borderRadius: AppRadius.large16,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(color: ColorName.surface),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showValidatedAccent)
-                const ColoredBox(
-                  color: ColorName.secondary,
-                  child: SizedBox(width: _validatedAccentWidth),
-                ),
-              Expanded(child: content),
-            ],
+    final card = Container(
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.large16,
+        border: Border.all(
+          color: AppColors.reviewCardBorderOf(brightness),
+          width: 0.5,
+        ),
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.large16,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.reviewCardSurfaceOf(brightness),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (showValidatedAccent)
+                  const ColoredBox(
+                    color: ColorName.secondary,
+                    child: SizedBox(width: _validatedAccentWidth),
+                  ),
+                Expanded(child: content),
+              ],
+            ),
           ),
         ),
       ),

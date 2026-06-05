@@ -1,5 +1,6 @@
 import 'package:bagtrip/design/personalization_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
+import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:flutter/material.dart';
 
 /// Single-select premium card with glass style and scale animation.
@@ -71,7 +72,7 @@ class _PremiumSelectCardState extends State<PremiumSelectCard> {
                   widget.icon,
                   size: widget.iconSize,
                   color: widget.selected
-                      ? PersonalizationColors.accentBlue
+                      ? ColorName.secondary
                       : PersonalizationColors.textSecondary,
                 ),
               if (widget.emoji != null || widget.icon != null)

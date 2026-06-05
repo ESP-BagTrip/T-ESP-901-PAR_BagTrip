@@ -1,4 +1,5 @@
 import 'package:bagtrip/navigation/route_definitions.dart';
+import 'package:bagtrip/trip_detail/helpers/trip_detail_tabs.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,6 +22,16 @@ void main() {
 
     test('existing TripHomeRoute unchanged', () {
       expect(const TripHomeRoute(tripId: 'x').location, '/home/x');
+    });
+
+    test('TripHomeRoute with activities tab adds query param', () {
+      expect(
+        const TripHomeRoute(
+          tripId: 'x',
+          tab: TripDetailTab.activities,
+        ).location,
+        '/home/x?tab=activities',
+      );
     });
 
     test('ResetPasswordRoute carries the token as a query param', () {

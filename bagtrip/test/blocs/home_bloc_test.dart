@@ -16,6 +16,7 @@ class _FakePendingWriteOperation extends Fake
 void main() {
   late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
+  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivityService;
   late MockPostTripDismissalStorage mockDismissalStorage;
   late MockOfflineWriteQueue mockOfflineWriteQueue;
@@ -25,6 +26,7 @@ void main() {
     registerFallbackValue(PreferIdleHomeOverview());
     registerFallbackValue(ResumeActiveTripHome());
     registerFallbackValue(CompleteActiveTrip());
+    registerFallbackValue(RemoveUpcomingTrip(tripId: ''));
     registerFallbackValue(_FakePendingWriteOperation());
     registerFallbackValue((Map<String, dynamic> _) async => true);
   });
@@ -32,6 +34,7 @@ void main() {
   setUp(() {
     mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
+    mockActivityRepo = MockActivityRepository();
     mockConnectivityService = MockConnectivityService();
     mockDismissalStorage = MockPostTripDismissalStorage();
     mockOfflineWriteQueue = MockOfflineWriteQueue();
@@ -47,6 +50,9 @@ void main() {
       () => mockOfflineWriteQueue.registerHandler(any(), any()),
     ).thenReturn(null);
     when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
+    when(
+      () => mockActivityRepo.getActivities(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   /// Stub the aggregated `/home` read with the given grouped payload.
@@ -73,6 +79,7 @@ void main() {
   HomeBloc buildBloc() => HomeBloc(
     homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
+    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivityService,
     dismissalStorage: mockDismissalStorage,
     offlineWriteQueue: mockOfflineWriteQueue,
@@ -161,6 +168,86 @@ void main() {
       ],
     );
 
+    blocTest<HomeBloc, HomeState>(
+      'SyncActiveTripActivities copies activities into HomeActiveTrip',
+      build: () => buildBloc(),
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(
+        SyncActiveTripActivities([
+          makeActivity(
+            id: 'synced',
+            tripId: 'trip-ongoing',
+            title: 'Synced activity',
+            date: DateTime.now(),
+          ),
+        ]),
+      ),
+      expect: () => [
+        isA<HomeActiveTrip>().having(
+          (s) => s.allActivities.single.title,
+          'title',
+          'Synced activity',
+        ),
+      ],
+      verify: (_) {
+        verifyNever(() => mockActivityRepo.getActivities(any()));
+      },
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RefreshActiveTripActivities reloads allActivities from repository',
+      build: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        stubHome(ongoing: [trip], activeTripActivities: []);
+        final newActivity = makeActivity(
+          id: 'act-new',
+          tripId: 'trip-ongoing',
+          title: 'New museum visit',
+          date: DateTime.now(),
+          startTime: '14:00',
+        );
+        when(
+          () => mockActivityRepo.getActivities('trip-ongoing'),
+        ).thenAnswer((_) async => Success([newActivity]));
+        return buildBloc();
+      },
+      seed: () {
+        final trip = makeTrip(
+          id: 'trip-ongoing',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        return HomeActiveTrip(user: makeUser(), activeTrip: trip);
+      },
+      act: (bloc) => bloc.add(RefreshActiveTripActivities()),
+      expect: () => [
+        isA<HomeActiveTrip>()
+            .having((s) => s.allActivities.length, 'allActivities.length', 1)
+            .having(
+              (s) => s.allActivities.first.title,
+              'allActivities.first.title',
+              'New museum visit',
+            ),
+      ],
+      verify: (_) {
+        verify(() => mockActivityRepo.getActivities('trip-ongoing')).called(1);
+      },
+    );
+
     // ── Test 3: Trip manager planned — no ongoing, planned exists ───
 
     blocTest<HomeBloc, HomeState>(
@@ -184,6 +271,73 @@ void main() {
               'nextTripCompletion',
               equals(0),
             ),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RemoveUpcomingTrip drops trip from HomeIdle upcomingTrips',
+      build: () {
+        final plannedA = makeTrip(
+          id: 'planned-a',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 5)),
+        );
+        final plannedB = makeTrip(
+          id: 'planned-b',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 10)),
+        );
+        stubHome(planned: [plannedA, plannedB]);
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadHome());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(RemoveUpcomingTrip(tripId: 'planned-a'));
+      },
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeIdle>().having((s) => s.upcomingTrips.length, 'count', 2),
+        isA<HomeIdle>()
+            .having((s) => s.upcomingTrips.length, 'count', 1)
+            .having((s) => s.nextTrip?.id, 'nextTrip.id', 'planned-b'),
+      ],
+    );
+
+    blocTest<HomeBloc, HomeState>(
+      'RemoveUpcomingTrip drops trip from HomeActiveTrip upcomingTrips',
+      build: () {
+        final ongoing = makeTrip(
+          id: 'ongoing-1',
+          status: TripStatus.ongoing,
+          startDate: DateTime.now().subtract(const Duration(days: 1)),
+          endDate: DateTime.now().add(const Duration(days: 3)),
+        );
+        final planned = makeTrip(
+          id: 'planned-next',
+          status: TripStatus.planned,
+          startDate: DateTime.now().add(const Duration(days: 10)),
+        );
+        stubHome(ongoing: [ongoing], planned: [planned]);
+        return buildBloc();
+      },
+      act: (bloc) async {
+        bloc.add(LoadHome());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(RemoveUpcomingTrip(tripId: 'planned-next'));
+      },
+      expect: () => [
+        isA<HomeLoading>(),
+        isA<HomeActiveTrip>().having(
+          (s) => s.upcomingTrips.length,
+          'upcoming count',
+          1,
+        ),
+        isA<HomeActiveTrip>().having(
+          (s) => s.upcomingTrips,
+          'upcoming',
+          isEmpty,
+        ),
       ],
     );
 

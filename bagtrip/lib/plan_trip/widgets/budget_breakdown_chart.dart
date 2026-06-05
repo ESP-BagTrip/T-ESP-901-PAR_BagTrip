@@ -20,6 +20,9 @@ class BudgetBreakdownChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final secondaryText = PersonalizationColors.textSecondaryOf(brightness);
+    final primaryText = PersonalizationColors.textPrimaryOf(brightness);
     final entries = _extractEntries(l10n);
     if (entries.isEmpty) return const SizedBox.shrink();
 
@@ -72,20 +75,20 @@ class BudgetBreakdownChart extends StatelessWidget {
                     const SizedBox(width: AppSpacing.space8),
                     Text(
                       entry.label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
-                        color: PersonalizationColors.textSecondary,
+                        color: secondaryText,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       l10n.reviewPriceEur(entry.amount.toStringAsFixed(0)),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.b612,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: PersonalizationColors.textPrimary,
+                        color: primaryText,
                       ),
                     ),
                   ],
@@ -99,11 +102,11 @@ class BudgetBreakdownChart extends StatelessWidget {
             children: [
               Text(
                 l10n.reviewBudgetTotal,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: PersonalizationColors.textPrimary,
+                  color: primaryText,
                 ),
               ),
               const Spacer(),

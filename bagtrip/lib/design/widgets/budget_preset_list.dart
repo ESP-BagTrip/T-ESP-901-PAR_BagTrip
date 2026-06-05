@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/budget_chip_selector.dart';
@@ -21,31 +22,34 @@ class BudgetPresetList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final dividerColor = AppColors.surfaceGroupBorderOf(brightness);
+
     return ClipRRect(
       borderRadius: AppRadius.large16,
       child: Container(
         decoration: BoxDecoration(
-          color: ColorName.surface,
+          color: surfaceColor,
           borderRadius: AppRadius.large24,
-          border: Border.all(color: ColorName.primarySoftLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-            ),
-          ],
+          border: Border.all(color: borderColor),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                  ),
+                ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (int i = 0; i < options.length; i++) ...[
-              if (i > 0)
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE8EAED),
-                ),
+              if (i > 0) Divider(height: 1, thickness: 1, color: dividerColor),
               _BudgetPresetRow(
                 option: options[i],
                 isSelected: selectedIndex == i,
@@ -119,6 +123,9 @@ class _BudgetPresetRowState extends State<_BudgetPresetRow>
   @override
   Widget build(BuildContext context) {
     final o = widget.option;
+    final brightness = Theme.of(context).brightness;
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final mutedColor = AppColors.textSecondaryOf(brightness);
 
     return Material(
       color: Colors.transparent,
@@ -147,20 +154,20 @@ class _BudgetPresetRowState extends State<_BudgetPresetRow>
                   children: [
                     Text(
                       o.label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.dMSerifDisplay,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: ColorName.primaryDark,
+                        color: titleColor,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.space4),
                     Text(
                       o.range,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: FontFamily.dMSans,
                         fontSize: 14,
-                        color: ColorName.hint,
+                        color: mutedColor,
                       ),
                     ),
                   ],

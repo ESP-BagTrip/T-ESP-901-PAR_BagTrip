@@ -1,6 +1,6 @@
 import 'package:bagtrip/core/platform/adaptive_platform.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
@@ -71,10 +71,12 @@ class _IosDateRangePickerSheetState extends State<_IosDateRangePickerSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final brightness = Theme.of(context).brightness;
+    final sheetColor = AppColors.profileSheetBackgroundOf(brightness);
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: sheetColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -86,7 +88,7 @@ class _IosDateRangePickerSheetState extends State<_IosDateRangePickerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.3),
+                color: AppColors.reviewUncheckedOf(brightness),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -94,11 +96,11 @@ class _IosDateRangePickerSheetState extends State<_IosDateRangePickerSheet> {
           const SizedBox(height: AppSpacing.space16),
           Text(
             l10n.editTripDates,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: FontFamily.b612,
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: ColorName.primaryTrueDark,
+              color: AppColors.profileMenuTitleOf(brightness),
             ),
           ),
           const SizedBox(height: AppSpacing.space24),
@@ -110,10 +112,10 @@ class _IosDateRangePickerSheetState extends State<_IosDateRangePickerSheet> {
               alignment: Alignment.centerLeft,
               child: Text(
                 l10n.editTripStartDate,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
-                  color: ColorName.textMutedLight,
+                  color: AppColors.textSecondaryOf(brightness),
                 ),
               ),
             ),
@@ -145,10 +147,10 @@ class _IosDateRangePickerSheetState extends State<_IosDateRangePickerSheet> {
               alignment: Alignment.centerLeft,
               child: Text(
                 l10n.editTripEndDate,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.b612,
                   fontSize: 14,
-                  color: ColorName.textMutedLight,
+                  color: AppColors.textSecondaryOf(brightness),
                 ),
               ),
             ),

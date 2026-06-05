@@ -16,11 +16,6 @@ class ActiveTripWeatherCard extends StatelessWidget {
     required this.destinationTimezone,
   });
 
-  /// Stable finder target for widget tests.
-  static const ValueKey<String> heroWeatherKey = ValueKey<String>(
-    'activeTripHeroWeather',
-  );
-
   final WeatherSummary? weather;
   final String? destinationTimezone;
 
@@ -43,8 +38,7 @@ class ActiveTripWeatherCard extends StatelessWidget {
             horizontal: AppSpacing.space12,
             vertical: AppSpacing.space8,
           ),
-          child: Column(
-            key: heroWeatherKey,
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               _HeroWeatherGlyph(
@@ -52,7 +46,7 @@ class ActiveTripWeatherCard extends StatelessWidget {
                 destinationTimezone: destinationTimezone,
                 sunAmber: _sunAmber,
               ),
-              const SizedBox(height: AppSpacing.space4),
+              const SizedBox(width: AppSpacing.space8),
               Text(
                 weather != null
                     ? _temperatureLine(weather!)
@@ -64,7 +58,7 @@ class ActiveTripWeatherCard extends StatelessWidget {
                   color: Colors.white,
                   height: 1.2,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.start,
               ),
             ],
           ),

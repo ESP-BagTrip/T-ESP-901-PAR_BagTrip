@@ -1,6 +1,6 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/review/hero_nav_button.dart';
-import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
 import 'package:flutter/material.dart';
 
@@ -65,10 +65,12 @@ class AiSuggestionsSheet<T> extends StatelessWidget {
       minChildSize: minChildSize,
       expand: false,
       builder: (sheetContext, scrollController) {
+        final brightness = Theme.of(sheetContext).brightness;
+
         return Container(
-          decoration: const BoxDecoration(
-            color: ColorName.primaryDark,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: AppColors.reviewAccentSurfaceOf(brightness),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
             children: [
@@ -80,14 +82,18 @@ class AiSuggestionsSheet<T> extends StatelessWidget {
               ),
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: ColorName.surfaceVariant,
-                    borderRadius: BorderRadius.vertical(
+                  decoration: BoxDecoration(
+                    color: AppColors.profileSheetBackgroundOf(brightness),
+                    borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
                   ),
                   child: suggestions.isEmpty
-                      ? _EmptyState(title: emptyTitle, subtitle: emptySubtitle)
+                      ? _EmptyState(
+                          title: emptyTitle,
+                          subtitle: emptySubtitle,
+                          brightness: brightness,
+                        )
                       : ListView.separated(
                           controller: scrollController,
                           padding: const EdgeInsets.fromLTRB(
@@ -110,10 +116,12 @@ class AiSuggestionsSheet<T> extends StatelessWidget {
                                 child: Text(
                                   disclaimer!,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: FontFamily.dMSans,
                                     fontSize: 11,
-                                    color: ColorName.hint,
+                                    color: AppColors.textSecondaryOf(
+                                      brightness,
+                                    ),
                                     height: 1.4,
                                   ),
                                 ),
@@ -215,10 +223,15 @@ class _Header extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.title, required this.subtitle});
+  const _EmptyState({
+    required this.title,
+    required this.subtitle,
+    required this.brightness,
+  });
 
   final String? title;
   final String? subtitle;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
@@ -228,20 +241,20 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.auto_awesome_rounded,
               size: 40,
-              color: ColorName.hint,
+              color: AppColors.textSecondaryOf(brightness),
             ),
             const SizedBox(height: AppSpacing.space16),
             if (title != null)
               Text(
                 title!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSerifDisplay,
                   fontSize: 18,
-                  color: ColorName.primaryDark,
+                  color: AppColors.profileMenuTitleOf(brightness),
                 ),
               ),
             if (subtitle != null) ...[
@@ -249,10 +262,10 @@ class _EmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSans,
                   fontSize: 13,
-                  color: ColorName.hint,
+                  color: AppColors.textSecondaryOf(brightness),
                 ),
               ),
             ],

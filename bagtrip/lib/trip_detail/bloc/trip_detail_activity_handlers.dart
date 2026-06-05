@@ -19,7 +19,19 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
               : a,
         )
         .toList();
-    emit(loaded.copyWith(activities: updatedActivities));
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: updatedActivities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(
+        activities: updatedActivities,
+        completionResult: completion,
+      ),
+    );
 
     final result = await _activityRepository.validate(
       _tripId!,
@@ -45,7 +57,19 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
     final updatedActivities = loaded.activities
         .where((a) => a.id != event.activityId)
         .toList();
-    emit(loaded.copyWith(activities: updatedActivities));
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: updatedActivities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(
+        activities: updatedActivities,
+        completionResult: completion,
+      ),
+    );
 
     final result = await _activityRepository.deleteActivity(
       _tripId!,
@@ -76,7 +100,19 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
               : a,
         )
         .toList();
-    emit(loaded.copyWith(activities: updatedActivities));
+    final completion = tripDetailCompletion(
+      trip: loaded.trip,
+      flights: loaded.flights,
+      accommodations: loaded.accommodations,
+      activities: updatedActivities,
+      baggageItems: loaded.baggageItems,
+    );
+    emit(
+      loaded.copyWith(
+        activities: updatedActivities,
+        completionResult: completion,
+      ),
+    );
 
     final result = await _activityRepository.batchUpdateActivities(
       _tripId!,
@@ -111,7 +147,19 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
       final updatedActivities = loaded.activities
           .map((a) => a.id == event.activityId ? data : a)
           .toList();
-      emit(loaded.copyWith(activities: updatedActivities));
+      final completion = tripDetailCompletion(
+        trip: loaded.trip,
+        flights: loaded.flights,
+        accommodations: loaded.accommodations,
+        activities: updatedActivities,
+        baggageItems: loaded.baggageItems,
+      );
+      emit(
+        loaded.copyWith(
+          activities: updatedActivities,
+          completionResult: completion,
+        ),
+      );
     }
   }
 
@@ -214,7 +262,19 @@ extension _TripDetailActivityHandlers on TripDetailBloc {
 
     if (result case Success(:final data)) {
       final updatedActivities = [...loaded.activities, data];
-      emit(loaded.copyWith(activities: updatedActivities));
+      final completion = tripDetailCompletion(
+        trip: loaded.trip,
+        flights: loaded.flights,
+        accommodations: loaded.accommodations,
+        activities: updatedActivities,
+        baggageItems: loaded.baggageItems,
+      );
+      emit(
+        loaded.copyWith(
+          activities: updatedActivities,
+          completionResult: completion,
+        ),
+      );
     }
   }
 }

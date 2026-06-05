@@ -1,4 +1,5 @@
 import 'package:bagtrip/design/app_animations.dart';
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/app_haptics.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/design/widgets/plan_trip_range_calendar.dart';
@@ -62,6 +63,8 @@ class FlexibleDatePicker extends StatelessWidget {
   }
 
   Widget _buildSegmentControl(BuildContext context, AppLocalizations l10n) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
     final labels = {
       DateMode.exact: l10n.datesModeExact,
       DateMode.month: l10n.datesModeMonth,
@@ -72,16 +75,20 @@ class FlexibleDatePicker extends StatelessWidget {
       width: double.infinity,
       padding: AppSpacing.allEdgeInsetSpace4,
       decoration: BoxDecoration(
-        color: ColorName.surface,
-        borderRadius: AppRadius.pill,
-        boxShadow: [
-          BoxShadow(
-            color: ColorName.primary.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-            spreadRadius: -2,
-          ),
-        ],
+        color: isDark
+            ? AppColors.surfaceGroupOf(brightness)
+            : ColorName.surface,
+        borderRadius: AppRadius.large16,
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: ColorName.primary.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                  spreadRadius: -2,
+                ),
+              ],
       ),
       child: Row(
         children: [
@@ -154,11 +161,23 @@ class _SegmentChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+
+    // Light mode: preserve original palette (hint / primaryDark).
+    final labelColor = selected
+        ? (isDark
+              ? AppColors.profileMenuTitleOf(brightness)
+              : ColorName.primaryDark)
+        : (isDark ? AppColors.textSecondaryOf(brightness) : ColorName.hint);
+
+    final fontWeight = selected && isDark ? FontWeight.w700 : FontWeight.w600;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: AppRadius.pill,
+        borderRadius: AppRadius.medium8,
         child: AnimatedContainer(
           duration: AppAnimations.microInteraction,
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
@@ -166,7 +185,7 @@ class _SegmentChip extends StatelessWidget {
             color: selected
                 ? ColorName.secondary.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: AppRadius.pill,
+            borderRadius: AppRadius.medium8,
           ),
           alignment: Alignment.center,
           child: Text(
@@ -177,8 +196,8 @@ class _SegmentChip extends StatelessWidget {
             style: TextStyle(
               fontFamily: FontFamily.dMSans,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: selected ? ColorName.primaryDark : ColorName.hint,
+              fontWeight: fontWeight,
+              color: labelColor,
             ),
           ),
         ),
@@ -361,6 +380,12 @@ class _DateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasDate = formattedDate.isNotEmpty;
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final surfaceColor = AppColors.surfaceGroupOf(brightness);
+    final borderColor = AppColors.surfaceGroupBorderOf(brightness);
+    final titleColor = AppColors.profileMenuTitleOf(brightness);
+    final placeholderColor = isDark ? titleColor : ColorName.hint;
 
     return Material(
       color: Colors.transparent,
@@ -370,15 +395,15 @@ class _DateCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: AppAnimations.microInteraction,
           decoration: BoxDecoration(
-            color: ColorName.surface,
+            color: surfaceColor,
             borderRadius: AppRadius.large24,
             border: Border.all(
               color: isActive
                   ? ColorName.secondary.withValues(alpha: 0.45)
-                  : ColorName.primarySoftLight,
+                  : borderColor,
               width: isActive ? 1.5 : 1,
             ),
-            boxShadow: isActive
+            boxShadow: isActive && !isDark
                 ? [
                     BoxShadow(
                       color: ColorName.secondary.withValues(alpha: 0.12),
@@ -429,9 +454,7 @@ class _DateCard extends StatelessWidget {
                           fontFamily: FontFamily.dMSerifDisplay,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: hasDate
-                              ? ColorName.primaryDark
-                              : ColorName.hint,
+                          color: hasDate ? titleColor : placeholderColor,
                         ),
                       ),
                     ],

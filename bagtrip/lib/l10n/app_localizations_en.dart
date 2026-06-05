@@ -1866,6 +1866,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepGeneration => 'Generating...';
 
   @override
+  String get generationHeroTitle => 'Trip planning';
+
+  @override
   String get generationTitle => 'AI GENERATION';
 
   @override
@@ -2137,6 +2140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeHomeProgrammeTitle => 'Schedule';
+
+  @override
+  String get activeHomeEditProgrammeFab => 'Edit schedule';
 
   @override
   String get activeHomeNoActivitiesDay => 'No activities on this day';

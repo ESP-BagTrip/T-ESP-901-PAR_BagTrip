@@ -15,6 +15,7 @@ class _FakePendingWriteOperation extends Fake
 void main() {
   late MockHomeRepository mockHomeRepo;
   late MockTripRepository mockTripRepo;
+  late MockActivityRepository mockActivityRepo;
   late MockConnectivityService mockConnectivity;
   late MockPostTripDismissalStorage mockDismissalStorage;
   late MockOfflineWriteQueue mockOfflineWriteQueue;
@@ -22,6 +23,7 @@ void main() {
   setUp(() {
     mockHomeRepo = MockHomeRepository();
     mockTripRepo = MockTripRepository();
+    mockActivityRepo = MockActivityRepository();
     mockConnectivity = MockConnectivityService();
     mockDismissalStorage = MockPostTripDismissalStorage();
     mockOfflineWriteQueue = MockOfflineWriteQueue();
@@ -38,11 +40,15 @@ void main() {
       () => mockOfflineWriteQueue.registerHandler(any(), any()),
     ).thenReturn(null);
     when(() => mockOfflineWriteQueue.enqueue(any())).thenAnswer((_) async {});
+    when(
+      () => mockActivityRepo.getActivities(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   HomeBloc buildBloc() => HomeBloc(
     homeRepository: mockHomeRepo,
     tripRepository: mockTripRepo,
+    activityRepository: mockActivityRepo,
     connectivityService: mockConnectivity,
     dismissalStorage: mockDismissalStorage,
     offlineWriteQueue: mockOfflineWriteQueue,

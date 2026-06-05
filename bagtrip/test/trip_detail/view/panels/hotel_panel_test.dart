@@ -4,6 +4,7 @@ import 'package:bagtrip/models/user_role.dart';
 import 'package:bagtrip/trip_detail/view/panels/trip_panel_empty_state.dart';
 import 'package:bagtrip/design/widgets/review/panel_fab.dart';
 import 'package:bagtrip/l10n/app_localizations.dart';
+import 'package:bagtrip/models/validation_status.dart';
 import 'package:bagtrip/trip_detail/bloc/trip_detail_bloc.dart';
 import 'package:bagtrip/trip_detail/helpers/trip_detail_completion.dart';
 import 'package:bagtrip/trip_detail/view/panels/hotel_panel.dart';
@@ -26,6 +27,9 @@ void main() {
       CreateAccommodationFromDetail(data: <String, dynamic>{}),
     );
     registerFallbackValue(DeleteAccommodationFromDetail(accommodationId: 'x'));
+    registerFallbackValue(
+      ValidateAccommodationFromDetail(accommodationId: 'x'),
+    );
   });
 
   setUp(() {
@@ -96,6 +100,35 @@ void main() {
     expect(find.text('Ryokan Arashiyama'), findsOneWidget);
   });
 
+  testWidgets('renders redesigned hotel card sections', (tester) async {
+    final acc = makeAccommodation(
+      id: 'a1',
+      name: 'Garden Court Nelson Mandela Boulevard',
+      address: 'Stockholm, Sweden',
+      checkIn: DateTime(2026, 5, 28),
+      checkOut: DateTime(2026, 5, 31),
+      pricePerNight: 2150,
+    );
+    await pump(
+      tester,
+      HotelPanel(
+        tripId: 'trip-1',
+        trip: makeTrip(),
+        accommodations: [acc],
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+
+    expect(find.text('CHECK-IN'), findsOneWidget);
+    expect(find.text('CHECK-OUT'), findsOneWidget);
+    expect(find.text('TOTAL STAY'), findsOneWidget);
+    expect(find.textContaining('28'), findsWidgets);
+    expect(find.textContaining('31'), findsWidgets);
+    expect(find.textContaining('/ per night'), findsOneWidget);
+  });
+
   testWidgets('PanelFab visible in edit mode', (tester) async {
     await pump(
       tester,
@@ -124,5 +157,61 @@ void main() {
       ),
     );
     expect(find.byType(PanelFab), findsNothing);
+  });
+
+  testWidgets(
+    'suggested accommodation uses horizontal dismissible and validates on right swipe',
+    (tester) async {
+      final suggested = makeAccommodation(
+        id: 's1',
+        validationStatus: ValidationStatus.suggested,
+      );
+      await pump(
+        tester,
+        HotelPanel(
+          tripId: 'trip-1',
+          trip: makeTrip(),
+          accommodations: [suggested],
+          canEdit: true,
+          isCompleted: false,
+          role: 'OWNER',
+        ),
+      );
+
+      final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+      expect(dismissible.direction, DismissDirection.horizontal);
+      expect(dismissible.background, isNotNull);
+      expect(dismissible.secondaryBackground, isNotNull);
+
+      await tester.drag(find.text('Hotel Paris'), const Offset(400, 0));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(any(that: isA<ValidateAccommodationFromDetail>())),
+      ).called(1);
+    },
+  );
+
+  testWidgets('manual accommodation only allows delete swipe direction', (
+    tester,
+  ) async {
+    final manual = makeAccommodation(
+      id: 'm1',
+      validationStatus: ValidationStatus.manual,
+    );
+    await pump(
+      tester,
+      HotelPanel(
+        tripId: 'trip-1',
+        trip: makeTrip(),
+        accommodations: [manual],
+        canEdit: true,
+        isCompleted: false,
+        role: 'OWNER',
+      ),
+    );
+
+    final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+    expect(dismissible.direction, DismissDirection.endToStart);
   });
 }

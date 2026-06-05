@@ -1,3 +1,4 @@
+import 'package:bagtrip/design/app_colors.dart';
 import 'package:bagtrip/design/tokens.dart';
 import 'package:bagtrip/gen/colors.gen.dart';
 import 'package:bagtrip/gen/fonts.gen.dart';
@@ -26,6 +27,7 @@ class ActivityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final row = Row(
       children: [
         Container(
@@ -47,11 +49,11 @@ class ActivityTile extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: FontFamily.dMSerifDisplay,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: ColorName.primaryDark,
+                  color: AppColors.profileMenuTitleOf(brightness),
                 ),
               ),
               if (description.isNotEmpty) ...[
@@ -60,11 +62,11 @@ class ActivityTile extends StatelessWidget {
                   description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: FontFamily.dMSans,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: ColorName.hint,
+                    color: AppColors.textSecondaryOf(brightness),
                   ),
                 ),
               ],
@@ -93,16 +95,20 @@ class ActivityTile extends StatelessWidget {
         ),
         if (showDragHandle) ...[
           const SizedBox(width: AppSpacing.space8),
-          const Icon(Icons.drag_handle_rounded, color: ColorName.hint),
+          Icon(
+            Icons.drag_handle_rounded,
+            color: AppColors.textSecondaryOf(brightness),
+          ),
         ],
       ],
     );
 
     final card = Container(
       padding: const EdgeInsets.all(AppSpacing.space16),
-      decoration: const BoxDecoration(
-        color: ColorName.surface,
+      decoration: BoxDecoration(
+        color: AppColors.reviewCardSurfaceOf(brightness),
         borderRadius: AppRadius.large16,
+        boxShadow: AppColors.reviewCardShadowOf(brightness),
       ),
       child: row,
     );
